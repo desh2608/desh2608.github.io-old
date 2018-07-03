@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Natural language processing on Desh Raj</title>
+    <link>https://desh2608.github.io/tags/natural-language-processing/</link>
+    <description>Recent content in Natural language processing on Desh Raj</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&amp;copy; 2018</copyright>
+    <lastBuildDate>Tue, 03 Jul 2018 16:56:46 +0530</lastBuildDate>
+    
+	<atom:link href="https://desh2608.github.io/tags/natural-language-processing/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Waldo: A system for optical character recognition</title>
+      <link>https://desh2608.github.io/project/waldo-ocr/</link>
+      <pubDate>Tue, 03 Jul 2018 16:56:46 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/waldo-ocr/</guid>
+      <description>It is an ongoing project under Prof. Daniel Povey to develop an Optical Character Recognition system that is robust on focused as well as incidental text. My contributions are:
+ Experimenting with the ICDAR 2015 Robust Reading Challenge dataset by modifying training script. A visualization and compression module for segmentation mask overlayed on images.  The system consists of a modified UNet first proposed in this paper.</description>
+    </item>
+    
+    <item>
+      <title>Irony detection in tweets</title>
+      <link>https://desh2608.github.io/project/irony-tweet/</link>
+      <pubDate>Tue, 20 Mar 2018 17:00:16 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/irony-tweet/</guid>
+      <description>The task was to recognize whether a tweet has irony or not - binary classification. In essence, we identified 2 aspects that were essential to identify irony in tweets:
+ Semantic interaction between text and hashtags, modeled using holographic embeddings (or circular cross-correlations). World knowledge about irony in text, obtained through transfer learning from DeepMoji.  We were able to obtain a validation accuracy of 69%, although the model performed poorly in the final test phase.</description>
+    </item>
+    
+    <item>
+      <title>Learning local and global context using a convolutional recurrent network model for relation classification in biomedical text</title>
+      <link>https://desh2608.github.io/publication/conll-17-learning/</link>
+      <pubDate>Tue, 01 Aug 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://desh2608.github.io/publication/conll-17-learning/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Text readability analysis using language modeling</title>
+      <link>https://desh2608.github.io/project/readability/</link>
+      <pubDate>Sun, 30 Apr 2017 17:01:44 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/readability/</guid>
+      <description>We conjecture that predictability of a text is a viable metric of its readability. By using modern language models as predictors, we believe this metric may provide an automated, fine-grained measure of readability. It also provides a natural mechanism to combine scores from different language models, and hence the ability to generalize to a diverse set of texts. Individual language models encode the specific linguistic background that a reader may have, hence providing customized scores for each type of reader.</description>
+    </item>
+    
+    <item>
+      <title>Relation extraction for clinical text</title>
+      <link>https://desh2608.github.io/project/btp/</link>
+      <pubDate>Sun, 30 Apr 2017 17:00:24 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/btp/</guid>
+      <description>The objective of the project was to devise a method for obtaining structured triplets from unstructured clinical records such as journal articles, patient health records etc. Simplifying this objective, I was tasked with creating a neural technique which can classify relations existing between entities in a given sentence, an NLP task known as relation classification.
+The key insight is that convolutions can capture short-term phrases, while recurrence learns long-term dependencies. Combining both, we proposed the CRNN model which outperformed earlier single and double layer methods on two benchmark datasets: i2b2-2010 and DDI.</description>
+    </item>
+    
+  </channel>
+</rss>

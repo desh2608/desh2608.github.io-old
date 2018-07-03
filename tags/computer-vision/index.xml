@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Computer vision on Desh Raj</title>
+    <link>https://desh2608.github.io/tags/computer-vision/</link>
+    <description>Recent content in Computer vision on Desh Raj</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&amp;copy; 2018</copyright>
+    <lastBuildDate>Tue, 03 Jul 2018 16:56:46 +0530</lastBuildDate>
+    
+	<atom:link href="https://desh2608.github.io/tags/computer-vision/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Waldo: A system for optical character recognition</title>
+      <link>https://desh2608.github.io/project/waldo-ocr/</link>
+      <pubDate>Tue, 03 Jul 2018 16:56:46 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/waldo-ocr/</guid>
+      <description>It is an ongoing project under Prof. Daniel Povey to develop an Optical Character Recognition system that is robust on focused as well as incidental text. My contributions are:
+ Experimenting with the ICDAR 2015 Robust Reading Challenge dataset by modifying training script. A visualization and compression module for segmentation mask overlayed on images.  The system consists of a modified UNet first proposed in this paper.</description>
+    </item>
+    
+    <item>
+      <title>Sptial Transformer Networks</title>
+      <link>https://desh2608.github.io/project/stn/</link>
+      <pubDate>Sun, 20 Nov 2016 17:00:42 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/stn/</guid>
+      <description>Jaderberg et al. proposed the Spatial Transformer Network in NIPS 2015 in order to improve the classification of transformed images (i.e., images with affine transformation). In this project, we achieved 2 objectives:
+ Improved the STN architecture by applying a recurrence in the outermost layer, i.e., transformed images are again fed into the module for further processing. Applied the network to egocentric image data to improve benchmark datasets like GTEA and Intel Egocentric Vision data.</description>
+    </item>
+    
+  </channel>
+</rss>

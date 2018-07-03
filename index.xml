@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Desh Raj on Desh Raj</title>
+    <link>https://desh2608.github.io/</link>
+    <description>Recent content in Desh Raj on Desh Raj</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&amp;copy; 2018</copyright>
+    <lastBuildDate>Tue, 03 Jul 2018 00:00:00 +0530</lastBuildDate>
+    <atom:link href="/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Waldo: A system for optical character recognition</title>
+      <link>https://desh2608.github.io/project/waldo-ocr/</link>
+      <pubDate>Tue, 03 Jul 2018 16:56:46 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/waldo-ocr/</guid>
+      <description>&lt;p&gt;It is an ongoing project under Prof. Daniel Povey to develop an Optical Character Recognition system that is robust on focused as well as incidental text. My contributions are:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Experimenting with the ICDAR 2015 Robust Reading Challenge dataset by modifying training script.&lt;/li&gt;
+&lt;li&gt;A visualization and compression module for segmentation mask overlayed on images.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The system consists of a modified UNet first proposed in &lt;a href=&#34;https://arxiv.org/abs/1505.04597&#34; target=&#34;_blank&#34;&gt;this&lt;/a&gt; paper.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Irony detection in tweets</title>
+      <link>https://desh2608.github.io/project/irony-tweet/</link>
+      <pubDate>Tue, 20 Mar 2018 17:00:16 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/irony-tweet/</guid>
+      <description>&lt;p&gt;The task was to recognize whether a tweet has irony or not - binary classification. In essence, we identified 2 aspects that were essential to identify irony in tweets:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Semantic interaction between text and hashtags, modeled using &lt;a href=&#34;https://arxiv.org/pdf/1510.04935.pdf&#34; target=&#34;_blank&#34;&gt;holographic embeddings&lt;/a&gt; (or circular cross-correlations).&lt;/li&gt;
+&lt;li&gt;World knowledge about irony in text, obtained through transfer learning from &lt;a href=&#34;https://deepmoji.mit.edu/&#34; target=&#34;_blank&#34;&gt;DeepMoji&lt;/a&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We were able to obtain a validation accuracy of 69%, although the model performed poorly in the final test phase. The code for the project is available &lt;a href=&#34;https://github.com/desh2608/tweet-irony-detection&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Uncertain Fuzzy Self-organization based Clustering: Interval Type-2 Approach to Adaptive Resonance Theory</title>
+      <link>https://desh2608.github.io/publication/infosc-17-art/</link>
+      <pubDate>Mon, 15 Jan 2018 15:02:35 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/publication/infosc-17-art/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Learning local and global context using a convolutional recurrent network model for relation classification in biomedical text</title>
+      <link>https://desh2608.github.io/publication/conll-17-learning/</link>
+      <pubDate>Tue, 01 Aug 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://desh2608.github.io/publication/conll-17-learning/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Principal component analysis approach in selecting type-1 and type-2 fuzzy membership functions for high-dimensional data</title>
+      <link>https://desh2608.github.io/publication/ifsa-17-pca/</link>
+      <pubDate>Wed, 28 Jun 2017 15:02:56 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/publication/ifsa-17-pca/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Text readability analysis using language modeling</title>
+      <link>https://desh2608.github.io/project/readability/</link>
+      <pubDate>Sun, 30 Apr 2017 17:01:44 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/readability/</guid>
+      <description>&lt;p&gt;We conjecture that predictability of a text is a viable metric of its readability. By using modern language models as predictors, we believe this metric may provide an automated, fine-grained measure of readability. It also provides a natural mechanism to combine scores from different language models, and hence the ability to generalize to a diverse set of texts. Individual language models encode the specific linguistic background that a reader may have, hence providing customized scores for each type of reader. Our work provides authors with a valuable tool to&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;assess the readability of their content for readers with different linguistic backgrounds, and&lt;/li&gt;
+&lt;li&gt;identify pain-points at a word-level granularity in their text in order to improve it.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Our evaluations support our conjecture and show that the resulting scores work across a wide range of scenarios.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;report/readability.pdf&#34; target=&#34;_blank&#34;&gt;Report&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;ppt/readability.pdf&#34; target=&#34;_blank&#34;&gt;Slides&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Relation extraction for clinical text</title>
+      <link>https://desh2608.github.io/project/btp/</link>
+      <pubDate>Sun, 30 Apr 2017 17:00:24 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/btp/</guid>
+      <description>&lt;p&gt;The objective of the project was to devise a method for obtaining structured triplets from unstructured clinical records such as journal articles, patient health records etc. Simplifying this objective, I was tasked with creating a neural technique which can classify relations existing between entities in a given sentence, an NLP task known as relation classification.&lt;/p&gt;
+
+&lt;p&gt;The key insight is that convolutions can capture short-term phrases, while recurrence learns long-term dependencies. Combining both, we proposed the CRNN model which outperformed earlier single and double layer methods on two benchmark datasets: i2b2-2010 and DDI. Details about the method can be found in the publication.&lt;/p&gt;
+
+&lt;p&gt;This project was done as part of my undergraduate senior thesis.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Analysis of data generated from multidimensional type-1 and type-2 fuzzy membership functions</title>
+      <link>https://desh2608.github.io/publication/tfs-16-analysis/</link>
+      <pubDate>Sat, 01 Apr 2017 15:02:18 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/publication/tfs-16-analysis/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Monitoring production line performance to reduce failures</title>
+      <link>https://desh2608.github.io/project/bosch/</link>
+      <pubDate>Fri, 31 Mar 2017 17:01:52 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/bosch/</guid>
+      <description>&lt;p&gt;This project was first floated as a &lt;a href=&#34;https://www.kaggle.com/c/bosch-production-line-performance&#34; target=&#34;_blank&#34;&gt;Kaggle competition&lt;/a&gt;, with the dataset made available by Bosch.&lt;/p&gt;
+
+&lt;p&gt;In this work, we pose the task of fault detection as a binary classification problem. The features include numerical, categorical, and timestamp features, and hence warranty a combination of several techniques for efficiently solving the problem.&lt;/p&gt;
+
+&lt;p&gt;First, a biased sampling method is used to reduce the effect of skewed data distribution. Thereafter, the categorical features are represented as 3 numerical features using sparse online classification algorithms: stochastic truncated gradient (STG), forward-backward splitting (FOBOS), and enhanced regularized dual averaging (ERDA). Once features are obtained, we try several classification methods like SVM and feed-forward networks to perform the fault detection. Finally, the overall objective is optimized using a Bayesian optimization technique.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;report/bosch.pdf&#34; target=&#34;_blank&#34;&gt;Report&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;ppt/bosch.pdf&#34; target=&#34;_blank&#34;&gt;Slides&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Sptial Transformer Networks</title>
+      <link>https://desh2608.github.io/project/stn/</link>
+      <pubDate>Sun, 20 Nov 2016 17:00:42 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/stn/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://papers.nips.cc/paper/5854-spatial-transformer-networks.pdf&#34; target=&#34;_blank&#34;&gt;Jaderberg et al.&lt;/a&gt; proposed the Spatial Transformer Network in NIPS 2015 in order to improve the classification of transformed images (i.e., images with affine transformation). In this project, we achieved 2 objectives:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Improved the STN architecture by applying a recurrence in the outermost layer, i.e., transformed images are again fed into the module for further processing.&lt;/li&gt;
+&lt;li&gt;Applied the network to egocentric image data to improve benchmark datasets like GTEA and Intel Egocentric Vision data.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;report/stn.pdf&#34; target=&#34;_blank&#34;&gt;Report&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;ppt/stn.pdf&#34; target=&#34;_blank&#34;&gt;Slides&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Survey on Probabilistic Databases</title>
+      <link>https://desh2608.github.io/project/prob-db-survey/</link>
+      <pubDate>Sat, 29 Oct 2016 17:02:04 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/prob-db-survey/</guid>
+      <description>&lt;p&gt;In this project, we reviewed existing work on probabilistic databases, categorized into 5 major sections, namely algebra, query evaluation, conditioning, scaling and implementation. Through a reevaluation of performance parameters, we showed that query evaluation is indeed the bottleneck in efficient development and implementation of the probabilistic DBMS model.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;report/dbms-survey.pdf&#34; target=&#34;_blank&#34;&gt;Report&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;ppt/dbms-survey.pdf&#34; target=&#34;_blank&#34;&gt;Slides&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Visual analysis and representations of type-2 fuzzy membership functions</title>
+      <link>https://desh2608.github.io/publication/fuzz-16-visual/</link>
+      <pubDate>Sat, 30 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://desh2608.github.io/publication/fuzz-16-visual/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Fuzzy adaptive resonance theory (ART) clustering</title>
+      <link>https://desh2608.github.io/project/fuzzy-art/</link>
+      <pubDate>Wed, 03 Feb 2016 17:01:11 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/fuzzy-art/</guid>
+      <description>&lt;ul&gt;
+&lt;li&gt;Worked on improving clustering performance of fuzzy ART algorithm by integrating Interval Type-2 approach into vigilance parameter computation.&lt;/li&gt;
+&lt;li&gt;Obtained 5-10% better classification results compared to earlier ART methods, on several benchmark datasets like Iris, Wine, and real world image segmentation tasks.&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Similarity analysis on multidimensional fuzzy sets</title>
+      <link>https://desh2608.github.io/project/fuzzy-wmbs/</link>
+      <pubDate>Wed, 22 Jul 2015 17:01:05 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/fuzzy-wmbs/</guid>
+      <description>&lt;p&gt;The objective of the project was to propose guidelines for selecting fuzzy membership functions to represent several data sets. In general, the accuracy of representation increases with increasing complexity, which makes it a trade-off. My contributions are listed below.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Analyzed various multidimensional fuzzy membership functions and compared similarity of data sets using Wilcoxons nonparametric tests.&lt;/li&gt;
+&lt;li&gt;Established guidelines for selecting appropriate MFs based on data set and application requirements.&lt;/li&gt;
+&lt;li&gt;Recently extended the proposed method for high-dimensional data using dimensionality reduction approaches like PCA, kernel PCA, probabilistic PCA, and t-SNE.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We proposed a new log-time algorithm which makes use of Wilcoxon&amp;rsquo;s nonparametric tests to compare similarity between the original data and the synthetic data generated using the fuzzy MFs. The returned similarity score guides the choice of membership function.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Fuzzy on Desh Raj</title>
+    <link>https://desh2608.github.io/tags/fuzzy/</link>
+    <description>Recent content in Fuzzy on Desh Raj</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&amp;copy; 2018</copyright>
+    <lastBuildDate>Mon, 15 Jan 2018 15:02:35 +0530</lastBuildDate>
+    
+	<atom:link href="https://desh2608.github.io/tags/fuzzy/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Uncertain Fuzzy Self-organization based Clustering: Interval Type-2 Approach to Adaptive Resonance Theory</title>
+      <link>https://desh2608.github.io/publication/infosc-17-art/</link>
+      <pubDate>Mon, 15 Jan 2018 15:02:35 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/publication/infosc-17-art/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Principal component analysis approach in selecting type-1 and type-2 fuzzy membership functions for high-dimensional data</title>
+      <link>https://desh2608.github.io/publication/ifsa-17-pca/</link>
+      <pubDate>Wed, 28 Jun 2017 15:02:56 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/publication/ifsa-17-pca/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Analysis of data generated from multidimensional type-1 and type-2 fuzzy membership functions</title>
+      <link>https://desh2608.github.io/publication/tfs-16-analysis/</link>
+      <pubDate>Sat, 01 Apr 2017 15:02:18 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/publication/tfs-16-analysis/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Visual analysis and representations of type-2 fuzzy membership functions</title>
+      <link>https://desh2608.github.io/publication/fuzz-16-visual/</link>
+      <pubDate>Sat, 30 Jul 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://desh2608.github.io/publication/fuzz-16-visual/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Fuzzy adaptive resonance theory (ART) clustering</title>
+      <link>https://desh2608.github.io/project/fuzzy-art/</link>
+      <pubDate>Wed, 03 Feb 2016 17:01:11 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/fuzzy-art/</guid>
+      <description> Worked on improving clustering performance of fuzzy ART algorithm by integrating Interval Type-2 approach into vigilance parameter computation. Obtained 5-10% better classification results compared to earlier ART methods, on several benchmark datasets like Iris, Wine, and real world image segmentation tasks.  </description>
+    </item>
+    
+    <item>
+      <title>Similarity analysis on multidimensional fuzzy sets</title>
+      <link>https://desh2608.github.io/project/fuzzy-wmbs/</link>
+      <pubDate>Wed, 22 Jul 2015 17:01:05 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/project/fuzzy-wmbs/</guid>
+      <description>The objective of the project was to propose guidelines for selecting fuzzy membership functions to represent several data sets. In general, the accuracy of representation increases with increasing complexity, which makes it a trade-off. My contributions are listed below.
+ Analyzed various multidimensional fuzzy membership functions and compared similarity of data sets using Wilcoxons nonparametric tests. Established guidelines for selecting appropriate MFs based on data set and application requirements. Recently extended the proposed method for high-dimensional data using dimensionality reduction approaches like PCA, kernel PCA, probabilistic PCA, and t-SNE.</description>
+    </item>
+    
+  </channel>
+</rss>
