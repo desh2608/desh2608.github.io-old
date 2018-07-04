@@ -54,6 +54,350 @@
     </item>
     
     <item>
+      <title>Understanding Word Vectors</title>
+      <link>https://desh2608.github.io/post/understanding-word-vectors/</link>
+      <pubDate>Fri, 29 Sep 2017 11:12:55 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/understanding-word-vectors/</guid>
+      <description>
+
+&lt;p&gt;&lt;em&gt;This article is a formal representation of my understanding of vector semantics, from course notes and reading reference papers and chapters from Jurafsky’s SLP book. I will be talking about sparse and dense vector semantics, including SVD, skip-gram, and GloVe. In many places, I will try to explain the ideas in language rather than equations (but I’ll provide links to derivations and stuff wherever it is absolutely essential, which is actually everywhere!).&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;“You shall know a word by the company it keeps.”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In vision, images are represented by the corresponding RGB values (or values obtained from other filters), so they are essentially matrices of integers. Language was more arbitrary because traditionally there was no formal method (or globally accepted standard) for representing words with numerical values. Well, not until &lt;strong&gt;word embeddings&lt;/strong&gt; came into the picture (no pun intended)!&lt;/p&gt;
+
+&lt;p&gt;What are embeddings, though? They are called so because words are essentially transformed into vectors by “embedding” them into a vector space. For this, we make use of the hypothesis that words which occur in similar context tend to have similar meaning, i.e., the meaning of a word can be inferred from the distribution around it. For this reason, these methods are also called “distributional” methods.&lt;/p&gt;
+
+&lt;p&gt;Word vectors may be sparse or dense. I’ll begin with sparse vectors and then describe dense ones.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;sparse-vectors&#34;&gt;Sparse vectors&lt;/h3&gt;
+
+&lt;h4 id=&#34;term-document-and-term-term-matrix&#34;&gt;Term-document and term-term matrix&lt;/h4&gt;
+
+&lt;p&gt;Suppose we have a set of 1000 documents, consisting of a total of 5000 unique words. In a very naive fashion, we can simply count the number of occurrences of each word in every document, and then represent each word by this 1000-dimensional vector of counts. This is exactly what a &lt;strong&gt;term-document matrix&lt;/strong&gt; does.&lt;/p&gt;
+
+&lt;p&gt;Similarly, consider a large corpus of text with 5000 unique words. Now take a window of some fixed size and for each word pair, we count the number of times it occurs in the window. These counts form a &lt;strong&gt;term-term matrix&lt;/strong&gt;, also called a &lt;strong&gt;co-occurrence matrix&lt;/strong&gt; which in this case will be a 5000x5000 matrix (with most cells 0 if the window size is relatively small).&lt;/p&gt;
+
+&lt;h4 id=&#34;pointwise-mutual-information-pmi&#34;&gt;Pointwise Mutual Information (PMI)&lt;/h4&gt;
+
+&lt;p&gt;The co-occurrence matrix is not the best measure of similarity between 2 words since it is based on the raw frequency, and hence is very skewed. Instead, it would be desirable to have a quantity which measures how much more likely is it for 2 words to occur in a window, compared with pure chance. This is exactly what PMI measures.&lt;/p&gt;
+
+&lt;p&gt;$$ \text{PMI}(x,y) = \log \left( \frac{P(x,y)}{P(x)P(y)} \right) $$&lt;/p&gt;
+
+&lt;p&gt;If PMI is positive, the ($x$,$y$) pair is more likely to occur together than pure chance, and vice versa. However, a negative value is unreliable since it is unlikely to get many co-occurrences of a word pair in a small corpus. To solve this problem, we define a Positive PMI (PPMI) as&lt;/p&gt;
+
+&lt;p&gt;$$ \text{PPMI}(x,y) = \max (\text{PMI}(x,y),0). $$&lt;/p&gt;
+
+&lt;h4 id=&#34;tf-idf-term-frequency-inverse-document-frequency&#34;&gt;TF-IDF (Term frequency — inverse document frequency)&lt;/h4&gt;
+
+&lt;p&gt;This is composed of 2 parts: TF, which denotes the count of the word in a document, and IDF, which is a weight component that gives higher weight to words occurring only in a few documents (and hence are more representative of the documents they are present in, in contrast to words like ‘the’ which are present in large number of documents).&lt;/p&gt;
+
+&lt;p&gt;$$ idf_i = \log \left( \frac{N}{df_i} \right) $$&lt;/p&gt;
+
+&lt;p&gt;Here, $N$ is the total number of documents and $df_i$ is the number of documents in which word $i$ occurs.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;dense-vectors&#34;&gt;Dense vectors&lt;/h3&gt;
+
+&lt;p&gt;The problem with sparse vectors is the curse of dimensionality, which makes computation and storage infeasible. For this reason, we prefer dense vectors, with real-valued elements. Dense vector semantics fall into 2 categories: matrix factorization, and neural embeddings.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;matrix-factorization&#34;&gt;Matrix Factorization&lt;/h3&gt;
+
+&lt;h4 id=&#34;singular-vector-decomposition-svd&#34;&gt;Singular vector decomposition (SVD)&lt;/h4&gt;
+
+&lt;p&gt;This is basically a dimensionality reduction technique where we find the dimensions with the highest variances. Suppose we have the co-occurence matrix A of size $m \times n$, then it is possible to factorize A into:&lt;/p&gt;
+
+&lt;p&gt;$$ A_{m \times n} = U_{m\times r}S_{r\times r}V_{r\times n}^T $$&lt;/p&gt;
+
+&lt;p&gt;where $r$ is the rank of matrix $A$ (i.e. $r$ = maximum number of linearly independent vectors that can be used to form $A$). Also, $U$ is a matrix of the eigenvectors of $AA^T)$ and $S$ is a diagonal matrix comprising its eigenvalues. If we rearrange the columns in $U$ to correspond with a decreasing order of eigenvalues, we can keep the first $k$ columns which will represent the dimensions in the latent space which have the highest variance. These will give us a $k$-dimensional representation for each of the $m$ words in the vocabulary.&lt;/p&gt;
+
+&lt;p&gt;But why do we want to perform this truncation?&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;First, removing the lower variance dimensions filters the noise component from the word embeddings.&lt;/li&gt;
+&lt;li&gt;More importantly, having a lower number of parameters leads to better generalization. It is found that 300-dimensional word embeddings perform much better than, say, 3000-dimensional ones.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;However, this approach is still constrained since the matrix factorization of $A$, which in itself may be a large matrix, is computationally complex.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;neural-embeddings&#34;&gt;Neural embeddings&lt;/h3&gt;
+
+&lt;p&gt;The idea is simple. We can treat each element in the vector as a parameter to be updated while training a neural network model. We start with a randomly initialized vector and update it at each iteration. This update is based on the vectors of the context (window) words. The hypothesis is that such an update would ultimately result in similar words having vectors which are closer to each other in the vector space.&lt;/p&gt;
+
+&lt;p&gt;Here, I will describe the 2 most popular neural models — Word2Vec and GloVe.&lt;/p&gt;
+
+&lt;h4 id=&#34;word2vec&#34;&gt;Word2Vec&lt;/h4&gt;
+
+&lt;p&gt;Word2Vec is actually the name of a tool which internally uses skip-gram or CBOW (continuous bag-of-words) with negative sampling. The objectives for both these models are quite similar, except a subtle distinction. In skip-gram, we predict the context words given the target word, and in CBOW, we predict the target word given the context words. In this article, I will limit my discussion to &lt;em&gt;skip-gram with negative sampling&lt;/em&gt; (SGNS).&lt;/p&gt;
+
+&lt;p&gt;Suppose we have a context window where $w$ is the target word and $c$ is one of the context words. Then, skip-gram’s objective is to compute $P(c|w)$, which is given as&lt;/p&gt;
+
+&lt;p&gt;$$ p(c|w;\theta) = \frac{\exp(v_c\cdot v_w)}{\sum_{c^{\prime}\in C}\exp(v_{c^{\prime}}\cdot v_w)}. $$&lt;/p&gt;
+
+&lt;p&gt;Basically, it is just a softmax probability distribution over all the word-context pairs in the corpus, directed by the cosine similarity. However, the denominator term here is very expensive to compute since there may be a very large number of context words. To solve this problem, negative sampling is used.&lt;/p&gt;
+
+&lt;p&gt;Goldberg and Levy have explained the derivation for the objective function in SGNS very clearly in their &lt;a href=&#34;https://arxiv.org/pdf/1402.3722.pdf&#34; target=&#34;_blank&#34;&gt;note&lt;/a&gt;. I will try to provide a little intuition here.&lt;/p&gt;
+
+&lt;p&gt;For the word $w$, we are trying to predict the context word $c$. Since we are using softmax, this is essentially like a multi-class classification problem, where we are trying to classify the next word into one of $N$ classes (where $N$ is the number of words in the dictionary). Since $N$ may be quite large, this is a very difficult problem.&lt;/p&gt;
+
+&lt;p&gt;What SGNS does is that it converts this multi-classification problem into binary classification. The new objective is to predict, for any given word-context pair ($w$,$c$), whether the pair is in the window or not. For this, we try to increase the probability of a “positive” pair ($w$,$c$), while at the same time reducing the probability of $k$ randomly chosen “negative samples” ($w$,$s$) where $s$ is a word not found in $w$’s context. This leads to the following objective function which we try to maximize in SGNS:&lt;/p&gt;
+
+&lt;p&gt;$$ J = \log \sigma(c\cdot w) + \sum_{i=1}^k \mathbb{E}_{w_i \sim p(w)}[\log \sigma (-w_i \cdot w)]  $$&lt;/p&gt;
+
+&lt;h4 id=&#34;glove-global-vectors&#34;&gt;GloVe (Global Vectors)&lt;/h4&gt;
+
+&lt;p&gt;One grievance with skip-gram and CBOW is that since they are both window-based models, the co-occurrence statistics of the corpus are not used efficiently, thereby resulting in suboptimal embeddings. The GloVe model proposed by Pennington et al. seeks to solve this problem by formulating an objective function from probability statistics.&lt;/p&gt;
+
+&lt;p&gt;Again, the original &lt;a href=&#34;https://nlp.stanford.edu/pubs/glove.pdf&#34; target=&#34;_blank&#34;&gt;paper&lt;/a&gt; is very pleasant to read (section 3 describes their model in detail), and it is interesting to note the derivation for the objective function:&lt;/p&gt;
+
+&lt;p&gt;$$ J = \sum_{i,j=1}^V f(X_{ij})(w_i^Tw_j + b_i + b_j - \log X_{ij})^2 $$&lt;/p&gt;
+
+&lt;p&gt;Here, $X_{ij}$ is the count of the word pair ($i$,$j$) in the corpus. The weight function $f(x)$ has 3 requirements:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;$f(0) = 0$, so that the entire term does not tend to $\infty$.&lt;/li&gt;
+&lt;li&gt;It should be non-decreasing to assign low weights to rare occurrences.&lt;/li&gt;
+&lt;li&gt;It should be relatively small for large values of $x$.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Again, please read the paper for details.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Although the matrix factorization approach and the neural embedding method may initially come off as completely independent, Levy and Goldberg (again!) ingeniously showed in a &lt;a href=&#34;https://papers.nips.cc/paper/5477-neural-word-embedding-as-implicit-matrix-factorization.pdf&#34; target=&#34;_blank&#34;&gt;NIPS 2014 paper&lt;/a&gt; that even the SGNS method implicitly factorizes a word-context matrix where the cells are the PMI (pointwise mutual information) of the respective word-context pairs, shifted by a global context. They derive this in Section 3.1 of the paper, and I urge you to go to the link and read it. It’s a delight! The derivation is really simple and I would have done it here, except that I would only be reproducing the exact proof.&lt;/p&gt;
+
+&lt;p&gt;Very recently, Richard Socher’s group at Salesforce Research have proposed a new kind of embeddings called CoVe (Contextualized Word Vectors) in their paper. The idea is again borrowed from vision, where transfer learning has been used for a long time. Basically, models with various objectives are trained on a large dataset such as ImageNet, and then these weights are used to initialize model parameters for various vision tasks. Similarly, CoVe uses parameters trained on a attentional Seq2Seq machine translation task, and then uses it for various other tasks, including question-answering, where it has shown state-of-the-art performance on the SQuAD dataset. I have only skimmed through the paper, but I suppose such a deep transfer learning is naturally the next step towards improving word embeddings.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;As an aside, there is a series of blog posts by Sanjeev Arora that analyzes the theory of semantic embeddings in great detail. There are 3 posts in the series:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.offconvex.org/2015/12/12/word-embeddings-1/&#34; target=&#34;_blank&#34;&gt;Semantic word embeddings&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.offconvex.org/2016/02/14/word-embeddings-2/&#34; target=&#34;_blank&#34;&gt;Word Embeddings: Explaining their properties&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.offconvex.org/2016/07/10/embeddingspolysemy/&#34; target=&#34;_blank&#34;&gt;Linear algebraic structure of word embeddings&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;These provide great insight into the mathematics behind word vectors, and are beautifully written (which is no surprise since Prof. Arora is one of the authors of the famous and notoriously advanced book on Computational Complexity).&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Trends in Semantic Parsing - Part 1</title>
+      <link>https://desh2608.github.io/post/trends-in-semantic-parsing-1/</link>
+      <pubDate>Wed, 20 Sep 2017 10:03:22 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/trends-in-semantic-parsing-1/</guid>
+      <description>
+
+&lt;p&gt;&lt;em&gt;In this article, I will try to round up some (mostly neural) approaches for semantic parsing and semantic role labeling (SRL). This is not an extensive review of these methods, but just a collection of my notes on reading some recent research on the subject. However, I do believe it covers most of the latest trends as well as their limitations.&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;But first, &lt;strong&gt;what is semantic parsing?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;“Semantic” refers to meaning, and “parsing” means resolving a sentence into its component parts. As such, semantic parsing refers to the task of mapping natural language text to formal representations or abstractions of its meaning. A &lt;em&gt;syntactic parser&lt;/em&gt; may generate constituency or dependency trees from a sentence, but a &lt;em&gt;semantic parser&lt;/em&gt; may be built depending upon the task for which inference is required.&lt;/p&gt;
+
+&lt;p&gt;For example, we can build a parser that converts the natural language query “*Who was the first person to walk on the moon?*” to an equivalent (although complex!) SQL query such as “SELECT name FROM Person WHERE moon_walk = true ORDER BY moon_walk_date FETCH first 1 rows only.”&lt;/p&gt;
+
+&lt;p&gt;Semantic parsing is inherently more complicated than syntactic parsing because it requires understanding concepts from different word phrases. For instance, the following sentences (adapted from [4]) should ideally map to the same formal representation.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Sentence 1: India defeated Australia.&lt;/p&gt;
+
+&lt;p&gt;Sentence 2: India secured the victory over the Australian team.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;For this reason, semantic parsing is more about capturing the meaning of the sentence rather than plain rule-based pattern matching.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Semantic role labeling&lt;/strong&gt; is a sub-task within the former, where the sentence is parsed into a predicate-argument format. The example given on the Wikipedia page for SRL explains this well. Given a sentence like “Mary sold the book to John,” the task would be to recognize the verb “to sell” as representing the predicate, “Mary” as representing the seller (agent), “the book” as representing the goods (theme), and “John” as representing the recipient. In this sense, SRL is sometimes also called shallow semantic parsing because the structure of the target representation is somewhat known.&lt;/p&gt;
+
+&lt;p&gt;In this article, I will describe models for both these tasks without explicit differentiation, mostly since the same models are found to work well on either task.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;learning-sentence-embeddings-using-deep-neural-models&#34;&gt;Learning sentence embeddings using deep neural models&lt;/h4&gt;
+
+&lt;p&gt;Vector semantics have been used extensively in all NLP tasks, especially after word embeddings (Word2Vec, GloVe) were found to represent the synonymy-antonymy relations well in real space.&lt;/p&gt;
+
+&lt;p&gt;Similar to word embeddings, we can try to obtain dense vectors to represent a sentence, and then find some way to obtain the formal representation from it. Ivan Titov (University of Edinburgh) has recently proposed a couple of models which use &lt;strong&gt;LSTMs&lt;/strong&gt; &lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; and &lt;strong&gt;Graph CNNs&lt;/strong&gt; &lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; for dependency-based SRL task.&lt;/p&gt;
+
+&lt;p&gt;I will first explain the task. We work on datasets where the predicates are marked in the sentence, and the objective is to identify and label the arguments corresponding to each predicate. For instance, given the sentence “&lt;em&gt;Mary eats an apple&lt;/em&gt;,” and the predicate marked as EATS, we need to label the words ‘Mary,’ ‘an,’ and ‘apple’ as &lt;em&gt;agent&lt;/em&gt;, NULL, and &lt;em&gt;theme&lt;/em&gt;, respectively. Also, since a single sentence may contain multiple predicates, the same word may get different labels for each predicate. Essentially, if we repeat the process once for each predicate, out task effectively reduces to a sequence labeling problem.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;LSTM-based approach&lt;/strong&gt; &lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; : LSTMs (which are a type of RNNs that can preserve memory) have been used to model sequences since they were first introduced. In the first model, the sequence labeling is performed as follows.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Vectors are obtained from each word by concatenating pre-trained embeddings (Word2Vec), random embeddings, and randomly initialized POS embeddings.&lt;/li&gt;
+&lt;li&gt;The word vector also contains a 1-bit flag to mark whether it is the predicate in that particular training instance. This is done to ensure that the network treats each predicate differently.&lt;/li&gt;
+&lt;li&gt;These are fed into a bi-LSTM layer to obtain the word’s context in the sentence.&lt;/li&gt;
+&lt;li&gt;Finally, to label any word, we take the dot product of its hidden state with the predicate’s hidden state and obtain a softmax classifier over it as follows.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;$$ p(r|v_i,v_p) \propto \exp(W_r (v_i \cdot v_p)). $$&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Further, we can have the weight matrix parametrized on the role label $r$ as:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;$$ W_{l,r} = ReLU(U(u_l \cdot v_r)), $$&lt;/p&gt;
+
+&lt;p&gt;where the vectors in the dot product correspond to randomly initialized embeddings for the predicate lemma and the role, respectively.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;GCN-based approach &lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;:&lt;/strong&gt; In a second model, Graph Convolutional Networks (GCNs) have been used to represent the dependency tree for the sentence. In a very crude sense, a GCN input layer encodes the sentence into an $m X n$ matrix based on its dependency tree, such that each of the $n$ nodes of the tree is
+represented as an $m$-dimensional vector. Once such a matrix has been obtained, we can perform convolutions on it.&lt;/p&gt;
+
+&lt;p&gt;It is then evident that a one-layer GCN can capture information only about its immediate neighbor. By stacking GCN layers, one can incorporate higher degree neighborhoods.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/2/gcn.png&#34; alt=&#34;Architecture of an LSTM+GCN encoder&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;GCNs and LSTMs are complementary.&lt;/strong&gt; &lt;em&gt;Why?&lt;/em&gt; LSTMs capture long-term dependencies well but are not able to represent syntax effectively. On the other hand, GCNs are built directly on top of a syntactic-dependency tree so they capture syntax well, but due to the limitation of fixed-size convolutions, the range of dependency is limited. Therefore, using a GCN layer on top of the hidden states obtained from a bi-LSTM layer would theoretically capture the best of both worlds. This hypothesis has also been corroborated through experimental results.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Encoder-decoder model&lt;/strong&gt; &lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;: In this paper, the task is broadened into formal representation rather than SRL. If we consider the formal representation as a different language, this is similar to a machine translation problem, since both the natural as well as formal representations mean the same. As such, it might be interesting to apply models used for MT to semantic parsing. This paper does exactly this.&lt;/p&gt;
+
+&lt;p&gt;An encoder converts the input sequence to a vector representation and a decoder obtains the target sequence from this vector.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;The encoder uses a bi-LSTM layer similar to the previous methods to obtain the vector representation of the input sequence.&lt;/li&gt;
+&lt;li&gt;The final hidden state is fed into the decoder layer, which is again a bi-LSTM. The hidden states obtained from this layer is used to predict the corresponding output tokens using a softmax function.&lt;/li&gt;
+&lt;li&gt;Alternatively, we can have a hierarchical decoder to account for the hierarchical structure of logical forms. For this purpose, we simply introduce a non-terminal token, say &lt;n&gt;, which indicates the start of a sub-tree. Other tokens may be used to represent the start/end of a terminal sequence or a non-terminal sequence.&lt;/li&gt;
+&lt;li&gt;To incorporate the tree structure, we concatenate the hidden state of the parent non-terminal with every child.&lt;/li&gt;
+&lt;li&gt;Finally in the decoding step, to better utilize relevant information from the input sequence, we use an attention layer where the context vector is a weighted sum over the hidden vectors in the encoder.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;While these models are very inspired and intuitive, they are all supervised. As such, they are constrained due to cost and availability of annotated data, especially since manually labeling semantic parsing output is a time-consuming process. In part 2 of this article, I will talk about some approaches which overcome this issue.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Marcheggiani, Diego, Anton Frolov, and Ivan Titov. “&lt;a href=&#34;https://arxiv.org/pdf/1701.02593.pdf&#34; target=&#34;_blank&#34;&gt;A simple and accurate syntax-agnostic neural model for dependency-based semantic role labeling&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1701.02593&lt;/em&gt; (2017).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Marcheggiani, Diego, and Ivan Titov. “&lt;a href=&#34;https://arxiv.org/pdf/1703.04826.pdf&#34; target=&#34;_blank&#34;&gt;Encoding Sentences with Graph Convolutional Networks for Semantic Role Labeling&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1703.04826&lt;/em&gt; (2017).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;Dong, Li, and Mirella Lapata. “&lt;a href=&#34;https://arxiv.org/pdf/1601.01280.pdf&#34; target=&#34;_blank&#34;&gt;https://arxiv.org/pdf/1601.01280.pdf&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1601.01280&lt;/em&gt; (2016).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Metrics for NLG Evaluation</title>
+      <link>https://desh2608.github.io/post/metrics-for-nlg-evaluation/</link>
+      <pubDate>Sat, 16 Sep 2017 09:15:44 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/metrics-for-nlg-evaluation/</guid>
+      <description>
+
+&lt;p&gt;Simple natural language processing tasks such as sentiment analysis, or even more complex ones like semantic parsing are easy to evaluate since the evaluation simply requires label matching. As such, metrics like F-score (which is the harmonic mean of precision and recall), or even accuracy in uniformly distributed data, are used for such tasks.&lt;/p&gt;
+
+&lt;p&gt;Evaluating natural language generation systems is a much more complex task, however. And for this reason, a number of different metrics have been proposed for tasks such as machine translation or summarization. In this blog, I describe 3 major schemes, namely BLEU, ROUGE, and METEOR.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;The intuition for evaluating generated text is the same as that for evaluating labels. If &lt;em&gt;candidate&lt;/em&gt; text A is a closer match to one of the &lt;em&gt;reference&lt;/em&gt; texts than candidate text B, then we want to score A higher than B. As in other schemes, this matching is based on precision (specificity) and recall (sensitivity). To put it simply, A is more precise than B if the % of A that matches a reference text is higher than B. A’s recall is higher if it contains more matching text from a reference than B. For example:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Reference: I work on machine learning.&lt;/p&gt;
+
+&lt;p&gt;Candidate A: I work.&lt;/p&gt;
+
+&lt;p&gt;Candidate B: He works on machine learning.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In this toy example, A’s precision is higher than B (100% vs. 60%), but B’s recall is higher (60% vs. 40%). Note that in this example, we perform the matching simply using unigrams, which may not always be the case. In fact, this choice of features for computing precision and recall is essentially what differentiates the 3 schemes for NLG evaluation.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;bleu-bilingual-evaluation-understudy-http-aclweb-org-anthology-p-p02-p02-1040-pdf&#34;&gt;&lt;a href=&#34;http://aclweb.org/anthology/P/P02/P02-1040.pdf&#34; target=&#34;_blank&#34;&gt;BLEU (Bilingual Evaluation Understudy)&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;This is by far the most popular metric for evaluating machine translation system. In BLEU, precision and recall are approximated by *modified n-gram precision * and &lt;em&gt;best match length,&lt;/em&gt; respectively.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Modified n-gram precision&lt;/strong&gt;: First, an n-gram precision is the fraction of n-grams in the candidate text which are present in any of the reference texts. From the example above, the unigram precision of A is 100%. However, just using this value presents a problem. For example, consider the two candidates:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;(i) He works on machine learning.&lt;/p&gt;
+
+&lt;p&gt;(ii) He works on on machine machine learning learning.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Candidate (i) has a unigram precision of 60% while for (ii) it is 75%. However, it is obvious that (ii) is not a better candidate than (i) in any way. To solve this problem, we use a “modified” n-gram precision. It matches the candidate’s n-grams only as many times as they are present in any of the reference texts. So in the above example, (ii)’s unigrams ‘on’, ‘machine’, and ‘learning’ are matched only once, and the unigram precision becomes 37.5%.&lt;/p&gt;
+
+&lt;p&gt;Finally, to include all the n-gram precision scores in our final precision, we take their geometric mean. This is done because it has been found that precision decreases exponentially with &lt;em&gt;n&lt;/em&gt;, and as such, we would require logarithmic averaging to represent all values fairly.&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Precision} = \exp\left( \sum_{i=1}^N w_n \log p_n \right), ~~~~ \text{where}~~ w_n = \frac{1}{n} $$&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Best match length:&lt;/strong&gt; While precision calculation was relatively simple, the problem with recall is that there may be many reference texts. So it is difficult to calculate the sensitivity of the candidate with respect to a general reference. However, it is intuitive to think that a longer candidate text is more likely to contain a larger fraction of some reference than a shorter candidate. At the same time, we have already ensured that candidate texts are not arbitrarily long, since then their precision score would be low.&lt;/p&gt;
+
+&lt;p&gt;Therefore, we can introduce recall by just penalizing brevity in candidate texts. This is done by adding a multiplicative factor &lt;em&gt;BP&lt;/em&gt; with the modified n-gram precision as follows.&lt;/p&gt;
+
+&lt;p&gt;$$ \text{BP} = \begin{cases} 1, &amp;amp;\text{if} c &amp;gt; r, \\\ \exp(1-\frac{r}{c},&amp;amp;\text{otherwise}).\end{cases} $$&lt;/p&gt;
+
+&lt;p&gt;Here, $c$ is the total length of candidate translation corpus, and $r$ is the effective reference length of corpus, i.e., average length of all references. The lengths are taken as average over the entire corpus to avoid harshly punishing the length deviations on short sentences. As the candidate length decreases, the ratio $\frac{r}{c}$ increases, and the BP decreases exponentially.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;rouge-recall-oriented-understudy-for-gisting-evaluation-http-www-aclweb-org-anthology-w-w04-w04-1013-pdf&#34;&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/W/W04/W04-1013.pdf&#34; target=&#34;_blank&#34;&gt;ROUGE (Recall Oriented Understudy for Gisting Evaluation)&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;As is clear from its name, ROUGE is based only on recall, and is mostly used for summary evaluation. Depending on the feature used for calculating recall, ROUGE may be of many types, namely ROUGE-N, ROUGE-L, ROUGE-W, and ROUGE-S. Here, we describe the idea behind one of these, and then give a quick run-down of the
+others.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;ROUGE-N:&lt;/strong&gt; This is based on n-grams. For example, ROUGE-1 counts recall based on matching unigrams, and so on. For any $n$, we count the total number of n-grams across all the reference summaries, and find out how many of them are present in the candidate summary. This fraction is the required metric value.&lt;/p&gt;
+
+&lt;p&gt;ROUGE-L/W/S are based on: longest common subsequence (LCS), weighted LCS, and skip-bigram co-occurence statistics, respectively. Instead of using only recall, these use an F-score which is the harmonic mean of precision and recall values. These are in turn, calculated as follows for ROUGE-L.&lt;/p&gt;
+
+&lt;p&gt;Suppose A and B are candidate and reference summaries of lengths $m$ and $n$ respectively. Then, we have&lt;/p&gt;
+
+&lt;p&gt;$$ P = \frac{LCS(A,B)}{m} ~~&lt;del&gt;\text{and}&lt;/del&gt;~~ R = \frac{LCS(A,B)}{n}. $$&lt;/p&gt;
+
+&lt;p&gt;$F$ is then calculated as the weighted harmonic mean of P and R, as&lt;/p&gt;
+
+&lt;p&gt;$$ F = \frac{(1+b^2)RP}{R+b^2P}. $$&lt;/p&gt;
+
+&lt;p&gt;Similarly, in ROUGE-W, for calculating weighted LCS, we also track the lengths of the consecutive matches, in addition to the length of longest common subsequence (since there may be non-matching words in the middle). In ROUGE-S, a skip-bigram refers to any pair of words in sentence order allowing for arbitrary gaps. The precision and recall, in this case, are computed as a ratio of the total number of possible bigrams, i.e., ${n \choose 2}$.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;meteor-metric-for-evaluation-for-translation-with-explicit-ordering-https-www-cs-cmu-edu-alavie-meteor-pdf-banerjee-lavie-2005-meteor-pdf&#34;&gt;&lt;a href=&#34;https://www.cs.cmu.edu/~alavie/METEOR/pdf/Banerjee-Lavie-2005-METEOR.pdf&#34; target=&#34;_blank&#34;&gt;METEOR (Metric for Evaluation for Translation with Explicit Ordering)&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;METEOR is another metric for machine translation evaluation, and it claims to have better correlation with human judgement.&lt;/p&gt;
+
+&lt;p&gt;So why do we need a new metric when BLEU is already available? The problem with BLEU is that since the *BP*value uses lengths which are averaged over the entire corpus, so the scores of individual sentences take a hit.&lt;/p&gt;
+
+&lt;p&gt;To solve this problem, METEOR modifies the precision and recall computations, replacing them with a weighted F-score based on mapping unigrams and a penalty function for incorrect word order.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Weighted F-score:&lt;/strong&gt; First, we try to find the largest subset of mappings that can form an alignment between the candidate and reference translations. For this, we look at exact matches, followed by matches after Porter stemming, and finally using WordNet synonymy. After such an alignment is found, suppose $m$ is
+the number of mapped unigrams between the two texts. Then, precision and recall are given as $\frac{m}{c}$ and $\frac{m}{r}$, where $c$ and $r$ are candidate and reference lengths, respectively. F is calculated as&lt;/p&gt;
+
+&lt;p&gt;$$ F = \frac{PR}{\alpha P + (1-\alpha)R}. $$&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Penalty function:&lt;/strong&gt; To account for the word order in the candidate, we introduce a penalty function as&lt;/p&gt;
+
+&lt;p&gt;$$ p = \gamma \left( \frac{c}{m} \right)^{\beta},~~~~ \text{where}~~ 0 \leq \gamma \leq 1. $$&lt;/p&gt;
+
+&lt;p&gt;Here, $c$ is the number of matching chunks and $m$ is the total number of matches. As such, if most of the matches are contiguous, the number of chunks is lower and the penalty decreases. Finally, the METEOR score is given as $(1-p)F$.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;em&gt;The links to the original papers for the methods described here are in the section headings. Readers are advised to refer to them for details. I have tried to outline the main ideas here for a quick review.&lt;/em&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Learning local and global context using a convolutional recurrent network model for relation classification in biomedical text</title>
       <link>https://desh2608.github.io/publication/conll-17-learning/</link>
       <pubDate>Tue, 01 Aug 2017 00:00:00 +0000</pubDate>
@@ -177,37 +521,6 @@
       
       <guid>https://desh2608.github.io/publication/fuzz-16-visual/</guid>
       <description></description>
-    </item>
-    
-    <item>
-      <title>Fuzzy adaptive resonance theory (ART) clustering</title>
-      <link>https://desh2608.github.io/project/fuzzy-art/</link>
-      <pubDate>Wed, 03 Feb 2016 17:01:11 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/project/fuzzy-art/</guid>
-      <description>&lt;ul&gt;
-&lt;li&gt;Worked on improving clustering performance of fuzzy ART algorithm by integrating Interval Type-2 approach into vigilance parameter computation.&lt;/li&gt;
-&lt;li&gt;Obtained 5-10% better classification results compared to earlier ART methods, on several benchmark datasets like Iris, Wine, and real world image segmentation tasks.&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Similarity analysis on multidimensional fuzzy sets</title>
-      <link>https://desh2608.github.io/project/fuzzy-wmbs/</link>
-      <pubDate>Wed, 22 Jul 2015 17:01:05 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/project/fuzzy-wmbs/</guid>
-      <description>&lt;p&gt;The objective of the project was to propose guidelines for selecting fuzzy membership functions to represent several data sets. In general, the accuracy of representation increases with increasing complexity, which makes it a trade-off. My contributions are listed below.&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Analyzed various multidimensional fuzzy membership functions and compared similarity of data sets using Wilcoxons nonparametric tests.&lt;/li&gt;
-&lt;li&gt;Established guidelines for selecting appropriate MFs based on data set and application requirements.&lt;/li&gt;
-&lt;li&gt;Recently extended the proposed method for high-dimensional data using dimensionality reduction approaches like PCA, kernel PCA, probabilistic PCA, and t-SNE.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;We proposed a new log-time algorithm which makes use of Wilcoxon&amp;rsquo;s nonparametric tests to compare similarity between the original data and the synthetic data generated using the fuzzy MFs. The returned similarity score guides the choice of membership function.&lt;/p&gt;
-</description>
     </item>
     
   </channel>

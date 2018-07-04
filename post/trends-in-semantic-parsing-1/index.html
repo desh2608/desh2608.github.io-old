@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.42.2" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="In this article, I will try to round up some (mostly neural) approaches for semantic parsing and semantic role labeling (SRL). This is not an extensive review of these methods, but just a collection of my notes on reading some recent research on the subject. However, I do believe it covers most of the latest trends as well as their limitations.
+But first, what is semantic parsing?
+“Semantic” refers to meaning, and “parsing” means resolving a sentence into its component parts.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/trends-in-semantic-parsing-1/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/trends-in-semantic-parsing-1/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/trends-in-semantic-parsing-1/">
+  <meta property="og:title" content="Trends in Semantic Parsing - Part 1 | Desh Raj">
+  <meta property="og:description" content="In this article, I will try to round up some (mostly neural) approaches for semantic parsing and semantic role labeling (SRL). This is not an extensive review of these methods, but just a collection of my notes on reading some recent research on the subject. However, I do believe it covers most of the latest trends as well as their limitations.
+But first, what is semantic parsing?
+“Semantic” refers to meaning, and “parsing” means resolving a sentence into its component parts.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2017-09-20T10:03:22&#43;05:30">
+  
+  <meta property="article:modified_time" content="2017-09-20T10:03:22&#43;05:30">
+  
+
+  
+  
+
+  <title>Trends in Semantic Parsing - Part 1 | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Trends in Semantic Parsing - Part 1</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2017-09-20 10:03:22 &#43;0530 IST" itemprop="datePublished dateModified">
+      Sep 20, 2017
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    6 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/trends-in-semantic-parsing-1/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Trends%20in%20Semantic%20Parsing%20-%20Part%201&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2ftrends-in-semantic-parsing-1%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2ftrends-in-semantic-parsing-1%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2ftrends-in-semantic-parsing-1%2f&amp;title=Trends%20in%20Semantic%20Parsing%20-%20Part%201"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2ftrends-in-semantic-parsing-1%2f&amp;title=Trends%20in%20Semantic%20Parsing%20-%20Part%201"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Trends%20in%20Semantic%20Parsing%20-%20Part%201&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2ftrends-in-semantic-parsing-1%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p><em>In this article, I will try to round up some (mostly neural) approaches for semantic parsing and semantic role labeling (SRL). This is not an extensive review of these methods, but just a collection of my notes on reading some recent research on the subject. However, I do believe it covers most of the latest trends as well as their limitations.</em></p>
+
+<hr />
+
+<p>But first, <strong>what is semantic parsing?</strong></p>
+
+<p>“Semantic” refers to meaning, and “parsing” means resolving a sentence into its component parts. As such, semantic parsing refers to the task of mapping natural language text to formal representations or abstractions of its meaning. A <em>syntactic parser</em> may generate constituency or dependency trees from a sentence, but a <em>semantic parser</em> may be built depending upon the task for which inference is required.</p>
+
+<p>For example, we can build a parser that converts the natural language query “*Who was the first person to walk on the moon?*” to an equivalent (although complex!) SQL query such as “SELECT name FROM Person WHERE moon_walk = true ORDER BY moon_walk_date FETCH first 1 rows only.”</p>
+
+<p>Semantic parsing is inherently more complicated than syntactic parsing because it requires understanding concepts from different word phrases. For instance, the following sentences (adapted from [4]) should ideally map to the same formal representation.</p>
+
+<blockquote>
+<p>Sentence 1: India defeated Australia.</p>
+
+<p>Sentence 2: India secured the victory over the Australian team.</p>
+</blockquote>
+
+<p>For this reason, semantic parsing is more about capturing the meaning of the sentence rather than plain rule-based pattern matching.</p>
+
+<p><strong>Semantic role labeling</strong> is a sub-task within the former, where the sentence is parsed into a predicate-argument format. The example given on the Wikipedia page for SRL explains this well. Given a sentence like “Mary sold the book to John,” the task would be to recognize the verb “to sell” as representing the predicate, “Mary” as representing the seller (agent), “the book” as representing the goods (theme), and “John” as representing the recipient. In this sense, SRL is sometimes also called shallow semantic parsing because the structure of the target representation is somewhat known.</p>
+
+<p>In this article, I will describe models for both these tasks without explicit differentiation, mostly since the same models are found to work well on either task.</p>
+
+<hr />
+
+<h4 id="learning-sentence-embeddings-using-deep-neural-models">Learning sentence embeddings using deep neural models</h4>
+
+<p>Vector semantics have been used extensively in all NLP tasks, especially after word embeddings (Word2Vec, GloVe) were found to represent the synonymy-antonymy relations well in real space.</p>
+
+<p>Similar to word embeddings, we can try to obtain dense vectors to represent a sentence, and then find some way to obtain the formal representation from it. Ivan Titov (University of Edinburgh) has recently proposed a couple of models which use <strong>LSTMs</strong> <sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup> and <strong>Graph CNNs</strong> <sup class="footnote-ref" id="fnref:2"><a href="#fn:2">2</a></sup> for dependency-based SRL task.</p>
+
+<p>I will first explain the task. We work on datasets where the predicates are marked in the sentence, and the objective is to identify and label the arguments corresponding to each predicate. For instance, given the sentence “<em>Mary eats an apple</em>,” and the predicate marked as EATS, we need to label the words ‘Mary,’ ‘an,’ and ‘apple’ as <em>agent</em>, NULL, and <em>theme</em>, respectively. Also, since a single sentence may contain multiple predicates, the same word may get different labels for each predicate. Essentially, if we repeat the process once for each predicate, out task effectively reduces to a sequence labeling problem.</p>
+
+<p><strong>LSTM-based approach</strong> <sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup> : LSTMs (which are a type of RNNs that can preserve memory) have been used to model sequences since they were first introduced. In the first model, the sequence labeling is performed as follows.</p>
+
+<ul>
+<li>Vectors are obtained from each word by concatenating pre-trained embeddings (Word2Vec), random embeddings, and randomly initialized POS embeddings.</li>
+<li>The word vector also contains a 1-bit flag to mark whether it is the predicate in that particular training instance. This is done to ensure that the network treats each predicate differently.</li>
+<li>These are fed into a bi-LSTM layer to obtain the word’s context in the sentence.</li>
+<li>Finally, to label any word, we take the dot product of its hidden state with the predicate’s hidden state and obtain a softmax classifier over it as follows.</li>
+</ul>
+
+<p>$$ p(r|v_i,v_p) \propto \exp(W_r (v_i \cdot v_p)). $$</p>
+
+<ul>
+<li>Further, we can have the weight matrix parametrized on the role label $r$ as:</li>
+</ul>
+
+<p>$$ W_{l,r} = ReLU(U(u_l \cdot v_r)), $$</p>
+
+<p>where the vectors in the dot product correspond to randomly initialized embeddings for the predicate lemma and the role, respectively.</p>
+
+<p><strong>GCN-based approach <sup class="footnote-ref" id="fnref:2"><a href="#fn:2">2</a></sup>:</strong> In a second model, Graph Convolutional Networks (GCNs) have been used to represent the dependency tree for the sentence. In a very crude sense, a GCN input layer encodes the sentence into an $m X n$ matrix based on its dependency tree, such that each of the $n$ nodes of the tree is
+represented as an $m$-dimensional vector. Once such a matrix has been obtained, we can perform convolutions on it.</p>
+
+<p>It is then evident that a one-layer GCN can capture information only about its immediate neighbor. By stacking GCN layers, one can incorporate higher degree neighborhoods.</p>
+
+<p><img src="/img/2/gcn.png" alt="Architecture of an LSTM+GCN encoder" /></p>
+
+<p><strong>GCNs and LSTMs are complementary.</strong> <em>Why?</em> LSTMs capture long-term dependencies well but are not able to represent syntax effectively. On the other hand, GCNs are built directly on top of a syntactic-dependency tree so they capture syntax well, but due to the limitation of fixed-size convolutions, the range of dependency is limited. Therefore, using a GCN layer on top of the hidden states obtained from a bi-LSTM layer would theoretically capture the best of both worlds. This hypothesis has also been corroborated through experimental results.</p>
+
+<p><strong>Encoder-decoder model</strong> <sup class="footnote-ref" id="fnref:3"><a href="#fn:3">3</a></sup>: In this paper, the task is broadened into formal representation rather than SRL. If we consider the formal representation as a different language, this is similar to a machine translation problem, since both the natural as well as formal representations mean the same. As such, it might be interesting to apply models used for MT to semantic parsing. This paper does exactly this.</p>
+
+<p>An encoder converts the input sequence to a vector representation and a decoder obtains the target sequence from this vector.</p>
+
+<ul>
+<li>The encoder uses a bi-LSTM layer similar to the previous methods to obtain the vector representation of the input sequence.</li>
+<li>The final hidden state is fed into the decoder layer, which is again a bi-LSTM. The hidden states obtained from this layer is used to predict the corresponding output tokens using a softmax function.</li>
+<li>Alternatively, we can have a hierarchical decoder to account for the hierarchical structure of logical forms. For this purpose, we simply introduce a non-terminal token, say <n>, which indicates the start of a sub-tree. Other tokens may be used to represent the start/end of a terminal sequence or a non-terminal sequence.</li>
+<li>To incorporate the tree structure, we concatenate the hidden state of the parent non-terminal with every child.</li>
+<li>Finally in the decoding step, to better utilize relevant information from the input sequence, we use an attention layer where the context vector is a weighted sum over the hidden vectors in the encoder.</li>
+</ul>
+
+<hr />
+
+<p>While these models are very inspired and intuitive, they are all supervised. As such, they are constrained due to cost and availability of annotated data, especially since manually labeling semantic parsing output is a time-consuming process. In part 2 of this article, I will talk about some approaches which overcome this issue.</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1">Marcheggiani, Diego, Anton Frolov, and Ivan Titov. “<a href="https://arxiv.org/pdf/1701.02593.pdf" target="_blank">A simple and accurate syntax-agnostic neural model for dependency-based semantic role labeling</a>.” <em>arXiv preprint arXiv:1701.02593</em> (2017).
+ <a class="footnote-return" href="#fnref:1"><sup>^</sup></a></li>
+<li id="fn:2">Marcheggiani, Diego, and Ivan Titov. “<a href="https://arxiv.org/pdf/1703.04826.pdf" target="_blank">Encoding Sentences with Graph Convolutional Networks for Semantic Role Labeling</a>.” <em>arXiv preprint arXiv:1703.04826</em> (2017).
+ <a class="footnote-return" href="#fnref:2"><sup>^</sup></a></li>
+<li id="fn:3">Dong, Li, and Mirella Lapata. “<a href="https://arxiv.org/pdf/1601.01280.pdf" target="_blank">https://arxiv.org/pdf/1601.01280.pdf</a>.” <em>arXiv preprint arXiv:1601.01280</em> (2016).
+ <a class="footnote-return" href="#fnref:3"><sup>^</sup></a></li>
+</ol>
+</div>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/natural-language-processing/">natural language processing</a>
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/semantic-parsing/">semantic parsing</a>
+  
+</div>
+
+
+
+
+    
+    
+    <div class="article-widget">
+      <div class="hr-light"></div>
+      <h3>Related</h3>
+      <ul>
+        
+        <li><a href="/post/metrics-for-nlg-evaluation/">Metrics for NLG Evaluation</a></li>
+        
+        <li><a href="/publication/conll-17-learning/">Learning local and global context using a convolutional recurrent network model for relation classification in biomedical text</a></li>
+        
+        <li><a href="/project/readability/">Text readability analysis using language modeling</a></li>
+        
+        <li><a href="/project/btp/">Relation extraction for clinical text</a></li>
+        
+      </ul>
+    </div>
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "rdesh26" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//rdesh26.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+

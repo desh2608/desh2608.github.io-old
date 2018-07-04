@@ -33,6 +33,15 @@
     </item>
     
     <item>
+      <title>Understanding Word Vectors</title>
+      <link>https://desh2608.github.io/post/understanding-word-vectors/</link>
+      <pubDate>Fri, 29 Sep 2017 11:12:55 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/understanding-word-vectors/</guid>
+      <description>This article is a formal representation of my understanding of vector semantics, from course notes and reading reference papers and chapters from Jurafsky’s SLP book. I will be talking about sparse and dense vector semantics, including SVD, skip-gram, and GloVe. In many places, I will try to explain the ideas in language rather than equations (but I’ll provide links to derivations and stuff wherever it is absolutely essential, which is actually everywhere!</description>
+    </item>
+    
+    <item>
       <title>Learning local and global context using a convolutional recurrent network model for relation classification in biomedical text</title>
       <link>https://desh2608.github.io/publication/conll-17-learning/</link>
       <pubDate>Tue, 01 Aug 2017 00:00:00 +0000</pubDate>

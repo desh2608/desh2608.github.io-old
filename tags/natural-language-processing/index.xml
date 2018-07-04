@@ -33,6 +33,36 @@
     </item>
     
     <item>
+      <title>Understanding Word Vectors</title>
+      <link>https://desh2608.github.io/post/understanding-word-vectors/</link>
+      <pubDate>Fri, 29 Sep 2017 11:12:55 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/understanding-word-vectors/</guid>
+      <description>This article is a formal representation of my understanding of vector semantics, from course notes and reading reference papers and chapters from Jurafsky’s SLP book. I will be talking about sparse and dense vector semantics, including SVD, skip-gram, and GloVe. In many places, I will try to explain the ideas in language rather than equations (but I’ll provide links to derivations and stuff wherever it is absolutely essential, which is actually everywhere!</description>
+    </item>
+    
+    <item>
+      <title>Trends in Semantic Parsing - Part 1</title>
+      <link>https://desh2608.github.io/post/trends-in-semantic-parsing-1/</link>
+      <pubDate>Wed, 20 Sep 2017 10:03:22 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/trends-in-semantic-parsing-1/</guid>
+      <description>In this article, I will try to round up some (mostly neural) approaches for semantic parsing and semantic role labeling (SRL). This is not an extensive review of these methods, but just a collection of my notes on reading some recent research on the subject. However, I do believe it covers most of the latest trends as well as their limitations.
+But first, what is semantic parsing?
+“Semantic” refers to meaning, and “parsing” means resolving a sentence into its component parts.</description>
+    </item>
+    
+    <item>
+      <title>Metrics for NLG Evaluation</title>
+      <link>https://desh2608.github.io/post/metrics-for-nlg-evaluation/</link>
+      <pubDate>Sat, 16 Sep 2017 09:15:44 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/metrics-for-nlg-evaluation/</guid>
+      <description>Simple natural language processing tasks such as sentiment analysis, or even more complex ones like semantic parsing are easy to evaluate since the evaluation simply requires label matching. As such, metrics like F-score (which is the harmonic mean of precision and recall), or even accuracy in uniformly distributed data, are used for such tasks.
+Evaluating natural language generation systems is a much more complex task, however. And for this reason, a number of different metrics have been proposed for tasks such as machine translation or summarization.</description>
+    </item>
+    
+    <item>
       <title>Learning local and global context using a convolutional recurrent network model for relation classification in biomedical text</title>
       <link>https://desh2608.github.io/publication/conll-17-learning/</link>
       <pubDate>Tue, 01 Aug 2017 00:00:00 +0000</pubDate>

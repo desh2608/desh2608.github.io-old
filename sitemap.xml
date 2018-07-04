@@ -32,6 +32,33 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/post/understanding-word-vectors/</loc>
+      <lastmod>2017-09-29T11:12:55+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/post/trends-in-semantic-parsing-1/</loc>
+      <lastmod>2017-09-20T10:03:22+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/post/metrics-for-nlg-evaluation/</loc>
+      <lastmod>2017-09-16T09:15:44+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/publication/conll-17-learning/</loc>
       <lastmod>2017-08-01T00:00:00+00:00</lastmod>
     </url>
@@ -256,6 +283,26 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/tags/machine-translation/</loc>
+      <lastmod>2017-09-16T09:15:44+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/tags/natural-language-generation/</loc>
+      <lastmod>2017-09-16T09:15:44+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/tags/natural-language-processing/</loc>
       <lastmod>2018-07-03T16:56:46+05:30</lastmod>
       <priority>0</priority>
@@ -268,6 +315,26 @@
     
       <loc>https://desh2608.github.io/publication_types/</loc>
       <lastmod>2017-08-01T00:00:00+00:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/tags/representation-learning/</loc>
+      <lastmod>2017-09-29T11:12:55+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/tags/semantic-parsing/</loc>
+      <lastmod>2017-09-20T10:03:22+05:30</lastmod>
       <priority>0</priority>
     </url>
     
