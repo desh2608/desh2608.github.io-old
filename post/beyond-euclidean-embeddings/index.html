@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.42.2" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="Representation learning, as the name suggests, seeks to learn representations for structures such as images, videos, words, sentencences, graphs, etc., which may then be used for several objectives. Arguably the most important representations used nowadays are word embeddings, usually learnt using the distributional semantics methods such as skip-gram or GloVe. I have previously written about these methods here.
+Two assumptions are inherent while using these methods to learn word vectors:">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/beyond-euclidean-embeddings/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/beyond-euclidean-embeddings/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/beyond-euclidean-embeddings/">
+  <meta property="og:title" content="Beyond Euclidean Embeddings | Desh Raj">
+  <meta property="og:description" content="Representation learning, as the name suggests, seeks to learn representations for structures such as images, videos, words, sentencences, graphs, etc., which may then be used for several objectives. Arguably the most important representations used nowadays are word embeddings, usually learnt using the distributional semantics methods such as skip-gram or GloVe. I have previously written about these methods here.
+Two assumptions are inherent while using these methods to learn word vectors:">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2017-12-06T13:39:15&#43;05:30">
+  
+  <meta property="article:modified_time" content="2017-12-06T13:39:15&#43;05:30">
+  
+
+  
+  
+
+  <title>Beyond Euclidean Embeddings | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Beyond Euclidean Embeddings</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2017-12-06 13:39:15 &#43;0530 IST" itemprop="datePublished dateModified">
+      Dec 6, 2017
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    11 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/beyond-euclidean-embeddings/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Beyond%20Euclidean%20Embeddings&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fbeyond-euclidean-embeddings%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fbeyond-euclidean-embeddings%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fbeyond-euclidean-embeddings%2f&amp;title=Beyond%20Euclidean%20Embeddings"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fbeyond-euclidean-embeddings%2f&amp;title=Beyond%20Euclidean%20Embeddings"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Beyond%20Euclidean%20Embeddings&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fbeyond-euclidean-embeddings%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p>Representation learning, as the name suggests, seeks to learn representations for structures such as images, videos, words, sentencences, graphs, etc., which may then be used for several objectives. Arguably the most important representations used nowadays are word embeddings, usually learnt using the distributional semantics methods such as skip-gram or GloVe. I have previously written about these methods <a href="https://desh2608.github.io/post/understanding-word-vectors/" target="_blank">here</a>.</p>
+
+<p>Two assumptions are inherent while using these methods to learn word vectors:</p>
+
+<ol>
+<li>That words are best visualized as points in the $n$-dimensional space.</li>
+<li>That the Euclidean distance or the Euclidean dot product are the best measures of similarity between words (or other structures for which the embeddings have been learnt).</li>
+</ol>
+
+<p>Over the last couple years, researchers have sought to challenge both of these assumptions by proposing several new non-Euclidean representations for words and graphs. Especially in the case of learning relational embeddings, the model should be able to learn all combinations of properties, namely reflexivity/irreflexivity, symmetry/anti-symmetry, and transitivity. Euclidean dot products are limited in that they cannot handle anti-symmetry, since dot products are commutative.</p>
+
+<p>In this post, I will discuss 4 non-Euclidean embeddings: Gaussian, Holographic, Complex, and Poincare.</p>
+
+<hr />
+
+<h4 id="word-representations-via-gaussian-embeddings">Word representations via Gaussian embeddings</h4>
+
+<p>The key idea in this ICLR ’15 paper<sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup> is to map words to a density instead of a point. Density here is represented by a “potential function,” such as a Gaussian. The authors provide a nice recap of energy functions as a tool for learning word representations.</p>
+
+<p>Essentially, any representation learning involves an energy function $E(x,y)$ which scores pairs of inputs and outputs. A loss function is then uses this energy function to quantify the difference between actual output and predicted output. In the case of skip-gram models, the energy function used is a dot product, and the loss function is a logistic regression. In this paper, the authors propose 2 kinds of energy functions (for symmetric and asymmetric similarity), and the loss function used is max margin as follows.</p>
+
+<p>$$ L_m(w,c_p,c_n) = \max(0,m-E(w,c_p)+E(w,c_n)) $$</p>
+
+<p>For a Gaussian distribution to model any word, a baseline approach may involve using the distribution around the word to compute and mean and variance. If a word $w$ occurs $N$ times in the corpus, the covariance of the distribution around $w$ is given as</p>
+
+<p>$$ \sum_w = \frac{1}{NW}\sum_i^N \sum_j^W (c(w)_{ij})(c(w)_{ij}-w)^T $$</p>
+
+<p>where W is the window size, and $w$ is the assumed mean. However, the distributions learned using this empirical approach do not possess some desired properties such as unsupervised entailment represented as inclusion between ellipsoids. To solve this, 2 energy functions are proposed.</p>
+
+<p><strong>Method 1: Symmetric similarity</strong></p>
+
+<p>This method just computes the inner product between the two distributions. It has been shown that the inner product of two normal distributions is again a normal distribution. Furthermore, we take the log of this value for two reasons. First, since we are dealing with ranking loss, taking the logarithm converts absolute values into relative values, which is easier to interpret. Second, it is numerically easier to deal with.</p>
+
+<p>Furthermore, the energy function is shown to be of the form <strong>log det A + const</strong>. We can interpret the constant term as a regularizer that prevents us from decreasing the distance by only increasing joint variance. This combination pushes the means together while encouraging them to have more concentrated, sharply peaked distributions in order to have high energy.</p>
+
+<p><strong>Method 2: Asymmetric similarity</strong></p>
+
+<p>This method computes the energy function as the negative of the KL-divergence between the 2 distributions (negative because the KL-divergence returns a distance value and hence needs to be minimized to increase similarity). A low KL divergence from $x$ to $y$ indicates that we can encode $y$ easily as $x$, implying that $y$ entails (logically follows from) $x$.</p>
+
+<p>The authors have further computed the gradients for each of the two energy functions, and they are easily expressible in terms of existing means and covariances.</p>
+
+<hr />
+
+<h4 id="poincare-embeddings-for-hierarchical-representations">Poincare embeddings for hierarchical representations</h4>
+
+<p>This paper<sup class="footnote-ref" id="fnref:2"><a href="#fn:2">2</a></sup> proposes embeddings in hyperbolic spaces, such as the Poincare sphere. Before we get into the method itself, I think it would be best to give a brief overview of hyperbolic geometry itself.</p>
+
+<p><strong>Hyperbolic geometry</strong></p>
+
+<p>In his book <em>Elements</em>, Euclid provided a rigourous framework for axioms, theorems and postulates for all geometrical knowledge at the time. He stated 5 axioms which were to be assumed true. The first 4 were quite self-evident, and were:</p>
+
+<ol>
+<li>Any two points can be connected by a line.</li>
+<li>Any line segment can be extended indefinitely.</li>
+<li>Given a line segment, a circle can be drawn with center at one of the endpoints and radius equal to the length of the segment.</li>
+<li>Any two right angles are congruent.</li>
+</ol>
+
+<p>However, the fifth axiom, also known as Playfair’s axiom, is much less obvious.</p>
+
+<p><em>Playfair’s axiom</em>: Given a line L and a point P, there exists at most one line through P that is parallel to L.</p>
+
+<p>Euclid himself wasn’t very fond of this axiom and his first 28 postulates depended only on the first 4 axioms, which are the “core” of Euclidean geometry. Even 2000 years after his death, mathematicians tried to derive the fifth axiom from the first 4. While using “proof by contradiction” for this purpose, they assumed the negation of the fifth axiom (Given a line L and a point P not on L, there are at least two distinct lines that can be drawn through P that are parallel to L) and tried to arrive at a contradiction. However, while the derived results were strange and very different from those in Euclidean geometry, they were consistent within themselves. This was a turning point in mathematics as such a bifurcation in geometry had never been expected before. The geometry that arose from these explorations is known as <em>hyperbolic geometry</em>.</p>
+
+<p>With this knowledge, let us now look at how embeddings may be computed in this new model.</p>
+
+<p>The Poincare sphere model of hyperbolic space is particularly suitable for representing hierarchies. Consider a knowledge base which can be visualized as a tree. For any branching factor <em>b</em>, the number of leaf nodes increases exponentially as the number of levels increases. If we try to replicate this construction in a Euclidean disk(sphere), it would not be possible since the area(volume) of a disk(sphere) increases only quadratically(cubically) with increase in radius. This requires that we increase the number of dimensions exponentially.</p>
+
+<p>However, the Poincare sphere embeds such hierarchies easily: nodes that are exactly $l$ levels below the root are placed on a sphere in hyperbolic space with radius $r \propto l$ and nodes that are less than $l$ levels below the root are located within this sphere. This type of construction is possible as hyperbolic disc area and circle length grow exponentially with their radius. In the paper, the authors used a sphere instead of disk since more degrees of freedom implies better representation of latent hierarchies.</p>
+
+<p>Distances in the hyperbolic space are given as</p>
+
+<p>$$ d(u,v) = arcosh\left( 1 + 2\frac{\lVert u-v \rVert^2}{(1-\lVert u \rVert)^2(1-\lVert v \rVert)^2} \right) $$</p>
+
+<p>Here, hierarchy is represented using the norm of the embedding, while similarity is mirrored in the norm of vector difference. Furthermore, the function is differentiable, which is good for gradient descent.</p>
+
+<p>For optimization, the update term is the learning rate times the Riemannian gradient of the parameter. The Riemannian gradient itself is computed by taking the product of the Poincare ball matrix inverse (which is trivial to compute) with the Euclidean gradient (which depends on the gradients of the distance function). The loss function used in the paper is a softmax with negative sampling.</p>
+
+<hr />
+
+<h4 id="holographic-embeddings-for-knowledge-graphs">Holographic embeddings for knowledge graphs</h4>
+
+<p>This and the next method seek to learn embeddings for relations within knowledge graphs, and the motivation for both is to have embeddings that allow asymmetric relations to be sufficiently represented. To achieve said objective, this AAAI ’16 paper<sup class="footnote-ref" id="fnref:3"><a href="#fn:3">3</a></sup> employs circular correlations, while the next paper from ICML ’16<sup class="footnote-ref" id="fnref:4"><a href="#fn:4">4</a></sup> uses complex embeddings.</p>
+
+<p>Before describing the method, I will first describe the task. Given a set $E$ of entities and a set $P$ of relation types, the objective is to learn a characteristic function for each relation type that determines whether that relation exists between any two elements in $E$. The entities are referred to as the <em>subject</em> and the <em>object</em>.</p>
+
+<p>The general approach is to approximate the characteristic function using a function that takes as input the relation vector, and the vectors corresponding to the subject and the object. Using a loss function such as log likelihood minimization with negative sampling, we can tune the parameters that describe the entity vectors and the relation type vector. This is similar to our earlier discussion on energy function optimization.</p>
+
+<p>The catch here is that the characteristic function is supposed to output a scalar score (the probability of the relation), but the inputs to it are vectors. To convert the input to a scalar, the entity vectors are combined using a composition operator <strong>o</strong>(more on this later), and its dot product is taken with the relation type vector.</p>
+
+<p>So the problem boils down to the choice of a good compositional operator. In the past, three different approaches have been taken for this problem.</p>
+
+<ol>
+<li><em>Tensor product</em>: Take the outer product of the entity vectors. However, the resulting vector contains the square of the initial number of parameters, which may cause problems such as overfitting down the line.</li>
+<li><em>Concatenation, projection, and non-linearity</em>: The projection matrix is learned during training. However, due to the absence of interaction between features, the representation learnt is not rich enough, even though non-linearity is added.</li>
+<li><em>Non-compositional methods</em>: In these approaches, the score is computed as the distance of the difference vector with the relation vector (e.g., TransE).</li>
+</ol>
+
+<p>Essentially, we want an operator which has cross-feature interactions without having the number of parameters explode. To this end, the authors propose the circular correlation operator, which is given as</p>
+
+<p>$$ [a\cdot b]_k = \sum_{i=1}^{d-1}a_i b_{(k+i)\text{mod}d}. $$</p>
+
+<p>The output contains as many parameters as the input vectors, while also capturing the interaction between the features. The function measures the covariance between embeddings at different dimension shifts, and the asymmetry stems from this circular correlation.</p>
+
+<p>At this point, you may be wondering why a simple convolutional operator would not suffice. The answer is that convolution is a commutative function, while correlation is not. Again, the key lies in symmetry (or the lack of it)!</p>
+
+<hr />
+
+<h4 id="complex-embeddings-for-link-prediction">Complex embeddings for link prediction</h4>
+
+<p>In the objective of predicting relations described earlier, we can think of the characteristic function as a function which takes as input a latent matrix <strong>X</strong> of scores and outputs the corresponding probability. This latent matrix is an $E \times E$ matrix since it contains the scores for every possible pair of entities. However, since the number of entitites may be very large, the problem we want to solve is that of matrix factorization.</p>
+
+<p>This is similar to the singular value decomposition method for learning word vectors that I discussed in an earlier blog post. If we assume that an entity has only one unique representation, regardless of whether it occurs as subject or object, the matrix X can be factorized as</p>
+
+<p>$$ X = EWE^{-1} $$</p>
+
+<p>Since the entity vectors are complex in nature ($u$ = Re($u$) + $i$Im($u$)), the matrix factorization of $X$ may be either real or complex. But since the characteristic function returns a real output, we define $X$ as the Real part of the factorization. Now, our original objective is to learn $P(Y=1)$ for every $s-o$ pair, and we are trying to approximate this using the latent matrix $X$. In the case of binary relations (yes/no), $Y$ is essentially a sign matrix, and hence it is safe to assume that its “sign-rank” is low.</p>
+
+<p><em>But what is a “sign-rank”?</em> It refers to the smallest rank of a real matrix having the same sign pattern as $Y$. The authors showed in an earlier paper that if the sign rank of $Y$ is low, the rank of Re($EWE^T$) is at most twice that of $Y$. While this is a good upper bound, the actual rank is often much lower than the rank of $Y$.</p>
+
+<p>In the case of multi-relational data, each relation has a representation $w$ associated with it. The characteristic function then takes as input the relation type along with the subject and object, and computes the score based on a novel scoring function. This function has the following property: if $w$ is real, the characteristic function is symmetric, and if $w$ is imaginary, then it is anti-symmetric.</p>
+
+<hr />
+
+<p>While Euclidean embeddings are popular, they are in no way sufficient to represent all the complexities and hierarchies in language. These methods suggest that looking at non-Euclidean spaces for representation learning may be the way to go.</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1">Vilnis, Luke, and Andrew McCallum. “<a href="https://arxiv.org/pdf/1412.6623.pdf" target="_blank">Word representations via gaussian embedding</a>.” <em>arXiv preprint arXiv:1412.6623</em>(2014).
+ <a class="footnote-return" href="#fnref:1"><sup>^</sup></a></li>
+<li id="fn:2">Nickel, Maximilian, and Douwe Kiela. “<a href="https://arxiv.org/pdf/1705.08039.pdf" target="_blank">Poincare Embeddings for Learning Hierarchical Representations</a>.” <em>arXiv preprint arXiv:1705.08039</em> (2017).
+ <a class="footnote-return" href="#fnref:2"><sup>^</sup></a></li>
+<li id="fn:3">Nickel, Maximilian, Lorenzo Rosasco, and Tomaso A. Poggio. “<a href="https://arxiv.org/pdf/1510.04935.pdf" target="_blank">Holographic Embeddings of Knowledge Graphs</a>.” <em>AAAI</em>. 2016.
+ <a class="footnote-return" href="#fnref:3"><sup>^</sup></a></li>
+<li id="fn:4">Trouillon, Théo, et al. “<a href="http://proceedings.mlr.press/v48/trouillon16.pdf" target="_blank">Complex embeddings for simple link prediction</a>.” <em>International Conference on Machine Learning</em>. 2016.
+ <a class="footnote-return" href="#fnref:4"><sup>^</sup></a></li>
+</ol>
+</div>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/representation-learning/">representation learning</a>
+  
+</div>
+
+
+
+
+    
+    
+    <div class="article-widget">
+      <div class="hr-light"></div>
+      <h3>Related</h3>
+      <ul>
+        
+        <li><a href="/post/understanding-word-vectors/">Understanding Word Vectors</a></li>
+        
+      </ul>
+    </div>
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "desh2608-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//desh2608-github-io.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+

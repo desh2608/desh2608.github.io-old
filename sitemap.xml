@@ -32,6 +32,33 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/post/intro-learning-theory-1/</loc>
+      <lastmod>2018-01-15T13:39:43+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/post/unsupervised-approaches-for-nmt/</loc>
+      <lastmod>2017-12-14T13:39:30+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/post/beyond-euclidean-embeddings/</loc>
+      <lastmod>2017-12-06T13:39:15+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/post/deep-learning-multimodal-systems/</loc>
       <lastmod>2017-11-09T13:38:58+05:30</lastmod>
     </url>
@@ -309,6 +336,16 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/tags/learning-theory/</loc>
+      <lastmod>2018-01-15T13:39:43+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/tags/machine-learning/</loc>
       <lastmod>2018-01-15T15:02:35+05:30</lastmod>
       <priority>0</priority>
@@ -320,7 +357,7 @@
     <url>
     
       <loc>https://desh2608.github.io/tags/machine-translation/</loc>
-      <lastmod>2017-09-16T09:15:44+05:30</lastmod>
+      <lastmod>2017-12-14T13:39:30+05:30</lastmod>
       <priority>0</priority>
     </url>
     
@@ -370,7 +407,7 @@
     <url>
     
       <loc>https://desh2608.github.io/tags/representation-learning/</loc>
-      <lastmod>2017-09-29T11:12:55+05:30</lastmod>
+      <lastmod>2017-12-06T13:39:15+05:30</lastmod>
       <priority>0</priority>
     </url>
     

@@ -7,10 +7,19 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2018</copyright>
-    <lastBuildDate>Sat, 16 Sep 2017 09:15:44 +0530</lastBuildDate>
+    <lastBuildDate>Thu, 14 Dec 2017 13:39:30 +0530</lastBuildDate>
     
 	<atom:link href="https://desh2608.github.io/tags/machine-translation/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Unsupervised Approaches for NMT</title>
+      <link>https://desh2608.github.io/post/unsupervised-approaches-for-nmt/</link>
+      <pubDate>Thu, 14 Dec 2017 13:39:30 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/unsupervised-approaches-for-nmt/</guid>
+      <description>Translation is one of those tasks in language where the arrival of deep learning systems, and in particular sequence-to-sequence, has been something like a boon. In less than 4 years since the first paper on Neural Machine Translation, software giants such as Google and Microsoft have already announced that their translation systems have almost completely shifted from statistical to neural. Gone are the days when researchers mulled over complex word and phrase alignment techniques, and yet fell short on several language combinations.</description>
+    </item>
     
     <item>
       <title>Metrics for NLG Evaluation</title>

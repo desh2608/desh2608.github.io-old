@@ -13,6 +13,35 @@
     
     
     <item>
+      <title>Introduction to Learning Theory - Part 1</title>
+      <link>https://desh2608.github.io/post/intro-learning-theory-1/</link>
+      <pubDate>Mon, 15 Jan 2018 13:39:43 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/intro-learning-theory-1/</guid>
+      <description>One of the most significant take-aways from NIPS 2017 was the &amp;ldquo;alchemy&amp;rdquo; debate spearheaded by Ali Rahimi. In the wake of the event, I have been trying to learn more about statistical learning theory, even though the concepts may not be readily applicable to deep neural networks.
+One of the most important concepts in this regard is to measure the complexity of a hypothesis class $H$. In any machine learning model, the end goal is to find a hypothesis class that achieves a high accuracy on the training set, and has low generalization error on the test set.</description>
+    </item>
+    
+    <item>
+      <title>Unsupervised Approaches for NMT</title>
+      <link>https://desh2608.github.io/post/unsupervised-approaches-for-nmt/</link>
+      <pubDate>Thu, 14 Dec 2017 13:39:30 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/unsupervised-approaches-for-nmt/</guid>
+      <description>Translation is one of those tasks in language where the arrival of deep learning systems, and in particular sequence-to-sequence, has been something like a boon. In less than 4 years since the first paper on Neural Machine Translation, software giants such as Google and Microsoft have already announced that their translation systems have almost completely shifted from statistical to neural. Gone are the days when researchers mulled over complex word and phrase alignment techniques, and yet fell short on several language combinations.</description>
+    </item>
+    
+    <item>
+      <title>Beyond Euclidean Embeddings</title>
+      <link>https://desh2608.github.io/post/beyond-euclidean-embeddings/</link>
+      <pubDate>Wed, 06 Dec 2017 13:39:15 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/beyond-euclidean-embeddings/</guid>
+      <description>Representation learning, as the name suggests, seeks to learn representations for structures such as images, videos, words, sentencences, graphs, etc., which may then be used for several objectives. Arguably the most important representations used nowadays are word embeddings, usually learnt using the distributional semantics methods such as skip-gram or GloVe. I have previously written about these methods here.
+Two assumptions are inherent while using these methods to learn word vectors:</description>
+    </item>
+    
+    <item>
       <title>Deep Learning for Multimodal Systems</title>
       <link>https://desh2608.github.io/post/deep-learning-multimodal-systems/</link>
       <pubDate>Thu, 09 Nov 2017 13:38:58 +0530</pubDate>
