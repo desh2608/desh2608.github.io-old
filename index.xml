@@ -54,6 +54,438 @@
     </item>
     
     <item>
+      <title>Deep Learning for Multimodal Systems</title>
+      <link>https://desh2608.github.io/post/deep-learning-multimodal-systems/</link>
+      <pubDate>Thu, 09 Nov 2017 13:38:58 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/deep-learning-multimodal-systems/</guid>
+      <description>
+
+&lt;p&gt;When I was browsing through research groups for my grad school applications, I came across some interesting applications of new deep learning methods in a multimodal setting. ‘Multimodal,’ as the name suggests, refers to any system involving two or more modes of input or output. For example, an image captioning system provides images as input and expects a textual output. Similarly, speech-to-text, descriptive art, video summarization, etc., are all examples of multimodal objectives. In this article, I will discuss 3 recent papers from &lt;a href=&#34;http://www.cs.unc.edu/~mbansal/&#34; target=&#34;_blank&#34;&gt;Mohit Bansal&lt;/a&gt; (who joined UNC last year), based on album summarization, video
+captioning, and image captioning (with a twist).&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;creating-a-story-from-an-album&#34;&gt;Creating a story from an album&lt;/h4&gt;
+
+&lt;p&gt;Given an album containing several images (which may or may not be similar), the task of Visual Storytelling is to generate a natural language story describing the album. In this EMNLP ’17 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;, the task is decomposed into 3 steps:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;Album encoder&lt;/em&gt;: Encode the individual photos in the album to form photo vectors&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Photo selector&lt;/em&gt;: Select a small number of representative photos.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Story generator&lt;/em&gt;: Compose a coherent story from the selected photo vectors.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/7/storytelling.png&#34; alt=&#34;Architecture of the Visual Storytelling system. Image taken from original paper&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For each of these three components, the paper uses a hierarchically-attentive RNN. The first component is similar to an embedding layer in a text classification setting, wherein a lookup table assigns some pretrained vectors to each word and then an RNN is applied to add sentence-level information to each word vector. In a similar fashion in this paper, the initial embeddings for each image are obtained using a pretrained ResNet101 layer, and then a bidirectional RNN with GRU cells is used to add information pertaining to the entire album in every image embedding.&lt;/p&gt;
+
+&lt;p&gt;In the Photo Selector stage, the selection is treated as a latent variable since we only have end-to-end ground truth labels. As such, we use soft attention to output $t$ probability distributions over all the images in the album, where $t$ is the number of summary images required, i.e., each image has $t$ probabilities associated with it. For this purpose, a GRU takes the previous $p$ and the previous hidden state &lt;em&gt;h&lt;/em&gt; as input and outputs the next hidden state. We use a multilayer perceptron with sigmoid activation to fuse the hidden state with the photo vector and obtain the soft attention for the particular image.&lt;/p&gt;
+
+&lt;p&gt;$$ h_t = GRU_{select}(p_{t-1},h_{t-1}) \\\ p(y_{a_i}(t)=1) = \sigma(MLP([h_t,v_i])) $$&lt;/p&gt;
+
+&lt;p&gt;Finally, we can obtain $t$ weighted album representations by taking the weighted sum of the photo vectors with the corresponding probability distributions. Each of these vectors is then used to decode a single sentence. For this purpose, a GRU takes the joint input of the album vector at step $t$, the previous word embedding, and the previous hidden state, and outputs the next hidden state. We repeat this for $t$ steps, thus obtaining the required album summary.&lt;/p&gt;
+
+&lt;p&gt;How do we define loss in such a setting? First, since we already know the correct summary sentences, we can define a &lt;em&gt;generation loss&lt;/em&gt; which is simply the sum of negative log likelihoods of the correct words. However, in addition to the words being similar, the story should be temporally coherent, i.e., the sentences themselves should be in a specific order. For this purpose, we apply a max-margin ranking loss as:&lt;/p&gt;
+
+&lt;p&gt;$$ h_t = GRU_{select}(p_{t-1},h_{t-1}) \\\ p(y_{a_i}(t)=1) = \sigma(MLP([h_t,v_i])) $$&lt;/p&gt;
+
+&lt;p&gt;The total loss is just a linear combination of these two losses. This provides a framework for end-to-end training for the system.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;captioning-videos-using-multi-task-learning&#34;&gt;Captioning videos using multi-task learning&lt;/h4&gt;
+
+&lt;p&gt;It seems multitask learning was under the spotlight in ACL ’17. Two semantic parsing papers I discussed in &lt;a href=&#34;https://desh2608.github.io/post/trends-in-semantic-parsing-2/&#34; target=&#34;_blank&#34;&gt;yesterday’s blog&lt;/a&gt; were both based on this paradigm, and so is this one.&lt;/p&gt;
+
+&lt;p&gt;At this point, I would like to clarify the difference between transfer learning and multitask learning by quoting directly from &lt;a href=&#34;https://www.researchgate.net/post/What_is_the_difference_between_Multi-task_Learning_and_Transfer_Learning&#34; target=&#34;_blank&#34;&gt;this answer&lt;/a&gt; on ResearchGate:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Multi-task learning can be seen as one type of transfer learning, where the information to transfer is some inner representation/substructure of the models under consideration, or the relevant features for a prediction, and where all
+the target tasks use the same data samples, but predict different target
+features for these (e.g. Part Of Speech tagging and Named Entity Recognition for
+natural language processing tasks).&lt;/p&gt;
+
+&lt;p&gt;Transfer Learning, on the other hand, would be the very general problem setting, where the “what” to transfer (representation, model substructures, data samples, parameter priors, …), the concurrency of learning (one or multiple target tasks using one or multiple source tasks, or learning several tasks jointly), the differences in domain (same data or different samples, samples from same or different/related distribution, same or partially different input features) and prediction problem (same target feature or different target features/tasks, same conditional or different/related conditional) are characteristics identifying the subclass of transfer learning problem, and maybe the approach taken to address this problem.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;A more formal definition can be found &lt;a href=&#34;https://stats.stackexchange.com/questions/255025/difference-between-multitask-learning-and-transfer-learning&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. Essentially in multitask learning, all the tasks are learnt simultaneously, whereas in transfer learning, the knowledge from one task is used in another. Now that the terminology is clear, let us look at the tasks and the model used.&lt;/p&gt;
+
+&lt;p&gt;The objective in this paper is video captioning, and the co-learnt tasks are video prediction and language entailment generation. It is arguably difficult to obtain large amounts of annotated data for a video prediction task, and hence learning from other tasks is especially relevant in this context.&lt;/p&gt;
+
+&lt;p&gt;Video prediction refers to the task of predicting the next frame in a video given a sequence of frames. Recognizing textual entailment (RTE), means identifying the logical relationship between two sentences, i.e., whether a premise and hypothesis follow entailment, contradiction, or independence. Knowledge transfer from a video prediction setting helps the model learn the temporal flow of information in a video, while learning from an RTE setting helps it in logically infering a caption from the video. This is the rationale behind using these tasks for the multi-task learning framework.&lt;/p&gt;
+
+&lt;p&gt;The overall architecture of the system is given below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/7/captioning.png&#34; alt=&#34;Architecture of video captioning system. Image taken from paper&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For each subsystem, the paper uses a simple attention-based bidirectional LSTM for the encoding and decoding purposes. This is a fine example of how a simple sequence-to-sequence block can be leveraged in different settings to perform interesting tasks.&lt;/p&gt;
+
+&lt;h4 id=&#34;puns-in-image-captions&#34;&gt;Puns in image captions&lt;/h4&gt;
+
+&lt;p&gt;Humor is difficult to capture or create in general. Heterographic homophones (words with different spelling but similar sound) are often used by cartoonists to add subtext to illustrations.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/7/puns.jpg&#34; alt=&#34;Heterographic homophone used for humor in a comic. Taken from http://cartoonsbyjim.com&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In this paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;, the authors have proposed 2 different methods to generate “punny” captions for images, namely a Generation model, and a Retrieval model.&lt;/p&gt;
+
+&lt;p&gt;The Generation model works as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;The first step is &lt;em&gt;tagging&lt;/em&gt;. We identify the top 5 objects in the given image using an Inception-ResNet-v2 model trained on ImageNet. We also get the words from a simple caption generated for the image using a Show-and-Tell architecture. The objects and the words together are considered as tags for pun generation.&lt;/li&gt;
+&lt;li&gt;We then generate a vocabulary of puns by mining the web and selecting all pairs of words with an edit distance of 0 based on articulatory features.&lt;/li&gt;
+&lt;li&gt;From this pun vocabulary, we filter those puns where at least one of the homophones is related to the image in question.&lt;/li&gt;
+&lt;li&gt;During the caption generation, at specific time steps, the model is forced to produce a phonological counterpart of a pun word associated with the image. The decoder generates next words based on all previously generated words.&lt;/li&gt;
+&lt;li&gt;To solve the issue of non-grammatical sentences due to puns later in the sentence, two models are trained to decode the image in both forward and reverse directions.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/7/generation.png&#34; alt=&#34;Architecture of the Generation model. Image taken from paper&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The Retrieval model, on the other hand, tries to find relevant captions from a prebuilt corpus of captions. This is an entirely deterministic model which requires two conditions to be satisfied:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;The caption must contain the counterpart of the pun word present in the image so that incongruity is attained.&lt;/li&gt;
+&lt;li&gt;The caption must be contextually relevant to the image, i.e., it must contain at least one of the &amp;ldquo;tagged&amp;rdquo; words that we found earlier.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Finally, the captions obtained from both models are pooled together and ranked by taking their log-probability score with respect to the original caption generated from the simple image captioning model. Non-maximal suppression is applied to remove captions which are similar to a higher-ranked caption, and the top 3 such obtained are retained.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;From these examples of multimodal systems, we see that simple sequence-to-sequence models work satsifactorily if used in conjuction with intelligent frameworks such as multitask learning or transfer learning, as is the trend in recent days. A cool thing is that reading about the various transfer learning approaches for this and the previous post has helped me come up with a new solution for a project that I have been working on. More on that later!&lt;/p&gt;
+
+&lt;p&gt;Conference on Empirical Methods in Natural Language Processing*. 2017.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Yu, Licheng, Mohit Bansal, and Tamara Berg. “&lt;a href=&#34;https://arxiv.org/pdf/1708.02977.pdf&#34; target=&#34;_blank&#34;&gt;Hierarchically-Attentive RNN for Album Summarization and Storytelling&lt;/a&gt;.” *Proceedings of the 2017
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;Chandrasekaran, Arjun, Devi Parikh, and Mohit Bansal. “&lt;a href=&#34;https://arxiv.org/pdf/1704.08224.pdf&#34; target=&#34;_blank&#34;&gt;Punny Captions: Witty Wordplay in Image Descriptions&lt;/a&gt;.”  &lt;em&gt;arXiv preprint arXiv:1704.08224&lt;/em&gt; (2017).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Trends in Semantic Parsing - Part 2</title>
+      <link>https://desh2608.github.io/post/trends-in-semantic-parsing-2/</link>
+      <pubDate>Wed, 08 Nov 2017 13:38:39 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/trends-in-semantic-parsing-2/</guid>
+      <description>
+
+&lt;p&gt;In &lt;em&gt;&lt;a href=&#34;https://desh2608.github.io/post/trends-in-semantic-parsing-1/&#34; target=&#34;_blank&#34;&gt;Part 1&lt;/a&gt;&lt;/em&gt; of this two-part series, I discussed some supervised approaches for the objective. In this part, we will look at some unsupervised or semi-supervised approaches, namely a Bayesian model, and transfer learning.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;an-unsupervised-bayesian-model&#34;&gt;An unsupervised Bayesian model&lt;/h4&gt;
+
+&lt;p&gt;This paper was published in ACL 2011&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;, back when statistical methods were still being used for NLP tasks. But with the recent forays into generative models, I feel it has again become relevant to understand how such methods worked. The task of frame semantic parsing can be broken down into 3 independent steps:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Decompose the sentence into lexical items.&lt;/li&gt;
+&lt;li&gt;Divide these items into clusters and assign a label to each cluster.&lt;/li&gt;
+&lt;li&gt;Predict argument-predicate relations between clusters.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Frames essentially refer to a semantic representation of predicates (such as verbs), and their arguments are represented as clusters. For sake of convenience, we refer both of these structures as semantic classes. For example, in the sentences:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;[India] &lt;strong&gt;defeated&lt;/strong&gt; [England].&lt;/li&gt;
+&lt;li&gt;[The Indian team] &lt;strong&gt;secured a victory&lt;/strong&gt; over the [English cricket team].&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Here, ‘defeated’ and ‘secured a victory’ both belong to the frame WINNING, while ‘India’ and ‘Indian team’ are grouped into the cluster labeled WINNER.&lt;/p&gt;
+
+&lt;p&gt;The authors proposed a generative algorithm which makes use of statistical processes to model semantic parsing. We can summarize the model as follows, for a particular sentence:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;The distribution of semantic classes is given by a hierarchical Pitman-Yor process, i.e.,&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;$$ \theta_{root} = PY(\alpha_{root},\beta_{root},\gamma). $$&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;We start with obtaining the semantic class for the root of the tree from the probability distribution which is a sample drawn from the above Pitman-Yor process.&lt;/li&gt;
+&lt;li&gt;Once the root is obtained, we call the function GenSemClass on this root.&lt;/li&gt;
+&lt;li&gt;Since the current root only has a semantic class, we obtain its syntactic realization from a distribution over all possible syntactic realizations, which is given as a Dirichlet Process with the arguments as the base word and a prior.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;$$ \phi_c = DP(w^{&amp;copy;},H^{&amp;copy;}) $$&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Essentially, the base word $w$ is obtained from a geometric distribution, and the subsequent words are obtained by computing the conditional probability of dependency relation $r$ given $w$, and the next word $p$ given $r$.&lt;/li&gt;
+&lt;li&gt;For each argument type $t$, if the probability of having at least 1 argument of type $t$ is non-zero, we generate an argument of that type using function GenArgument, until that probability becomes 0.&lt;/li&gt;
+&lt;li&gt;The GenArgument function again computes the base argument from the distribution of syntactic realizations, and then obtains the next semantic class again from the hierarchical PY process.&lt;/li&gt;
+&lt;li&gt;We then recursively call the GenSemClass function on this new class.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This is the essence of the algorithm. Basically we get a semantic frame from the PY process, and then generate the corresponding syntax from a Dirichlet process. This is done recursively, hence the need for a hierarchical PY process. For the details of the stochastic processes, you can look at their Wikipedia pages. For the root level parameters, a stick-breaking construction is used, but I am yet to look into the details of this method. However, I suppose this is similar to the broken-stick technique used to estimate the number of eigenvalues to retain in a principal component analysis.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;transfer-learning&#34;&gt;Transfer learning&lt;/h4&gt;
+
+&lt;p&gt;There were two recent papers in ACL 2017&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;,&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; which used some kind of multi-task or transfer learning approach in a neural framework for semantic parsing.&lt;/p&gt;
+
+&lt;p&gt;The first of these papers from Markus Dreyer at Amazon uses the popular sequence-to-sequence model developed for machine translation at Google. The sentence is first encoded into an intermediate vector representation using and encoder, and then decoded into an embedding representation for the parse tree. Popular encoders and decoders are stacked bidirectional LSTM layers, usually with some attention mechanism.&lt;/p&gt;
+
+&lt;p&gt;Once the parse tree embedding has been obtained, the task remains to generate the actual parse tree. For this, the authors have described a COPY-WRITE mechanism. While reading the output embedding at each step, the model has 2 options:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;COPY: This copies 1 symbol from the input to the output.&lt;/li&gt;
+&lt;li&gt;WRITE: This selects one symbol from the vocabulary of all possible outputs.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;A final softmax layer generates a probability distribution over both of these choices, such that the probability of choosing WRITE at any step is proportional to an exponential over the output vector at that step, and that for choosing COPY is proportional to an exponential over a non-linear function of the intermediate representation and the output vector (i.e., the encoded and decoded vectors). The authors further describe 3 ways to extend this method in a multi-task setting:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;One-to-many&lt;/em&gt;: In this, the encoder is shared but each task has its own decoder and attention parameters.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;One-to-one&lt;/em&gt;: The entire sequence is shared, with an added token at the beginning to identify the task.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;One-to-shareMany&lt;/em&gt;: This also has a shared encoder and decoder, but the final layer is independent for each task. In this way, a large number of parameters can be shared among tasks while still keeping them sufficiently distinct. Empirically, this model was found to perform best among the three.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;The second paper is from &lt;a href=&#34;https://homes.cs.washington.edu/~nasmith/&#34; target=&#34;_blank&#34;&gt;Noah Smith&lt;/a&gt;’s group at Washington. As with the previous paper, I will first describe the basic model and then explain how it is extended in a multi-task setting.&lt;/p&gt;
+
+&lt;p&gt;Given a sentence $x$, and a set of all possible semantic graphs for that sentence $Y(x)$, we want to compute&lt;/p&gt;
+
+&lt;p&gt;$$ \hat{y} = \text{arg}\min_{y \in Y(x)} S(x,y),~~~~ \text{where } S(x,y) = \sum_{p\in y}s(p),$$&lt;/p&gt;
+
+&lt;p&gt;i.e., the scoring function $S$ is a sum of local scores, each of which is itself a parametrized function of some local feature. In this paper, these features are taken to be the following 3 constructs (first order logic):&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Predicate&lt;/li&gt;
+&lt;li&gt;Unlabeled arc&lt;/li&gt;
+&lt;li&gt;Labeled arc&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The model is given in the following diagram taken from the paper.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/6/multitask.png&#34; alt=&#34;Basic architecture. Figure taken from the original paper&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For the 2 input words, we first obtain vectors using a bi-LSTM layer, and these are then fed into multilayer perceptrons (MLPs) corresponding to each of the three local feature constructs mentioned above. Each first-order structure is itself associated with a vector (shown in red). The scoring function $s(p)$ is simply the dot product of the MLPs output and the first-order vector.&lt;/p&gt;
+
+&lt;p&gt;The cost function is a max-margin objective with a regularization parameter and a sum over individual losses given as&lt;/p&gt;
+
+&lt;p&gt;$$ L(x_i,y_i,\theta) = \max_{y\in Y(x_i)} S(x_i,y) + c(y,y_i) - S(x_i,y_i). $$&lt;/p&gt;
+
+&lt;p&gt;Here, $y_i$ is the gold label output and $y$ is the obtained output, while $c$ is the weighted Hamming distance between the two outputs.&lt;/p&gt;
+
+&lt;p&gt;Once this basic architecture is in place, the authors describe 2 method to extend it with transfer learning. The tasks here are 3 different formalisms in semantic dependency parsing (Delph-in MRS, Predicate-Argument Structure, and Prague Semantic Dependencies), so that each of these require a different variation of the output form. In the first method, the representation is shared among all tasks but the scoring is done separately. This further has variants wherein we can either have a single common bi-LSTM for all tasks, or a concatenation of independent and common layers.&lt;/p&gt;
+
+&lt;p&gt;The second method describes a joint technique to perform representation and inference learning across all the tasks simultaneously. The description is mathematically involved but intuitively simple, since we are just expressing the inner product in the scoring function in a higher dimension. You can look at the original paper for details and notation.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;With this, we come to the end of this series on semantic parsing. Since a lot of models are common between different objectives, these methods are highly relevant across any NLP task, especially with a shift from supervised to unsupervised techniques. While writing this article, I have been thinking of ways of adapting the generative model from the Bayesian paper to a neural architecture, and I might read up more about this in the coming weeks. Till then, keep “learning”!&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Titov, Ivan, and Alexandre Klementiev. “&lt;a href=&#34;http://klementiev.org/publications/acl11.pdf&#34; target=&#34;_blank&#34;&gt;A Bayesian model for unsupervised semantic parsing&lt;/a&gt;.” &lt;em&gt;Proceedings of the 49th Annual Meeting of the Association for Computational Linguistics: Human Language Technologies-Volume 1&lt;/em&gt;. Association for Computational Linguistics, 2011.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Fan, Xing, et al. “&lt;a href=&#34;https://arxiv.org/pdf/1706.04326.pdf&#34; target=&#34;_blank&#34;&gt;Transfer Learning for Neural Semantic Parsing&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1706.04326&lt;/em&gt; (2017).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;Peng, Hao, Sam Thomson, and Noah A. Smith. “&lt;a href=&#34;https://arxiv.org/pdf/1704.06855.pdf&#34; target=&#34;_blank&#34;&gt;Deep Multitask Learning for Semantic Dependency Parsing&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1704.06855&lt;/em&gt; (2017).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>The Best Papers at ICLR 2017</title>
+      <link>https://desh2608.github.io/post/best-papers-at-iclr-17/</link>
+      <pubDate>Sun, 15 Oct 2017 13:38:17 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/best-papers-at-iclr-17/</guid>
+      <description>
+
+&lt;p&gt;The International Conference on Learning Representations (ICLR) has evolved into &lt;em&gt;the&lt;/em&gt; deep learning conference over the last few years, and with its open review system, it is not difficult to understand why. I was recently going through some of the papers accepted at this year’s ICLR, especially the 3 that were awarded the Best Paper award. In this article, I will try to summarize these 3 papers in simple words, and hopefully get an idea about what’s hot in deep learning.&lt;/p&gt;
+
+&lt;p&gt;The 3 best papers are:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/1611.03530.pdf&#34; target=&#34;_blank&#34;&gt;Understanding deep learning requires rethinking generalization&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/1704.06611.pdf&#34; target=&#34;_blank&#34;&gt;Making neural programming architectures generalize via recursion&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/1610.05755.pdf&#34; target=&#34;_blank&#34;&gt;Semi-supervised knowledge knowledge transfer for deep learning from private training data&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Statisticians always like saying that deep learning is a black box and eveything that happens is a result of hyperparameter tuning. You cannot say why you have obtained a good result, let alone providing a guarantee for a result. Well, not anymore. The 3 best papers were all about providing proveable guarantees, and it looks like the deep learning community is all set to move past its “black box” days.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;understanding-deep-learning-requires-rethinking-generalization&#34;&gt;Understanding deep learning requires rethinking generalization&lt;/h4&gt;
+
+&lt;p&gt;This paper from Google Brain is very readable and discusses some very common occurences. The authors make 2 very straightforward observations: (i) Deep neural networks easily fit random labels, and (ii) Explicit regularization is neither necessary nor sufficient for controlling generalization error.&lt;/p&gt;
+
+&lt;p&gt;Essentially, they evaluate well-known deep architectures on several popular datasets, with some randomness added, such as random labels, or Gaussian noise-added labels, or shifted input features, in an attempt to show that even though training error is still close to negligible, generalization error increases alarmingly even in the presence of explicit regularizers such as weight decay, dropout, and data augmentation, and for implicit regularizers such as early stopping. This serves as a wake-up call for people who study the performance of neural networks.&lt;/p&gt;
+
+&lt;p&gt;The most interesting (and PROVABLE) guarantee that the paper contains is the following theorem: &lt;em&gt;There exists a two-layer neural network with ReLU activations and 2n+d weights that can represent any function on a sample of size n in d dimensions.&lt;/em&gt; While I will not go into the detailed proof here, it is essentially based on solving the system of linear equations based on the ReLU activation function. For the system to have a solution, the coefficient matrix should be full-ranked, which the authors show is indeed the case. If the proof in the paper is too formal (read: succinct) for you, you can find a more detailed one &lt;a href=&#34;https://danieltakeshi.github.io/2017/05/19/understanding-deep-learning-requires-rethinking-generalization-my-thoughts-and-notes&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. In addition, they also show ways in which we can reduce the width of the network
+at each layer by increasing its depth.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;making-neural-programming-architectures-generalize-via-recursion&#34;&gt;Making neural programming architectures generalize via recursion&lt;/h4&gt;
+
+&lt;p&gt;Understanding this paper from researchers at UC Berkeley requires a little background of neural programmer-interpreter (NPI) architectures, which can be found in the paper as well as in the &lt;a href=&#34;https://arxiv.org/pdf/1511.06279.pdf&#34; target=&#34;_blank&#34;&gt;ICLR ’16 paper&lt;/a&gt; in which they were introduced. Basically, an NPI framework consists of a controller (such as an LSTM), which takes as input the environment state and arguments, and returns the next program pointer to be executed. In this way, given a set of sequences that an algorithm must follow to get to the output, the NPI can learn the algorithm itself. In the original paper, the authors learned to perform tasks such as adding, sorting,
+etc. using NPIs.&lt;/p&gt;
+
+&lt;p&gt;In this paper, the concept of &lt;em&gt;recursion&lt;/em&gt; is added to the existing NPI framework, and this makes it capable of performing much more complex tasks such as quick sort. Formally, a function exhibits recursive behavior when it possesses two properties: (1) Base cases — terminating scenarios that do not use recursion to produce answers; (2) A set of rules that reduces all other problems toward the base cases. In the paper, the author describe how they construct NPI training traces so as to make them contain recursive elements and thus enable NPI to learn recursive programs.&lt;/p&gt;
+
+&lt;p&gt;Furthermore, the authors show &lt;em&gt;provably perfect generalization&lt;/em&gt; for their new architecture. The theorem states that for the same sequence of step inputs, the model produces the exact same step output as the target program it aims to learn.&lt;/p&gt;
+
+&lt;p&gt;To prove this, we again go to the notions of base case and recursive case. For example, in the addition task, the base case is always a set of small, fixed size step input sequences during which the LSTM state remains constant. So the base case is trivially true. The key in proving the recursive step is to construct the verification set well, so that the step inputs are neither too large so as to be outside the scope of evaluation, nor too small so that the semantics of the problem are not well defined. The actual verification process is simple and can be read in the paper.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;semi-supervised-knowledge-transfer-for-deep-learning-from-private-training-data&#34;&gt;Semi-supervised knowledge transfer for deep learning from private training data&lt;/h4&gt;
+
+&lt;p&gt;Another paper from Google Brain, this deals with the important subject of building a model which learns from sensitive data while also keeping it private. A new model called PATE (Private Aggregation of Teacher Ensembles) is introduced which basically trains in a 2-step strategy:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;An ensemble of teacher models is trained on disjoint subsets of the sensitive dataset.&lt;/li&gt;
+&lt;li&gt;A student model is trained on the aggregate output of the ensemble.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The aggregation is “private” because the number of times the student can access the teacher model is limited, and the top vote of the ensemble is revealed only after adding random noise. Due to these restrictions, no amount of querying can get hold of the private training data used to train the teacher models. Furthermore, in the Laplacian noise added to the teacher aggregation, the noise
+parameter can be used to tune the privacy-accuracy tradeoff for the student model. For example, if the noise is large, privacy is high at the cost of reduced accuracy, and vice versa.&lt;/p&gt;
+
+&lt;p&gt;For the transfer of knowledge from the ensemble to the student model, the authors experimented with various techniques and finally used semi-supervised learning with GANs. The student is trained on nonsensitive data (which may be labeled or unlabeled). The discriminator is a multi-class classifier which is trained such that it classifies the labeled data into the correct class, the unlabeled (true) data into any of the &lt;em&gt;k&lt;/em&gt; classes, and the generated data (from the generator) into an extra class.&lt;/p&gt;
+
+&lt;p&gt;Again, the authors use the notion of “differentiable privacy guarantee” to come up with a lower bound for the privacy guarantee for their model. (The derivation is a little involved and I skipped it since I don’t have the prerequisites of security and privacy.)&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;To sum up, all the papers seem to provide some generalization guarantee rather than just proposing a “good” model. Looks like sunny days for deep learning!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>The Last 3 Years in Text Classification</title>
+      <link>https://desh2608.github.io/post/last-3-years-in-text-classification/</link>
+      <pubDate>Mon, 02 Oct 2017 12:49:14 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/last-3-years-in-text-classification/</guid>
+      <description>
+
+&lt;p&gt;While working on my &lt;a href=&#34;https://desh2608.github.io/project/btp/&#34; target=&#34;_blank&#34;&gt;undergrad thesis&lt;/a&gt; on relation classification of biomedical text using deep learning methods, I quickly hacked together models in Tensorflow that combined convolutional and recurrent layers in various combinations. While some of these “network architectures” worked superbly (even surpassing state-of-the-art results), I had no clue what was happening inside the model. To gain such an intuition, I read about 20 recent papers on text classification (starting with the first “CNN for sentence classification” paper by Yoon Kim) over the course of a week. Aside from an obvious enlightenment about why my architecture was working the way it was, I also gained valuable insight into how results are presented by experts like Yann LeCunn and Tommi Jaakkola (which would later help me in getting my CoNLL paper accepted as an undergrad).&lt;/p&gt;
+
+&lt;p&gt;Anyway, so while reading these myriad of text classification papers, I subconsciously began organizing them under different heads, depending upon the kind of approach used. The common objective across each of these approaches was that they all wanted to model the structural information of the sentence into the sentence embedding. All of this was in March, and ever since, I have wanted to organize the notes I made from my readings into a formal article, so that others may benefit from the insights.&lt;/p&gt;
+
+&lt;p&gt;Some background in CNNs and LSTMs is assumed.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;character-to-sentence-level-embeddings&#34;&gt;Character to sentence level embeddings&lt;/h4&gt;
+
+&lt;p&gt;Using word vectors (conventionally obtained using Word2Vec or GloVe) has been the most popular technique for input feature embedding. Yann LeCunn proposed character-level embeddings in his NIPS 2015 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;, and the motivation behind this was that language could also be thought of as a signal similar to speech, with each character representing one bit of information. As such, it was reasonable to encode characters rather than words to obtain sentence level structure more efficiently. Although the proposed method was outperformed even by traditional tf-idf approaches for smaller datasets, the most important hypothesis obtained from empirical analyses was that character level CNNs tend to work well with uncurated user-generated data, such as reviews on Amazon. This makes them especially suitable for use in data wherever misspellings or use of exotic characters is frequent, such as in tweets.&lt;/p&gt;
+
+&lt;p&gt;Even before LeCunn’s work, a COLING 2014 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; from IBM Research (Brazil) combined embeddings from the character, word, and sentence levels to obtain an amalgamation for the sentence representation. This is done in two convolutional layers as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;In the first layer, vectors are obtained for words using traditional lookup techniques like Word2Vec. At the same time, character-level input vectors corresponding to each word are fed into a convolutional layer and a subsequent max pooling layer, and padding is used so that fixed length outputs are obtained for every word. These convolved features are concatenated with the word-level embeddings to obtain the joint word vector. The rationale behind this is that while word-level embeddings are meant to capture syntactic and semantic information, character-level embeddings capture morphological and shape information.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/4/char.png&#34; alt=&#34;Obtaining character-level embeddings. Image taken from Fig. 1 [^2].&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;The second layer to obtain sentence-level vectors is similar to the character level. On applying  convolutions and max pooling, we obtain a global feature representation for the sentence.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Embeddings have become a staple in deep learning models for NLP, and the latest trend is to use deep transfer learning to learn entire parameters for word vectors. While the community has mostly stabilized on using word-level vectors for input features, it wasn’t for lack for exploration, as is evident from these early approaches.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;encoding-structural-information-parse-trees-and-tensor-algebra&#34;&gt;Encoding structural information: parse trees and tensor algebra&lt;/h4&gt;
+
+&lt;p&gt;Again, for accurate text classification, it is imperative to obtain a good sentence representation that effectively captures the structural information and any semantics possible. If we think about Yoon Kim’s original CNN model in this vein, the limitations in the simple “conv+pool” model becomes obvious. While the convolutional layer helps to recognize short phrases, the final max pooling layer completely disregards any word order or structural information in the sentence. Essentially, we can reorder phrases in the sentences, and the representation would still remain the same.&lt;/p&gt;
+
+&lt;p&gt;To solve these problems, a myriad of techniques have been proposed. Here I will discuss 2 of them — the first involves using syntactic parse trees, and the second turns to good old tensor algebra.&lt;/p&gt;
+
+&lt;p&gt;A 2015 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; from Peking University proposed two tree-based CNN models, namely c-TBCNN and d-TBCNN, depending on whether constituency or dependency parse trees were used. I will first outline the model:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A sentence is first converted to a parse tree, and each node is represented as a distributed, real-valued vector. While the nodes of dependency trees are words themselves, those in constituency trees are not. To solve this problem, constituency tree nodes are pretrained using Socher’s RNN and kept fixed thereafter.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/4/tree-cnn.png&#34; alt=&#34;Tree-based convolutional window. Image taken from Fig. 2 [^3].&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A &lt;em&gt;tree-based convolutional window&lt;/em&gt; is defined, which slides over the entire tree to extract structural information of the sentence. The convolutional equation for a window which slides over a parent and its direct children in a constituency tree is given by&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;$$ y = f(w_p^{( c )}\cdot p + w_l^{( c )}\cdot c_l + w_r^{( c )}\cdot c_r + b^{( c )}). $$&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;In a dependency tree, a node can have any number of children. To overcome this, weights in these trees are assigned according to dependency type rather than position, and so the convolution formula becomes&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;$$ y = f(W_p^{(d)}\cdot p + \sum_{i=1}^n W_{r[c_i]}^{(d)}\cdot c_i + b^{(d)}). $$&lt;/p&gt;
+
+&lt;p&gt;In empirical evaluation, d-TBCNN was found to outperform c-TBCNN probably due to d-TBCNN being able to exploit structural features more efficiently because of the compact expressiveness of dependency trees. The paper also provides visualizations for understanding the mechanism of the proposed network, and they show that TBCNNs do integrate information about different words in a window.&lt;/p&gt;
+
+&lt;p&gt;A 2015 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34;&gt;4&lt;/a&gt;&lt;/sup&gt; from Regina Barzilay and Tommi Jaakkola at MIT used non-linear, non-consecutive convolutions, and turned to tensor algebra to reduce computational complexity. The motivation behind this model is two-fold:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Conventional CNNs use linear operations on stacked word vectors, which ignores the interesting non-linear interaction between n-grams.&lt;/li&gt;
+&lt;li&gt;Consecutive convolutions misses out on the non-consecutive phrases e.g. &amp;ldquo;&lt;em&gt;not&lt;/em&gt; nearly as &lt;em&gt;good&lt;/em&gt;&amp;rdquo; etc.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Essentially, they modified the 2 main components of a CNN-based text classification module, namely window-based convolutions, and the linear convolution operation, with 3 novel modifications.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Stacked n-gram word vectors are replaced by tensor products, and this n-gram tensor can be seen as a generalization of the typical concatenated vector.&lt;/li&gt;
+&lt;li&gt;Since the convolutional filters themselves are high-dimensional tensors (n dimensions corresponding to the size of tensor window, and 1 channel dimension), directly maintaining them as full tensors would lead to parametric explosion. To overcome this, the convolutional tensor is represented using &lt;em&gt;low-rank factorization.&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Instead of applying convolutions only to consecutive n-grams, all possible n-grams are used. At each position, the aggregate representation is the weighted sum of all n-gram representations ending at that position.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The paper makes use of linear algebra very cleverly to extend simple convolution operations across the whole sentence without making it computationally infeasible. In the results section, the authors have also analyzed the importance of such non-linear and non-consecutive activations empirically.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;regional-two-view-embeddings&#34;&gt;Regional (two-view) embeddings&lt;/h4&gt;
+
+&lt;p&gt;In a series of papers (published at NIPS 2015&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34;&gt;5&lt;/a&gt;&lt;/sup&gt; and ICML 2016&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:6&#34;&gt;&lt;a href=&#34;#fn:6&#34;&gt;6&lt;/a&gt;&lt;/sup&gt;), Rie Johnson and Tong Zhang introduced the concept of regional embedding in sentences, which was based on two-view embeddings. Essentially, they wanted to answer the question: &lt;em&gt;Can an unlabeled data be used to augment a CNN/LSTM module in a better way than by simply obtaining pretrained word vectors?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;In some way, these embeddings are also related to the first section on character to sentence level  embeddings. However, I have put it in a separate section since my own network architecture in my CoNLL paper derived hugely from the interpretation given in these papers. (You can say this was when I gained enlightenment!)&lt;/p&gt;
+
+&lt;p&gt;In an earlier paper, the authors had showed that using high-dimensional one-hot bag-of-words (BOW) vectors rather than pretrained word vectors proved to be better in simpler systems. Their new objective was to learn regional embeddings from unlabeled data and use it as additional input to the supervised CNN.&lt;/p&gt;
+
+&lt;p&gt;But first, &lt;em&gt;what is a tv-embedding&lt;/em&gt;? Essentially, it is a function of a view that preserves everything required to predict another view. (See the paper section 2 for details. The motivation for using tv-embeddings is also explained theoretically in the Appendix &lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34;&gt;5&lt;/a&gt;&lt;/sup&gt;.)&lt;/p&gt;
+
+&lt;p&gt;In the papers, the authors used a CNN and an LSTM, respectively, to obtain these tv-embeddings for short regions in the sentences using an unlabeled corpus. They called these as “regional embeddings,” and used them as additional input for the supervised classification task. Furthermore, in their ICML paper, they did away with CNNs entirely, and argued that using bidirectional LSTMs for obtaining the regional embedding and then pooling for the sentence vector gives and adequate sentence representation. However, experimental results showed that using tv-embeddings from networks resulted in the best performing model.&lt;/p&gt;
+
+&lt;p&gt;This “regional embedding+pooling” logic was what finally provided the necessary intuition for my own relation classification network.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Zhang, Xiang, Junbo Zhao, and Yann LeCun. “&lt;a href=&#34;http://papers.nips.cc/paper/5782-character-level-convolutional-networks-for-text-classification.pdf&#34; target=&#34;_blank&#34;&gt;Character-level convolutional networks for text classification.&lt;/a&gt;” &lt;em&gt;Advances in neural information processing systems&lt;/em&gt;. 2015.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Dos Santos, Cícero Nogueira, and Maira Gatti. “&lt;a href=&#34;http://anthology.aclweb.org/C/C14/C14-1008.pdf&#34; target=&#34;_blank&#34;&gt;Deep Convolutional Neural Networks for Sentiment Analysis of Short Texts.&lt;/a&gt;” &lt;em&gt;COLING&lt;/em&gt;. 2014.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;Mou, Lili, et al. “&lt;a href=&#34;https://arxiv.org/pdf/1504.01106.pdf&#34; target=&#34;_blank&#34;&gt;Discriminative neural sentence modeling by tree-based convolution.&lt;/a&gt;” &lt;em&gt;arXiv preprint arXiv:1504.01106&lt;/em&gt; (2015).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:4&#34;&gt;Lei, Tao, Regina Barzilay, and Tommi Jaakkola. “&lt;a href=&#34;https://arxiv.org/pdf/1508.04112.pdf&#34; target=&#34;_blank&#34;&gt;Molding CNNs for text: non-linear, non-consecutive convolutions.&lt;/a&gt;” &lt;em&gt;arXiv preprint arXiv:1508.04112&lt;/em&gt; (2015).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:4&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:5&#34;&gt;Johnson, Rie, and Tong Zhang. “&lt;a href=&#34;http://papers.nips.cc/paper/5849-semi-supervised-convolutional-neural-networks-for-text-categorization-via-region-embedding.pdf&#34; target=&#34;_blank&#34;&gt;Semi-supervised convolutional neural networks for text categorization via region embedding.&lt;/a&gt;” &lt;em&gt;Advances in neural information processing systems&lt;/em&gt;. 2015.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:5&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:6&#34;&gt;Johnson, Rie, and Tong Zhang. “&lt;a href=&#34;http://proceedings.mlr.press/v48/johnson16.pdf&#34; target=&#34;_blank&#34;&gt;Supervised and semi-supervised text categorization using LSTM for region embeddings.&lt;/a&gt;” &lt;em&gt;International Conference on Machine Learning&lt;/em&gt;. 2016.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:6&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Understanding Word Vectors</title>
       <link>https://desh2608.github.io/post/understanding-word-vectors/</link>
       <pubDate>Fri, 29 Sep 2017 11:12:55 +0530</pubDate>
@@ -457,69 +889,6 @@ the number of mapped unigrams between the two texts. Then, precision and recall 
       <pubDate>Sat, 01 Apr 2017 15:02:18 +0530</pubDate>
       
       <guid>https://desh2608.github.io/publication/tfs-16-analysis/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Monitoring production line performance to reduce failures</title>
-      <link>https://desh2608.github.io/project/bosch/</link>
-      <pubDate>Fri, 31 Mar 2017 17:01:52 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/project/bosch/</guid>
-      <description>&lt;p&gt;This project was first floated as a &lt;a href=&#34;https://www.kaggle.com/c/bosch-production-line-performance&#34; target=&#34;_blank&#34;&gt;Kaggle competition&lt;/a&gt;, with the dataset made available by Bosch.&lt;/p&gt;
-
-&lt;p&gt;In this work, we pose the task of fault detection as a binary classification problem. The features include numerical, categorical, and timestamp features, and hence warranty a combination of several techniques for efficiently solving the problem.&lt;/p&gt;
-
-&lt;p&gt;First, a biased sampling method is used to reduce the effect of skewed data distribution. Thereafter, the categorical features are represented as 3 numerical features using sparse online classification algorithms: stochastic truncated gradient (STG), forward-backward splitting (FOBOS), and enhanced regularized dual averaging (ERDA). Once features are obtained, we try several classification methods like SVM and feed-forward networks to perform the fault detection. Finally, the overall objective is optimized using a Bayesian optimization technique.&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;report/bosch.pdf&#34; target=&#34;_blank&#34;&gt;Report&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;ppt/bosch.pdf&#34; target=&#34;_blank&#34;&gt;Slides&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Sptial Transformer Networks</title>
-      <link>https://desh2608.github.io/project/stn/</link>
-      <pubDate>Sun, 20 Nov 2016 17:00:42 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/project/stn/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://papers.nips.cc/paper/5854-spatial-transformer-networks.pdf&#34; target=&#34;_blank&#34;&gt;Jaderberg et al.&lt;/a&gt; proposed the Spatial Transformer Network in NIPS 2015 in order to improve the classification of transformed images (i.e., images with affine transformation). In this project, we achieved 2 objectives:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Improved the STN architecture by applying a recurrence in the outermost layer, i.e., transformed images are again fed into the module for further processing.&lt;/li&gt;
-&lt;li&gt;Applied the network to egocentric image data to improve benchmark datasets like GTEA and Intel Egocentric Vision data.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;report/stn.pdf&#34; target=&#34;_blank&#34;&gt;Report&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;ppt/stn.pdf&#34; target=&#34;_blank&#34;&gt;Slides&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Survey on Probabilistic Databases</title>
-      <link>https://desh2608.github.io/project/prob-db-survey/</link>
-      <pubDate>Sat, 29 Oct 2016 17:02:04 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/project/prob-db-survey/</guid>
-      <description>&lt;p&gt;In this project, we reviewed existing work on probabilistic databases, categorized into 5 major sections, namely algebra, query evaluation, conditioning, scaling and implementation. Through a reevaluation of performance parameters, we showed that query evaluation is indeed the bottleneck in efficient development and implementation of the probabilistic DBMS model.&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;report/dbms-survey.pdf&#34; target=&#34;_blank&#34;&gt;Report&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;ppt/dbms-survey.pdf&#34; target=&#34;_blank&#34;&gt;Slides&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Visual analysis and representations of type-2 fuzzy membership functions</title>
-      <link>https://desh2608.github.io/publication/fuzz-16-visual/</link>
-      <pubDate>Sat, 30 Jul 2016 00:00:00 +0000</pubDate>
-      
-      <guid>https://desh2608.github.io/publication/fuzz-16-visual/</guid>
       <description></description>
     </item>
     

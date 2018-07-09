@@ -33,6 +33,33 @@
     </item>
     
     <item>
+      <title>Deep Learning for Multimodal Systems</title>
+      <link>https://desh2608.github.io/post/deep-learning-multimodal-systems/</link>
+      <pubDate>Thu, 09 Nov 2017 13:38:58 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/deep-learning-multimodal-systems/</guid>
+      <description>When I was browsing through research groups for my grad school applications, I came across some interesting applications of new deep learning methods in a multimodal setting. ‘Multimodal,’ as the name suggests, refers to any system involving two or more modes of input or output. For example, an image captioning system provides images as input and expects a textual output. Similarly, speech-to-text, descriptive art, video summarization, etc., are all examples of multimodal objectives.</description>
+    </item>
+    
+    <item>
+      <title>The Best Papers at ICLR 2017</title>
+      <link>https://desh2608.github.io/post/best-papers-at-iclr-17/</link>
+      <pubDate>Sun, 15 Oct 2017 13:38:17 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/best-papers-at-iclr-17/</guid>
+      <description>The International Conference on Learning Representations (ICLR) has evolved into the deep learning conference over the last few years, and with its open review system, it is not difficult to understand why. I was recently going through some of the papers accepted at this year’s ICLR, especially the 3 that were awarded the Best Paper award. In this article, I will try to summarize these 3 papers in simple words, and hopefully get an idea about what’s hot in deep learning.</description>
+    </item>
+    
+    <item>
+      <title>The Last 3 Years in Text Classification</title>
+      <link>https://desh2608.github.io/post/last-3-years-in-text-classification/</link>
+      <pubDate>Mon, 02 Oct 2017 12:49:14 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/last-3-years-in-text-classification/</guid>
+      <description>While working on my undergrad thesis on relation classification of biomedical text using deep learning methods, I quickly hacked together models in Tensorflow that combined convolutional and recurrent layers in various combinations. While some of these “network architectures” worked superbly (even surpassing state-of-the-art results), I had no clue what was happening inside the model. To gain such an intuition, I read about 20 recent papers on text classification (starting with the first “CNN for sentence classification” paper by Yoon Kim) over the course of a week.</description>
+    </item>
+    
+    <item>
       <title>Understanding Word Vectors</title>
       <link>https://desh2608.github.io/post/understanding-word-vectors/</link>
       <pubDate>Fri, 29 Sep 2017 11:12:55 +0530</pubDate>

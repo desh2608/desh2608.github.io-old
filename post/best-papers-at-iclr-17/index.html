@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.42.2" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="The International Conference on Learning Representations (ICLR) has evolved into the deep learning conference over the last few years, and with its open review system, it is not difficult to understand why. I was recently going through some of the papers accepted at this year’s ICLR, especially the 3 that were awarded the Best Paper award. In this article, I will try to summarize these 3 papers in simple words, and hopefully get an idea about what’s hot in deep learning.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/best-papers-at-iclr-17/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/best-papers-at-iclr-17/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/best-papers-at-iclr-17/">
+  <meta property="og:title" content="The Best Papers at ICLR 2017 | Desh Raj">
+  <meta property="og:description" content="The International Conference on Learning Representations (ICLR) has evolved into the deep learning conference over the last few years, and with its open review system, it is not difficult to understand why. I was recently going through some of the papers accepted at this year’s ICLR, especially the 3 that were awarded the Best Paper award. In this article, I will try to summarize these 3 papers in simple words, and hopefully get an idea about what’s hot in deep learning.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2017-10-15T13:38:17&#43;05:30">
+  
+  <meta property="article:modified_time" content="2017-10-15T13:38:17&#43;05:30">
+  
+
+  
+  
+
+  <title>The Best Papers at ICLR 2017 | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">The Best Papers at ICLR 2017</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2017-10-15 13:38:17 &#43;0530 IST" itemprop="datePublished dateModified">
+      Oct 15, 2017
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    6 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/best-papers-at-iclr-17/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=The%20Best%20Papers%20at%20ICLR%202017&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fbest-papers-at-iclr-17%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fbest-papers-at-iclr-17%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fbest-papers-at-iclr-17%2f&amp;title=The%20Best%20Papers%20at%20ICLR%202017"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fbest-papers-at-iclr-17%2f&amp;title=The%20Best%20Papers%20at%20ICLR%202017"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=The%20Best%20Papers%20at%20ICLR%202017&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fbest-papers-at-iclr-17%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p>The International Conference on Learning Representations (ICLR) has evolved into <em>the</em> deep learning conference over the last few years, and with its open review system, it is not difficult to understand why. I was recently going through some of the papers accepted at this year’s ICLR, especially the 3 that were awarded the Best Paper award. In this article, I will try to summarize these 3 papers in simple words, and hopefully get an idea about what’s hot in deep learning.</p>
+
+<p>The 3 best papers are:</p>
+
+<ol>
+<li><a href="https://arxiv.org/pdf/1611.03530.pdf" target="_blank">Understanding deep learning requires rethinking generalization</a></li>
+<li><a href="https://arxiv.org/pdf/1704.06611.pdf" target="_blank">Making neural programming architectures generalize via recursion</a></li>
+<li><a href="https://arxiv.org/pdf/1610.05755.pdf" target="_blank">Semi-supervised knowledge knowledge transfer for deep learning from private training data</a></li>
+</ol>
+
+<p>Statisticians always like saying that deep learning is a black box and eveything that happens is a result of hyperparameter tuning. You cannot say why you have obtained a good result, let alone providing a guarantee for a result. Well, not anymore. The 3 best papers were all about providing proveable guarantees, and it looks like the deep learning community is all set to move past its “black box” days.</p>
+
+<hr />
+
+<h4 id="understanding-deep-learning-requires-rethinking-generalization">Understanding deep learning requires rethinking generalization</h4>
+
+<p>This paper from Google Brain is very readable and discusses some very common occurences. The authors make 2 very straightforward observations: (i) Deep neural networks easily fit random labels, and (ii) Explicit regularization is neither necessary nor sufficient for controlling generalization error.</p>
+
+<p>Essentially, they evaluate well-known deep architectures on several popular datasets, with some randomness added, such as random labels, or Gaussian noise-added labels, or shifted input features, in an attempt to show that even though training error is still close to negligible, generalization error increases alarmingly even in the presence of explicit regularizers such as weight decay, dropout, and data augmentation, and for implicit regularizers such as early stopping. This serves as a wake-up call for people who study the performance of neural networks.</p>
+
+<p>The most interesting (and PROVABLE) guarantee that the paper contains is the following theorem: <em>There exists a two-layer neural network with ReLU activations and 2n+d weights that can represent any function on a sample of size n in d dimensions.</em> While I will not go into the detailed proof here, it is essentially based on solving the system of linear equations based on the ReLU activation function. For the system to have a solution, the coefficient matrix should be full-ranked, which the authors show is indeed the case. If the proof in the paper is too formal (read: succinct) for you, you can find a more detailed one <a href="https://danieltakeshi.github.io/2017/05/19/understanding-deep-learning-requires-rethinking-generalization-my-thoughts-and-notes" target="_blank">here</a>. In addition, they also show ways in which we can reduce the width of the network
+at each layer by increasing its depth.</p>
+
+<hr />
+
+<h4 id="making-neural-programming-architectures-generalize-via-recursion">Making neural programming architectures generalize via recursion</h4>
+
+<p>Understanding this paper from researchers at UC Berkeley requires a little background of neural programmer-interpreter (NPI) architectures, which can be found in the paper as well as in the <a href="https://arxiv.org/pdf/1511.06279.pdf" target="_blank">ICLR ’16 paper</a> in which they were introduced. Basically, an NPI framework consists of a controller (such as an LSTM), which takes as input the environment state and arguments, and returns the next program pointer to be executed. In this way, given a set of sequences that an algorithm must follow to get to the output, the NPI can learn the algorithm itself. In the original paper, the authors learned to perform tasks such as adding, sorting,
+etc. using NPIs.</p>
+
+<p>In this paper, the concept of <em>recursion</em> is added to the existing NPI framework, and this makes it capable of performing much more complex tasks such as quick sort. Formally, a function exhibits recursive behavior when it possesses two properties: (1) Base cases — terminating scenarios that do not use recursion to produce answers; (2) A set of rules that reduces all other problems toward the base cases. In the paper, the author describe how they construct NPI training traces so as to make them contain recursive elements and thus enable NPI to learn recursive programs.</p>
+
+<p>Furthermore, the authors show <em>provably perfect generalization</em> for their new architecture. The theorem states that for the same sequence of step inputs, the model produces the exact same step output as the target program it aims to learn.</p>
+
+<p>To prove this, we again go to the notions of base case and recursive case. For example, in the addition task, the base case is always a set of small, fixed size step input sequences during which the LSTM state remains constant. So the base case is trivially true. The key in proving the recursive step is to construct the verification set well, so that the step inputs are neither too large so as to be outside the scope of evaluation, nor too small so that the semantics of the problem are not well defined. The actual verification process is simple and can be read in the paper.</p>
+
+<hr />
+
+<h4 id="semi-supervised-knowledge-transfer-for-deep-learning-from-private-training-data">Semi-supervised knowledge transfer for deep learning from private training data</h4>
+
+<p>Another paper from Google Brain, this deals with the important subject of building a model which learns from sensitive data while also keeping it private. A new model called PATE (Private Aggregation of Teacher Ensembles) is introduced which basically trains in a 2-step strategy:</p>
+
+<ul>
+<li>An ensemble of teacher models is trained on disjoint subsets of the sensitive dataset.</li>
+<li>A student model is trained on the aggregate output of the ensemble.</li>
+</ul>
+
+<p>The aggregation is “private” because the number of times the student can access the teacher model is limited, and the top vote of the ensemble is revealed only after adding random noise. Due to these restrictions, no amount of querying can get hold of the private training data used to train the teacher models. Furthermore, in the Laplacian noise added to the teacher aggregation, the noise
+parameter can be used to tune the privacy-accuracy tradeoff for the student model. For example, if the noise is large, privacy is high at the cost of reduced accuracy, and vice versa.</p>
+
+<p>For the transfer of knowledge from the ensemble to the student model, the authors experimented with various techniques and finally used semi-supervised learning with GANs. The student is trained on nonsensitive data (which may be labeled or unlabeled). The discriminator is a multi-class classifier which is trained such that it classifies the labeled data into the correct class, the unlabeled (true) data into any of the <em>k</em> classes, and the generated data (from the generator) into an extra class.</p>
+
+<p>Again, the authors use the notion of “differentiable privacy guarantee” to come up with a lower bound for the privacy guarantee for their model. (The derivation is a little involved and I skipped it since I don’t have the prerequisites of security and privacy.)</p>
+
+<hr />
+
+<p>To sum up, all the papers seem to provide some generalization guarantee rather than just proposing a “good” model. Looks like sunny days for deep learning!</p>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/deep-learning/">deep learning</a>
+  
+</div>
+
+
+
+
+    
+    
+    <div class="article-widget">
+      <div class="hr-light"></div>
+      <h3>Related</h3>
+      <ul>
+        
+        <li><a href="/post/last-3-years-in-text-classification/">The Last 3 Years in Text Classification</a></li>
+        
+        <li><a href="/post/understanding-word-vectors/">Understanding Word Vectors</a></li>
+        
+        <li><a href="/publication/conll-17-learning/">Learning local and global context using a convolutional recurrent network model for relation classification in biomedical text</a></li>
+        
+        <li><a href="/project/btp/">Relation extraction for clinical text</a></li>
+        
+        <li><a href="/project/stn/">Sptial Transformer Networks</a></li>
+        
+      </ul>
+    </div>
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "desh2608-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//desh2608-github-io.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+

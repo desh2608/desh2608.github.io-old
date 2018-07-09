@@ -33,6 +33,25 @@
     </item>
     
     <item>
+      <title>Trends in Semantic Parsing - Part 2</title>
+      <link>https://desh2608.github.io/post/trends-in-semantic-parsing-2/</link>
+      <pubDate>Wed, 08 Nov 2017 13:38:39 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/trends-in-semantic-parsing-2/</guid>
+      <description>In Part 1 of this two-part series, I discussed some supervised approaches for the objective. In this part, we will look at some unsupervised or semi-supervised approaches, namely a Bayesian model, and transfer learning.
+An unsupervised Bayesian model This paper was published in ACL 20111, back when statistical methods were still being used for NLP tasks. But with the recent forays into generative models, I feel it has again become relevant to understand how such methods worked.</description>
+    </item>
+    
+    <item>
+      <title>The Last 3 Years in Text Classification</title>
+      <link>https://desh2608.github.io/post/last-3-years-in-text-classification/</link>
+      <pubDate>Mon, 02 Oct 2017 12:49:14 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/last-3-years-in-text-classification/</guid>
+      <description>While working on my undergrad thesis on relation classification of biomedical text using deep learning methods, I quickly hacked together models in Tensorflow that combined convolutional and recurrent layers in various combinations. While some of these “network architectures” worked superbly (even surpassing state-of-the-art results), I had no clue what was happening inside the model. To gain such an intuition, I read about 20 recent papers on text classification (starting with the first “CNN for sentence classification” paper by Yoon Kim) over the course of a week.</description>
+    </item>
+    
+    <item>
       <title>Understanding Word Vectors</title>
       <link>https://desh2608.github.io/post/understanding-word-vectors/</link>
       <pubDate>Fri, 29 Sep 2017 11:12:55 +0530</pubDate>

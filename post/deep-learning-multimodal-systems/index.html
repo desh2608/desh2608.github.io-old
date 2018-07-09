@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.42.2" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="When I was browsing through research groups for my grad school applications, I came across some interesting applications of new deep learning methods in a multimodal setting. ‘Multimodal,’ as the name suggests, refers to any system involving two or more modes of input or output. For example, an image captioning system provides images as input and expects a textual output. Similarly, speech-to-text, descriptive art, video summarization, etc., are all examples of multimodal objectives.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/deep-learning-multimodal-systems/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/deep-learning-multimodal-systems/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/deep-learning-multimodal-systems/">
+  <meta property="og:title" content="Deep Learning for Multimodal Systems | Desh Raj">
+  <meta property="og:description" content="When I was browsing through research groups for my grad school applications, I came across some interesting applications of new deep learning methods in a multimodal setting. ‘Multimodal,’ as the name suggests, refers to any system involving two or more modes of input or output. For example, an image captioning system provides images as input and expects a textual output. Similarly, speech-to-text, descriptive art, video summarization, etc., are all examples of multimodal objectives.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2017-11-09T13:38:58&#43;05:30">
+  
+  <meta property="article:modified_time" content="2017-11-09T13:38:58&#43;05:30">
+  
+
+  
+  
+
+  <title>Deep Learning for Multimodal Systems | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Deep Learning for Multimodal Systems</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2017-11-09 13:38:58 &#43;0530 IST" itemprop="datePublished dateModified">
+      Nov 9, 2017
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    8 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/deep-learning-multimodal-systems/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Deep%20Learning%20for%20Multimodal%20Systems&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-multimodal-systems%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-multimodal-systems%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-multimodal-systems%2f&amp;title=Deep%20Learning%20for%20Multimodal%20Systems"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-multimodal-systems%2f&amp;title=Deep%20Learning%20for%20Multimodal%20Systems"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Deep%20Learning%20for%20Multimodal%20Systems&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-multimodal-systems%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p>When I was browsing through research groups for my grad school applications, I came across some interesting applications of new deep learning methods in a multimodal setting. ‘Multimodal,’ as the name suggests, refers to any system involving two or more modes of input or output. For example, an image captioning system provides images as input and expects a textual output. Similarly, speech-to-text, descriptive art, video summarization, etc., are all examples of multimodal objectives. In this article, I will discuss 3 recent papers from <a href="http://www.cs.unc.edu/~mbansal/" target="_blank">Mohit Bansal</a> (who joined UNC last year), based on album summarization, video
+captioning, and image captioning (with a twist).</p>
+
+<hr />
+
+<h4 id="creating-a-story-from-an-album">Creating a story from an album</h4>
+
+<p>Given an album containing several images (which may or may not be similar), the task of Visual Storytelling is to generate a natural language story describing the album. In this EMNLP ’17 paper<sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup>, the task is decomposed into 3 steps:</p>
+
+<ol>
+<li><em>Album encoder</em>: Encode the individual photos in the album to form photo vectors</li>
+<li><em>Photo selector</em>: Select a small number of representative photos.</li>
+<li><em>Story generator</em>: Compose a coherent story from the selected photo vectors.</li>
+</ol>
+
+<p><img src="/img/7/storytelling.png" alt="Architecture of the Visual Storytelling system. Image taken from original paper" /></p>
+
+<p>For each of these three components, the paper uses a hierarchically-attentive RNN. The first component is similar to an embedding layer in a text classification setting, wherein a lookup table assigns some pretrained vectors to each word and then an RNN is applied to add sentence-level information to each word vector. In a similar fashion in this paper, the initial embeddings for each image are obtained using a pretrained ResNet101 layer, and then a bidirectional RNN with GRU cells is used to add information pertaining to the entire album in every image embedding.</p>
+
+<p>In the Photo Selector stage, the selection is treated as a latent variable since we only have end-to-end ground truth labels. As such, we use soft attention to output $t$ probability distributions over all the images in the album, where $t$ is the number of summary images required, i.e., each image has $t$ probabilities associated with it. For this purpose, a GRU takes the previous $p$ and the previous hidden state <em>h</em> as input and outputs the next hidden state. We use a multilayer perceptron with sigmoid activation to fuse the hidden state with the photo vector and obtain the soft attention for the particular image.</p>
+
+<p>$$ h_t = GRU_{select}(p_{t-1},h_{t-1}) \\\ p(y_{a_i}(t)=1) = \sigma(MLP([h_t,v_i])) $$</p>
+
+<p>Finally, we can obtain $t$ weighted album representations by taking the weighted sum of the photo vectors with the corresponding probability distributions. Each of these vectors is then used to decode a single sentence. For this purpose, a GRU takes the joint input of the album vector at step $t$, the previous word embedding, and the previous hidden state, and outputs the next hidden state. We repeat this for $t$ steps, thus obtaining the required album summary.</p>
+
+<p>How do we define loss in such a setting? First, since we already know the correct summary sentences, we can define a <em>generation loss</em> which is simply the sum of negative log likelihoods of the correct words. However, in addition to the words being similar, the story should be temporally coherent, i.e., the sentences themselves should be in a specific order. For this purpose, we apply a max-margin ranking loss as:</p>
+
+<p>$$ h_t = GRU_{select}(p_{t-1},h_{t-1}) \\\ p(y_{a_i}(t)=1) = \sigma(MLP([h_t,v_i])) $$</p>
+
+<p>The total loss is just a linear combination of these two losses. This provides a framework for end-to-end training for the system.</p>
+
+<hr />
+
+<h4 id="captioning-videos-using-multi-task-learning">Captioning videos using multi-task learning</h4>
+
+<p>It seems multitask learning was under the spotlight in ACL ’17. Two semantic parsing papers I discussed in <a href="https://desh2608.github.io/post/trends-in-semantic-parsing-2/" target="_blank">yesterday’s blog</a> were both based on this paradigm, and so is this one.</p>
+
+<p>At this point, I would like to clarify the difference between transfer learning and multitask learning by quoting directly from <a href="https://www.researchgate.net/post/What_is_the_difference_between_Multi-task_Learning_and_Transfer_Learning" target="_blank">this answer</a> on ResearchGate:</p>
+
+<blockquote>
+<p>Multi-task learning can be seen as one type of transfer learning, where the information to transfer is some inner representation/substructure of the models under consideration, or the relevant features for a prediction, and where all
+the target tasks use the same data samples, but predict different target
+features for these (e.g. Part Of Speech tagging and Named Entity Recognition for
+natural language processing tasks).</p>
+
+<p>Transfer Learning, on the other hand, would be the very general problem setting, where the “what” to transfer (representation, model substructures, data samples, parameter priors, …), the concurrency of learning (one or multiple target tasks using one or multiple source tasks, or learning several tasks jointly), the differences in domain (same data or different samples, samples from same or different/related distribution, same or partially different input features) and prediction problem (same target feature or different target features/tasks, same conditional or different/related conditional) are characteristics identifying the subclass of transfer learning problem, and maybe the approach taken to address this problem.</p>
+</blockquote>
+
+<p>A more formal definition can be found <a href="https://stats.stackexchange.com/questions/255025/difference-between-multitask-learning-and-transfer-learning" target="_blank">here</a>. Essentially in multitask learning, all the tasks are learnt simultaneously, whereas in transfer learning, the knowledge from one task is used in another. Now that the terminology is clear, let us look at the tasks and the model used.</p>
+
+<p>The objective in this paper is video captioning, and the co-learnt tasks are video prediction and language entailment generation. It is arguably difficult to obtain large amounts of annotated data for a video prediction task, and hence learning from other tasks is especially relevant in this context.</p>
+
+<p>Video prediction refers to the task of predicting the next frame in a video given a sequence of frames. Recognizing textual entailment (RTE), means identifying the logical relationship between two sentences, i.e., whether a premise and hypothesis follow entailment, contradiction, or independence. Knowledge transfer from a video prediction setting helps the model learn the temporal flow of information in a video, while learning from an RTE setting helps it in logically infering a caption from the video. This is the rationale behind using these tasks for the multi-task learning framework.</p>
+
+<p>The overall architecture of the system is given below.</p>
+
+<p><img src="/img/7/captioning.png" alt="Architecture of video captioning system. Image taken from paper" /></p>
+
+<p>For each subsystem, the paper uses a simple attention-based bidirectional LSTM for the encoding and decoding purposes. This is a fine example of how a simple sequence-to-sequence block can be leveraged in different settings to perform interesting tasks.</p>
+
+<h4 id="puns-in-image-captions">Puns in image captions</h4>
+
+<p>Humor is difficult to capture or create in general. Heterographic homophones (words with different spelling but similar sound) are often used by cartoonists to add subtext to illustrations.</p>
+
+<p><img src="/img/7/puns.jpg" alt="Heterographic homophone used for humor in a comic. Taken from http://cartoonsbyjim.com" /></p>
+
+<p>In this paper<sup class="footnote-ref" id="fnref:3"><a href="#fn:3">2</a></sup>, the authors have proposed 2 different methods to generate “punny” captions for images, namely a Generation model, and a Retrieval model.</p>
+
+<p>The Generation model works as follows:</p>
+
+<ul>
+<li>The first step is <em>tagging</em>. We identify the top 5 objects in the given image using an Inception-ResNet-v2 model trained on ImageNet. We also get the words from a simple caption generated for the image using a Show-and-Tell architecture. The objects and the words together are considered as tags for pun generation.</li>
+<li>We then generate a vocabulary of puns by mining the web and selecting all pairs of words with an edit distance of 0 based on articulatory features.</li>
+<li>From this pun vocabulary, we filter those puns where at least one of the homophones is related to the image in question.</li>
+<li>During the caption generation, at specific time steps, the model is forced to produce a phonological counterpart of a pun word associated with the image. The decoder generates next words based on all previously generated words.</li>
+<li>To solve the issue of non-grammatical sentences due to puns later in the sentence, two models are trained to decode the image in both forward and reverse directions.</li>
+</ul>
+
+<p><img src="/img/7/generation.png" alt="Architecture of the Generation model. Image taken from paper" /></p>
+
+<p>The Retrieval model, on the other hand, tries to find relevant captions from a prebuilt corpus of captions. This is an entirely deterministic model which requires two conditions to be satisfied:</p>
+
+<ol>
+<li>The caption must contain the counterpart of the pun word present in the image so that incongruity is attained.</li>
+<li>The caption must be contextually relevant to the image, i.e., it must contain at least one of the &ldquo;tagged&rdquo; words that we found earlier.</li>
+</ol>
+
+<p>Finally, the captions obtained from both models are pooled together and ranked by taking their log-probability score with respect to the original caption generated from the simple image captioning model. Non-maximal suppression is applied to remove captions which are similar to a higher-ranked caption, and the top 3 such obtained are retained.</p>
+
+<hr />
+
+<p>From these examples of multimodal systems, we see that simple sequence-to-sequence models work satsifactorily if used in conjuction with intelligent frameworks such as multitask learning or transfer learning, as is the trend in recent days. A cool thing is that reading about the various transfer learning approaches for this and the previous post has helped me come up with a new solution for a project that I have been working on. More on that later!</p>
+
+<p>Conference on Empirical Methods in Natural Language Processing*. 2017.</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1">Yu, Licheng, Mohit Bansal, and Tamara Berg. “<a href="https://arxiv.org/pdf/1708.02977.pdf" target="_blank">Hierarchically-Attentive RNN for Album Summarization and Storytelling</a>.” *Proceedings of the 2017
+ <a class="footnote-return" href="#fnref:1"><sup>^</sup></a></li>
+<li id="fn:3">Chandrasekaran, Arjun, Devi Parikh, and Mohit Bansal. “<a href="https://arxiv.org/pdf/1704.08224.pdf" target="_blank">Punny Captions: Witty Wordplay in Image Descriptions</a>.”  <em>arXiv preprint arXiv:1704.08224</em> (2017).
+ <a class="footnote-return" href="#fnref:3"><sup>^</sup></a></li>
+</ol>
+</div>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/deep-learning/">deep learning</a>
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/multimodal/">multimodal</a>
+  
+</div>
+
+
+
+
+    
+    
+    <div class="article-widget">
+      <div class="hr-light"></div>
+      <h3>Related</h3>
+      <ul>
+        
+        <li><a href="/post/best-papers-at-iclr-17/">The Best Papers at ICLR 2017</a></li>
+        
+        <li><a href="/post/last-3-years-in-text-classification/">The Last 3 Years in Text Classification</a></li>
+        
+        <li><a href="/post/understanding-word-vectors/">Understanding Word Vectors</a></li>
+        
+        <li><a href="/publication/conll-17-learning/">Learning local and global context using a convolutional recurrent network model for relation classification in biomedical text</a></li>
+        
+        <li><a href="/project/btp/">Relation extraction for clinical text</a></li>
+        
+      </ul>
+    </div>
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "desh2608-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//desh2608-github-io.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+
