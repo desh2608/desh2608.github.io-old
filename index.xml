@@ -11,6 +11,118 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Irony Detection in Tweets</title>
+      <link>https://desh2608.github.io/post/irony-detection-in-tweets/</link>
+      <pubDate>Wed, 04 Jul 2018 13:40:06 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/irony-detection-in-tweets/</guid>
+      <description>
+
+&lt;p&gt;There was a &lt;a href=&#34;https://github.com/Cyvhee/SemEval2018-Task3&#34; target=&#34;_blank&#34;&gt;SemEval 2018 Shared Task&lt;/a&gt; on “irony detection in tweets” that ended recently. As a fun personal project, I thought of giving it a shot, just to implement some new ideas. In this post, I will describe my approach for the problem along with some code.&lt;/p&gt;
+
+&lt;h4 id=&#34;problem-description&#34;&gt;Problem description&lt;/h4&gt;
+
+&lt;p&gt;The task itself was divided into two subtasks:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;Task A: Binary classification&lt;/em&gt;. Given a tweet, detect whether it has irony or not.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Task B: Multi-label classification&lt;/em&gt;. Given a tweet and a set of labels: i) verbal irony realized through a polarity contrast, ii) verbal irony without such a polarity contrast (i.e., other verbal irony), iii) descriptions of situational irony, iv) non-irony, find the correct irony type.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;While the task appears to be a simple text classification job, there are several nuances that make it challenging. Irony is often context-dependent or derived from world knowledge. In sentiment analysis, the semantics of the sentences are sufficient to judge whether the sentence has been spoken in a positive or negative manner. However, irony, by definition, almost always exists when the literal meaning of the sentence is dramatically different from what has been implied. Sample this:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Just great when you’re (sic) mobile bill arrives by text.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;From a sentiment analysis perspective, the presence of the phrase “just great” would adjudge this sentence strongly positive. However, from our world knowledge, we know the nuances of the interplay between a “mobile bill” and “text.” As a human, then, we can judge that the sentence is spoken in irony.&lt;/p&gt;
+
+&lt;p&gt;The problem is: how can we have an automated system understand this?&lt;/p&gt;
+
+&lt;h4 id=&#34;circular-correlation-between-text-and-hashtags&#34;&gt;Circular correlation between text and hashtags&lt;/h4&gt;
+
+&lt;p&gt;The first idea of a solution came from how the dataset was generated in the first place. To mine tweets containing irony, those tweets were selected which contained the hashtag &lt;strong&gt;#not&lt;/strong&gt;. The idea was that a lot of people explicitly declare their intent at irony through hashtags. For instance, consider the following tweet:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Physical therapy at 8 am is just what I want to be doing with my Friday #iwanttosleep&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In this example, let us breakdown the tweet into 2 components:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;Text&lt;/em&gt;: Physical therapy at 8 am is just what I want to be doing with my Friday.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Hashtag&lt;/em&gt;: I want to sleep&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;It is obvious from the semantics of the 2 components that they imply very different things. As such, it may help to model the interaction between the “text” and “hashtag” components of the tweet and then use the resulting embedding for classification. In this regard, we are essentially treating the problem as that of relation classification, where the entities are the 2 components and we need to identify whether there exists a relation between them (task A), and if yes, of which type (task B).&lt;/p&gt;
+
+&lt;p&gt;The problem, now, is reduced to the issue of how to model the two components and their interaction. This is where deep learning comes into the picture.&lt;/p&gt;
+
+&lt;h4 id=&#34;modeling-embeddings-and-interaction&#34;&gt;Modeling embeddings and interaction&lt;/h4&gt;
+
+&lt;p&gt;The embeddings to represent the components are obtained simply by passing their pretrained word vectors through a bidirectional LSTM layer. This is fairly simple for the text component.&lt;/p&gt;
+
+&lt;p&gt;However, in the hashtag component, a single hashtag almost always consists of multiple words concatenated into a single string. Therefore, we first perform word segmentation on the hashtag and use the resulting segments to obtain the embedding.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import wordsegment as ws
+ws.load()
+hashtag = “ “.join(ws.segment(temp))
+## Here, &#39;temp&#39; is the original hashtag
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Once the embeddings for the two components have been obtained, we use the circular cross-correlation technique (which I have earlier described in &lt;a href=&#34;https://desh2608.github.io/post/beyond-euclidean-embeddings/&#34; target=&#34;_blank&#34;&gt;this blog post&lt;/a&gt; to model their interaction.  Essentially, the operator is defined as&lt;/p&gt;
+
+&lt;p&gt;$$ [a\cdot b]_k = \sum_{i=1}^{d-1}a_i b_{(k+i)\text{mod}d}. $$&lt;/p&gt;
+
+&lt;p&gt;In Tensorflow, this is implemented as follows:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import tensorflow as tf
+
+def holographic_merge(inp):
+    [a, b] = inp
+    a_fft = tf.fft(tf.complex(a, 0.0))
+    b_fft = tf.fft(tf.complex(b, 0.0))
+    ifft = tf.ifft(tf.conj(a_fft) * b_fft)
+    return tf.cast(tf.real(ifft), &#39;float32&#39;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The output of this merge is then passed to an XGBoost classifier (whose implementation was used out-of-the-box from the corresponding Python package).&lt;/p&gt;
+
+&lt;p&gt;This model resulted in a validation accuracy of ~62%, compared to ~59% for a simple LSTM model. Time to analyze where it was failing!&lt;/p&gt;
+
+&lt;h4 id=&#34;world-knowledge-for-irony-detection&#34;&gt;World knowledge for irony detection&lt;/h4&gt;
+
+&lt;p&gt;The problem with this idea was that although it performed well for samples similar to the example given above, such samples constituted only about 20% of the dataset. For a majority of the tweets containing irony, there was no hashtag, and as such, modeling interactions was useless.&lt;/p&gt;
+
+&lt;p&gt;In such cases, we have to solely rely upon the text component to detect hashtag, for e.g.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;The fun part about 4 am drives in the winter, is no one has cleaned the snow yet&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;If an automated system has to understand that the above sentence contains irony, it needs to know that there is nothing fun about driving on a road covered in snow. This knowledge cannot be gained from learning on a few thousand tweets. We now turn to &lt;strong&gt;transfer learning&lt;/strong&gt;!&lt;/p&gt;
+
+&lt;p&gt;MIT researchers recently built an unsupervised system called &lt;a href=&#34;https://deepmoji.mit.edu/&#34; target=&#34;_blank&#34;&gt;DeepMoji&lt;/a&gt; for emoji prediction in tweets. According to the website, &amp;ldquo;DeepMoji has learned to understand emotions and sarcasm based on millions of emojis. We hypothesize that if we use this pretrained model to extract features from the text component, it may then be used to predict whether the text contains irony. In a way, we are transfering world knowledge to our model (assuming that the million tweets on which DeepMoji was trained is our world!).&lt;/p&gt;
+
+&lt;p&gt;As expected, concatenating the DeepMoji features with the holographic embeddings resulted in a validation accuracy of $\sim69\%$, i.e., a jump of almost 7%. This reinforces our hypothesis that world knowledge is indeed an important ingredient in any kind of irony detection.&lt;/p&gt;
+
+&lt;h4 id=&#34;summary&#34;&gt;Summary&lt;/h4&gt;
+
+&lt;p&gt;In essence, we identified 2 aspects that were essential to identify irony in
+tweets:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Semantic interaction between text and hashtags, modeled using holographic embeddings&lt;/li&gt;
+&lt;li&gt;World knowledge about irony in text, obtained through transfer learning from DeepMoji&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The code for the project is available &lt;a href=&#34;https://github.com/desh2608/tweet-irony-detection&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; In the final test phase, the results were disappointing (~50% for task A) especially given the high performance on validation set. This could likely have been due to some implementation error on the test set, and we are waiting for the gold labels to be released to analyze our mistake.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Waldo: A system for optical character recognition</title>
       <link>https://desh2608.github.io/project/waldo-ocr/</link>
       <pubDate>Tue, 03 Jul 2018 16:56:46 +0530</pubDate>
@@ -51,6 +163,109 @@
       
       <guid>https://desh2608.github.io/publication/infosc-17-art/</guid>
       <description></description>
+    </item>
+    
+    <item>
+      <title>Introduction to Learning Theory - Part 2</title>
+      <link>https://desh2608.github.io/post/intro-learning-theory-2/</link>
+      <pubDate>Mon, 15 Jan 2018 13:39:45 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/intro-learning-theory-2/</guid>
+      <description>
+
+&lt;p&gt;In the &lt;a href=&#34;https://desh2608.github.io/post/intro-learning-theory-1/&#34; target=&#34;_blank&#34;&gt;first part&lt;/a&gt; of this series on learning theory, we looked only at the case of finite hypothesis sets, and derived some generalization bounds using the PAC learning framework. However, in most practical cases, the hypothesis class is usually infinite. To measure the complexity of the class in such cases, 3 different measures are often used — Rademacher complexity, growth function, and VC dimension. In this article, I will discuss all of these.&lt;/p&gt;
+
+&lt;h4 id=&#34;rademacher-complexity&#34;&gt;Rademacher complexity&lt;/h4&gt;
+
+&lt;p&gt;Given a family of functions, one of the ways to measure its complexity is to see how well it can fit a random assignment of labels. A more complex hypothesis set would be able to fit a random noise better, and vice versa. For this purpose, we define $m$ random variables $\sigma_i$, called Rademacher variables. We then define the &lt;em&gt;empirical&lt;/em&gt; Rademacher complexity as&lt;/p&gt;
+
+&lt;p&gt;$$ \hat{\mathcal{R}_S}(G) = \mathbb{E}_{\sigma}[\text{sup}_{g\in G}\frac{1}{m}\sigma_i g(z_i)] $$&lt;/p&gt;
+
+&lt;p&gt;Here the summation term is essentially the inner product of the vector of noise (Rademacher variables) and the labels with some $g \in G$. Intuitively, this term can be taken to represent the correlation between the actual assignment and the random assignment. On taking the supremum over all $g \in G$, we are computing how well the function class $G$ correlates with random noise on $S$. The expectation of this term over all random noise distributions measures the average correlation.&lt;/p&gt;
+
+&lt;p&gt;Therefore, a higher Rademacher complexity would imply that the function class $G$ is able to fit a random assignment of labels well, and vice versa. This is because the more complex a class $G$ is, higher is the probability that it would have some $g$ which correlates well with random noise.&lt;/p&gt;
+
+&lt;p&gt;However, this is just the empirical R.C. since we are computing the mean on the given sample set. The actual R.C. is obtained by taking the expectation of this value by sampling $S$ from a distribution $D$ consisting of sample sets of size $m$. Having thus defined the R.C., we can obtain an upper bound on the expected value of an error function $g$ taken from a family of functions $G$.&lt;/p&gt;
+
+&lt;p&gt;$$ \mathbb{E}[g(z)] \leq \frac{1}{m} \sum_{i=1}^m g(z_i) + 2\mathcal{R}_m(G) + \sqrt{\frac{\log \frac{1}{\delta}}{2m}} $$&lt;/p&gt;
+
+&lt;p&gt;Note that if we take the first term on RHS to LHS, the LHS becomes the maximum difference between the empirical and general loss (function value if function is binary-valued). We have access to the empirical values, but not the expectation. So we take 2 sample sets A and B which differ at only 1 point, so that we can use the McDiarmid’s inequality.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;The McDiarmid’s inequality bounds the probability that the actual mean and expected mean of a function differ by more than a fixed quantity, given that the function does not deviate by a large amount on perturbing a single element.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The actual proof then becomes simply manipulating the expectation and supremum using Jensen’s inequality (function of an expectation is at most expectation of the function, if the function itself is convex). I do not go into the details of the proof here since it is readily available.&lt;/p&gt;
+
+&lt;p&gt;Till now, we have only computed the bounds on the expectation of the set of loss functions $G$. We actually need to compute bounds on the general loss on the hypothesis class $H$, which assigns binary values to given samples. For this, we use the following lemma which is simple to prove.&lt;/p&gt;
+
+&lt;p&gt;$$ \hat{\mathcal{R}_S}(G) = \frac{1}{2}\hat{\mathcal{R}_{S_X}(G) $$&lt;/p&gt;
+
+&lt;p&gt;From this and the earlier result, we easily arrive at an upper bound on the generalization error of the hypothesis class in terms of its Rademacher complexity.&lt;/p&gt;
+
+&lt;p&gt;$$ R(h) \leq \hat{R}(h) + \mathcal{R}_m(H) + \sqrt{\frac{\log \frac{1}{\delta}}{2m}} $$&lt;/p&gt;
+
+&lt;p&gt;Here, computing the empirical loss is simple, but computing the R.C. for some hypothesis sets may be hard (since it is equivalent to an empirical risk minimization problem). Therefore, we need some complexity measures which are easier to compute.&lt;/p&gt;
+
+&lt;h4 id=&#34;growth-function&#34;&gt;Growth function&lt;/h4&gt;
+
+&lt;p&gt;The growth function of a hypothesis class $H$ for sample size $m$ denotes the number of distinct ways that $H$ can classify the sample. A more complex hypothesis class would be able to have a larger number of possible combinations for any sample size $m$. However, unlike R.C., this measure is purely combinatorial, and independent of the underlying distributions in $H$.&lt;/p&gt;
+
+&lt;p&gt;The Rademacher complexity and the growth function are related by Massart’s lemma as&lt;/p&gt;
+
+&lt;p&gt;$$ \mathcal{R}_m(G) \leq \sqrt{\frac{2\log \prod_G (m) }{m}} $$&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;The Massart’s lemma bounds the expected correlation of a given vector taken from a set with a vector of random noise, in terms of the size of the set, dimensionality of the set, and the maximum L2-norm of the set.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;As soon as we see “expected correlation,” we should think of the Rademacher complexity. To introduce the growth function, we use the term for the size of the set, since it essentially denotes the size of set containing all possible assignments for a sample.&lt;/p&gt;
+
+&lt;p&gt;Using this relation in the earlier obtained upper bound, we can bound the generalization error in terms of the growth function.&lt;/p&gt;
+
+&lt;p&gt;Although it is a combinatorial quantity, the growth function still depends on the sample size $m$, and thus would require repeated calculations for all values $m&amp;gt;1$. Instead, we turn to the third and most popular complexity measure for hypothesis sets.&lt;/p&gt;
+
+&lt;h4 id=&#34;vc-dimension&#34;&gt;VC-dimension&lt;/h4&gt;
+
+&lt;p&gt;The VC-dimension of a hypothesis class is the size of the largest set that can be fully shattered by it. By shattering, we mean that $H$ can classify the given set in all possible ways. Formally,&lt;/p&gt;
+
+&lt;p&gt;$$ VCdim(H) = \max{ m:\prod_H (m) = 2^m } $$&lt;/p&gt;
+
+&lt;p&gt;It is important to understand 2 things:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;If $VCdim(H) = d$, then there exists a set of size $d$ that can be fully shattered. This does not mean that all sets of size $d$ or less are fully shattered by $H$.&lt;/li&gt;
+&lt;li&gt;Also, in this case, no set of size greater than $d$ can ever be shattered by $H$.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;To relate VC-dimension with the growth function, we use the Sauer’s lemma:&lt;/p&gt;
+
+&lt;p&gt;$$ \prod_H(m) \leq \sum_{i=0}^m {m\choose i} $$&lt;/p&gt;
+
+&lt;p&gt;Here, the LHS, which is the growth function, represents the number of possible behaviors that $H$ can have on a set of size $m$. The RHS is the number of small subsets that are completely shattered by $H$. For a detailed proof, I highly recommend &lt;a href=&#34;https://www.youtube.com/watch?v=LHIwWeQhhk4&#34; target=&#34;_blank&#34;&gt;this lecture&lt;/a&gt; (Actually, I would highly recommend the entire course).&lt;/p&gt;
+
+&lt;p&gt;Using some manipulations on the combinatorial, we arrive at&lt;/p&gt;
+
+&lt;p&gt;$$ \prod_H(m) \leq  \left( \frac{em}{d} \right)^d = \mathcal{O}(m^d) $$&lt;/p&gt;
+
+&lt;p&gt;Now we can use this relation with the earlier results to bound the generalization error in terms of the VC-dimension of the hypothesis class.&lt;/p&gt;
+
+&lt;p&gt;$$ R(h) \leq \hat{R}(h) + \mathcal{O}\left( \sqrt{\frac{\log(m/d)}{m/d}} \right) $$&lt;/p&gt;
+
+&lt;p&gt;where $m$ is the sample size and $d$ is the VC-dimension.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Here is a quick recap:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Rademacher complexity — ability to fit random labels (using correlation)&lt;/li&gt;
+&lt;li&gt;Growth function — number of distinct behaviors on $m$&lt;/li&gt;
+&lt;li&gt;VC-dimension — largest set size that can be fully shattered&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This blog post is loosely based on notes made from Chapter 3 “Rademacher complexity and VC-Dimension” of &lt;em&gt;Foundations of Machine Learning.&lt;/em&gt;&lt;/p&gt;
+</description>
     </item>
     
     <item>
@@ -1132,24 +1347,6 @@ the number of mapped unigrams between the two texts. Then, precision and recall 
 
 &lt;p&gt;&lt;em&gt;The links to the original papers for the methods described here are in the section headings. Readers are advised to refer to them for details. I have tried to outline the main ideas here for a quick review.&lt;/em&gt;&lt;/p&gt;
 </description>
-    </item>
-    
-    <item>
-      <title>Learning local and global context using a convolutional recurrent network model for relation classification in biomedical text</title>
-      <link>https://desh2608.github.io/publication/conll-17-learning/</link>
-      <pubDate>Tue, 01 Aug 2017 00:00:00 +0000</pubDate>
-      
-      <guid>https://desh2608.github.io/publication/conll-17-learning/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Principal component analysis approach in selecting type-1 and type-2 fuzzy membership functions for high-dimensional data</title>
-      <link>https://desh2608.github.io/publication/ifsa-17-pca/</link>
-      <pubDate>Wed, 28 Jun 2017 15:02:56 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/publication/ifsa-17-pca/</guid>
-      <description></description>
     </item>
     
   </channel>

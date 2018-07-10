@@ -7,10 +7,21 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2018</copyright>
-    <lastBuildDate>Wed, 06 Dec 2017 13:39:15 +0530</lastBuildDate>
+    <lastBuildDate>Wed, 04 Jul 2018 13:40:06 +0530</lastBuildDate>
     
 	<atom:link href="https://desh2608.github.io/tags/representation-learning/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Irony Detection in Tweets</title>
+      <link>https://desh2608.github.io/post/irony-detection-in-tweets/</link>
+      <pubDate>Wed, 04 Jul 2018 13:40:06 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/irony-detection-in-tweets/</guid>
+      <description>There was a SemEval 2018 Shared Task on “irony detection in tweets” that ended recently. As a fun personal project, I thought of giving it a shot, just to implement some new ideas. In this post, I will describe my approach for the problem along with some code.
+Problem description The task itself was divided into two subtasks:
+ Task A: Binary classification. Given a tweet, detect whether it has irony or not.</description>
+    </item>
     
     <item>
       <title>Beyond Euclidean Embeddings</title>
