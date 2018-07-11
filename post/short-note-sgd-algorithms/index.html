@@ -17,12 +17,12 @@
       
     
   
-  <meta name="description" content="There was a SemEval 2018 Shared Task on “irony detection in tweets” that ended recently. As a fun personal project, I thought of giving it a shot, just to implement some new ideas. In this post, I will describe my approach for the problem along with some code.
-Problem description The task itself was divided into two subtasks:
- Task A: Binary classification. Given a tweet, detect whether it has irony or not.">
+  <meta name="description" content="I just finished reading Sebastian Ruder’s amazing article providing an overview of the most popular algorithms used for optimizing gradient descent. Here I’ll make very short notes on them primarily for purposes of recall.
+Momentum The update vector consists of another term which has the previous update vector (weighted by $\gamma$). This helps it to move faster downhill — like a ball.
+$$ v_t = \gamma v_{t-1} &#43; \eta \nabla_{\theta}J(\theta) $$">
 
   
-  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/irony-detection-in-tweets/">
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/short-note-sgd-algorithms/">
 
   
 
@@ -85,7 +85,7 @@ Problem description The task itself was divided into two subtasks:
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
 
-  <link rel="canonical" href="https://desh2608.github.io/post/irony-detection-in-tweets/">
+  <link rel="canonical" href="https://desh2608.github.io/post/short-note-sgd-algorithms/">
 
   <meta property="twitter:card" content="summary_large_image">
   
@@ -93,22 +93,22 @@ Problem description The task itself was divided into two subtasks:
   <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
   
   <meta property="og:site_name" content="Desh Raj">
-  <meta property="og:url" content="https://desh2608.github.io/post/irony-detection-in-tweets/">
-  <meta property="og:title" content="Irony Detection in Tweets | Desh Raj">
-  <meta property="og:description" content="There was a SemEval 2018 Shared Task on “irony detection in tweets” that ended recently. As a fun personal project, I thought of giving it a shot, just to implement some new ideas. In this post, I will describe my approach for the problem along with some code.
-Problem description The task itself was divided into two subtasks:
- Task A: Binary classification. Given a tweet, detect whether it has irony or not.">
+  <meta property="og:url" content="https://desh2608.github.io/post/short-note-sgd-algorithms/">
+  <meta property="og:title" content="A Short Note on Stochastic Gradient Descent Algorithms | Desh Raj">
+  <meta property="og:description" content="I just finished reading Sebastian Ruder’s amazing article providing an overview of the most popular algorithms used for optimizing gradient descent. Here I’ll make very short notes on them primarily for purposes of recall.
+Momentum The update vector consists of another term which has the previous update vector (weighted by $\gamma$). This helps it to move faster downhill — like a ball.
+$$ v_t = \gamma v_{t-1} &#43; \eta \nabla_{\theta}J(\theta) $$">
   <meta property="og:locale" content="en-us">
   
-  <meta property="article:published_time" content="2018-02-07T13:40:06&#43;05:30">
+  <meta property="article:published_time" content="2018-02-08T13:40:25&#43;05:30">
   
-  <meta property="article:modified_time" content="2018-02-07T13:40:06&#43;05:30">
-  
-
-  
+  <meta property="article:modified_time" content="2018-02-08T13:40:25&#43;05:30">
   
 
-  <title>Irony Detection in Tweets | Desh Raj</title>
+  
+  
+
+  <title>A Short Note on Stochastic Gradient Descent Algorithms | Desh Raj</title>
 
 </head>
 <body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
@@ -248,7 +248,7 @@ Problem description The task itself was divided into two subtasks:
 
 
   <div class="article-container">
-    <h1 itemprop="name">Irony Detection in Tweets</h1>
+    <h1 itemprop="name">A Short Note on Stochastic Gradient Descent Algorithms</h1>
 
     
 
@@ -256,8 +256,8 @@ Problem description The task itself was divided into two subtasks:
 
   <span class="article-date">
     
-    <time datetime="2018-02-07 13:40:06 &#43;0530 IST" itemprop="datePublished dateModified">
-      Feb 7, 2018
+    <time datetime="2018-02-08 13:40:25 &#43;0530 IST" itemprop="datePublished dateModified">
+      Feb 8, 2018
     </time>
   </span>
   <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
@@ -267,14 +267,14 @@ Problem description The task itself was divided into two subtasks:
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    5 min read
+    2 min read
   </span>
   
 
   
   
   <span class="middot-divider"></span>
-  <a href="https://desh2608.github.io/post/irony-detection-in-tweets/#disqus_thread"></a>
+  <a href="https://desh2608.github.io/post/short-note-sgd-algorithms/#disqus_thread"></a>
   
 
   
@@ -288,35 +288,35 @@ Problem description The task itself was divided into two subtasks:
   <ul class="share">
     <li>
       <a class="twitter"
-         href="https://twitter.com/intent/tweet?text=Irony%20Detection%20in%20Tweets&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2firony-detection-in-tweets%2f"
+         href="https://twitter.com/intent/tweet?text=A%20Short%20Note%20on%20Stochastic%20Gradient%20Descent%20Algorithms&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fshort-note-sgd-algorithms%2f"
          target="_blank" rel="noopener">
         <i class="fa fa-twitter"></i>
       </a>
     </li>
     <li>
       <a class="facebook"
-         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2firony-detection-in-tweets%2f"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fshort-note-sgd-algorithms%2f"
          target="_blank" rel="noopener">
         <i class="fa fa-facebook"></i>
       </a>
     </li>
     <li>
       <a class="linkedin"
-         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2firony-detection-in-tweets%2f&amp;title=Irony%20Detection%20in%20Tweets"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fshort-note-sgd-algorithms%2f&amp;title=A%20Short%20Note%20on%20Stochastic%20Gradient%20Descent%20Algorithms"
          target="_blank" rel="noopener">
         <i class="fa fa-linkedin"></i>
       </a>
     </li>
     <li>
       <a class="weibo"
-         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2firony-detection-in-tweets%2f&amp;title=Irony%20Detection%20in%20Tweets"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fshort-note-sgd-algorithms%2f&amp;title=A%20Short%20Note%20on%20Stochastic%20Gradient%20Descent%20Algorithms"
          target="_blank" rel="noopener">
         <i class="fa fa-weibo"></i>
       </a>
     </li>
     <li>
       <a class="email"
-         href="mailto:?subject=Irony%20Detection%20in%20Tweets&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2firony-detection-in-tweets%2f">
+         href="mailto:?subject=A%20Short%20Note%20on%20Stochastic%20Gradient%20Descent%20Algorithms&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fshort-note-sgd-algorithms%2f">
         <i class="fa fa-envelope"></i>
       </a>
     </li>
@@ -332,107 +332,59 @@ Problem description The task itself was divided into two subtasks:
     <div class="article-style" itemprop="articleBody">
       
 
-<p>There was a <a href="https://github.com/Cyvhee/SemEval2018-Task3" target="_blank">SemEval 2018 Shared Task</a> on “irony detection in tweets” that ended recently. As a fun personal project, I thought of giving it a shot, just to implement some new ideas. In this post, I will describe my approach for the problem along with some code.</p>
+<p><img src="/img/13/mindmap.png" alt="Mind Map for algorithms (taken from [this](http://forums.fast.ai/t/how-do-we-decide-the-optimizer-used-for-training/1829/6) forum post)" /></p>
 
-<h4 id="problem-description">Problem description</h4>
+<p>I just finished reading <a href="http://ruder.io/" target="_blank">Sebastian Ruder</a>’s amazing <a href="https://arxiv.org/abs/1609.04747" target="_blank">article</a> providing an overview of the most popular algorithms used for optimizing gradient descent. Here I’ll make very short notes on them primarily for purposes of recall.</p>
 
-<p>The task itself was divided into two subtasks:</p>
+<h4 id="momentum">Momentum</h4>
 
-<ol>
-<li><em>Task A: Binary classification</em>. Given a tweet, detect whether it has irony or not.</li>
-<li><em>Task B: Multi-label classification</em>. Given a tweet and a set of labels: i) verbal irony realized through a polarity contrast, ii) verbal irony without such a polarity contrast (i.e., other verbal irony), iii) descriptions of situational irony, iv) non-irony, find the correct irony type.</li>
-</ol>
+<p>The update vector consists of another term which has the previous update vector (weighted by $\gamma$). This helps it to move faster downhill — like a ball.</p>
 
-<p>While the task appears to be a simple text classification job, there are several nuances that make it challenging. Irony is often context-dependent or derived from world knowledge. In sentiment analysis, the semantics of the sentences are sufficient to judge whether the sentence has been spoken in a positive or negative manner. However, irony, by definition, almost always exists when the literal meaning of the sentence is dramatically different from what has been implied. Sample this:</p>
+<p>$$ v_t = \gamma v_{t-1} + \eta \nabla_{\theta}J(\theta) $$</p>
 
-<blockquote>
-<p>Just great when you’re (sic) mobile bill arrives by text.</p>
-</blockquote>
+<h4 id="nesterov-accelerated-gradient-nag">Nesterov accelerated gradient (NAG)</h4>
 
-<p>From a sentiment analysis perspective, the presence of the phrase “just great” would adjudge this sentence strongly positive. However, from our world knowledge, we know the nuances of the interplay between a “mobile bill” and “text.” As a human, then, we can judge that the sentence is spoken in irony.</p>
+<p>In Momentum optimizer, the ball may go past the minima due to too much momentum, so we want to have a look-ahead term. In NAG, we take gradient of future position instead of current position.</p>
 
-<p>The problem is: how can we have an automated system understand this?</p>
+<p>$$ v_t = \gamma v_{t-1} + \eta \nabla_{\theta}J(\theta - \gamma v_{t-1}) $$</p>
 
-<h4 id="circular-correlation-between-text-and-hashtags">Circular correlation between text and hashtags</h4>
+<h4 id="adagrad">Adagrad</h4>
 
-<p>The first idea of a solution came from how the dataset was generated in the first place. To mine tweets containing irony, those tweets were selected which contained the hashtag <strong>#not</strong>. The idea was that a lot of people explicitly declare their intent at irony through hashtags. For instance, consider the following tweet:</p>
+<p>Instead of a common learning rate for all parameters, we want to have separate learning rate for each. So Adagrad keeps sum of squares of parameter-wise gradients and modifies individual learning rates using this. As a result, parameters occuring more often have smaller gradients.</p>
 
-<blockquote>
-<p>Physical therapy at 8 am is just what I want to be doing with my Friday #iwanttosleep</p>
-</blockquote>
+<p>$$ \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{G_t +\epsilon}} \odot g_t $$</p>
 
-<p>In this example, let us breakdown the tweet into 2 components:</p>
+<h4 id="rmsprop">RMSProp</h4>
 
-<ol>
-<li><em>Text</em>: Physical therapy at 8 am is just what I want to be doing with my Friday.</li>
-<li><em>Hashtag</em>: I want to sleep</li>
-</ol>
+<p>In Adagrad, since we keep adding all gradients, gradients become vanishingly small after some time. So in RMSProp, the idea is to add them in a decaying fashion as</p>
 
-<p>It is obvious from the semantics of the 2 components that they imply very different things. As such, it may help to model the interaction between the “text” and “hashtag” components of the tweet and then use the resulting embedding for classification. In this regard, we are essentially treating the problem as that of relation classification, where the entities are the 2 components and we need to identify whether there exists a relation between them (task A), and if yes, of which type (task B).</p>
+<p>$$ \mathbb{E}[g^2]_t = \gamma \mathbb{E}[g^2]_{t-1} + (1-\gamma)g_t^2 $$</p>
 
-<p>The problem, now, is reduced to the issue of how to model the two components and their interaction. This is where deep learning comes into the picture.</p>
+<p>Now replace $G_t$ in the denominator of Adagrad equation by this new term. Due to this, the gradients are no more vanishing.</p>
 
-<h4 id="modeling-embeddings-and-interaction">Modeling embeddings and interaction</h4>
+<h4 id="adam-adaptive-moment-estimation">Adam (Adaptive Moment Estimation)</h4>
 
-<p>The embeddings to represent the components are obtained simply by passing their pretrained word vectors through a bidirectional LSTM layer. This is fairly simple for the text component.</p>
+<p>Adam combines RMSProp with Momentum. So, in addition to using the decaying average of past squared gradients for parameter-specific learning rate, it uses a decaying average of past gradients in place of the current gradient (similar to Momentum).</p>
 
-<p>However, in the hashtag component, a single hashtag almost always consists of multiple words concatenated into a single string. Therefore, we first perform word segmentation on the hashtag and use the resulting segments to obtain the embedding.</p>
+<p>$$ \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{\hat{v_t}+\epsilon}}\hat{m}_t $$</p>
 
-<pre><code class="language-python">import wordsegment as ws
-ws.load()
-hashtag = “ “.join(ws.segment(temp))
-## Here, 'temp' is the original hashtag
-</code></pre>
+<p>The $\hat{}$ terms are actually bias-corrected averages to ensure that the values are not biased towards 0.</p>
 
-<p>Once the embeddings for the two components have been obtained, we use the circular cross-correlation technique (which I have earlier described in <a href="https://desh2608.github.io/post/beyond-euclidean-embeddings/" target="_blank">this blog post</a> to model their interaction.  Essentially, the operator is defined as</p>
+<h4 id="nadam">Nadam</h4>
 
-<p>$$ [a\cdot b]_k = \sum_{i=1}^{d-1}a_i b_{(k+i)\text{mod}d}. $$</p>
+<p>Nadam combines RMSProp with NAG (since NAG is usually better for slope adaptation than Momentum. The derivation is simple and can be found in Ruder’s paper.</p>
 
-<p>In Tensorflow, this is implemented as follows:</p>
+<hr />
 
-<pre><code class="language-python">import tensorflow as tf
-
-def holographic_merge(inp):
-    [a, b] = inp
-    a_fft = tf.fft(tf.complex(a, 0.0))
-    b_fft = tf.fft(tf.complex(b, 0.0))
-    ifft = tf.ifft(tf.conj(a_fft) * b_fft)
-    return tf.cast(tf.real(ifft), 'float32')
-</code></pre>
-
-<p>The output of this merge is then passed to an XGBoost classifier (whose implementation was used out-of-the-box from the corresponding Python package).</p>
-
-<p>This model resulted in a validation accuracy of ~62%, compared to ~59% for a simple LSTM model. Time to analyze where it was failing!</p>
-
-<h4 id="world-knowledge-for-irony-detection">World knowledge for irony detection</h4>
-
-<p>The problem with this idea was that although it performed well for samples similar to the example given above, such samples constituted only about 20% of the dataset. For a majority of the tweets containing irony, there was no hashtag, and as such, modeling interactions was useless.</p>
-
-<p>In such cases, we have to solely rely upon the text component to detect hashtag, for e.g.</p>
-
-<blockquote>
-<p>The fun part about 4 am drives in the winter, is no one has cleaned the snow yet</p>
-</blockquote>
-
-<p>If an automated system has to understand that the above sentence contains irony, it needs to know that there is nothing fun about driving on a road covered in snow. This knowledge cannot be gained from learning on a few thousand tweets. We now turn to <strong>transfer learning</strong>!</p>
-
-<p>MIT researchers recently built an unsupervised system called <a href="https://deepmoji.mit.edu/" target="_blank">DeepMoji</a> for emoji prediction in tweets. According to the website, &ldquo;DeepMoji has learned to understand emotions and sarcasm based on millions of emojis. We hypothesize that if we use this pretrained model to extract features from the text component, it may then be used to predict whether the text contains irony. In a way, we are transfering world knowledge to our model (assuming that the million tweets on which DeepMoji was trained is our world!).</p>
-
-<p>As expected, concatenating the DeepMoji features with the holographic embeddings resulted in a validation accuracy of $\sim69\%$, i.e., a jump of almost 7%. This reinforces our hypothesis that world knowledge is indeed an important ingredient in any kind of irony detection.</p>
-
-<h4 id="summary">Summary</h4>
-
-<p>In essence, we identified 2 aspects that were essential to identify irony in
-tweets:</p>
+<p>In summary, SGD suffers from 2 problems: (i) being hesitant at steep slopes, and (ii) having same learning rate for all parameters. So the improved algorithms are categorized as:</p>
 
 <ol>
-<li>Semantic interaction between text and hashtags, modeled using holographic embeddings</li>
-<li>World knowledge about irony in text, obtained through transfer learning from DeepMoji</li>
+<li>Momentum, NAG: address issue (i). Usually NAG &gt; Momentum.</li>
+<li>Adagrad, RMSProp: address issue (ii). RMSProp &gt; Adagrad.</li>
+<li>Adam, Nadam: address both issues, by combining above methods.</li>
 </ol>
 
-<p>The code for the project is available <a href="https://github.com/desh2608/tweet-irony-detection" target="_blank">here</a>.</p>
-
-<p><strong>Disclaimer:</strong> In the final test phase, the results were disappointing (~50% for task A) especially given the high performance on validation set. This could likely have been due to some implementation error on the test set, and we are waiting for the gold labels to be released to analyze our mistake.</p>
+<p><em>Note</em>: I have skipped a discussion on AdaDelta in this post since it is very similar to RMSProp and the latter is more popular.</p>
 
     </div>
 
@@ -441,9 +393,9 @@ tweets:</p>
 
 <div class="article-tags">
   
-  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/natural-language-processing/">natural language processing</a>
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/machine-learning/">machine learning</a>
   
-  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/representation-learning/">representation learning</a>
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/optimization/">optimization</a>
   
 </div>
 
@@ -457,15 +409,11 @@ tweets:</p>
       <h3>Related</h3>
       <ul>
         
-        <li><a href="/post/understanding-word-vectors/">Understanding Word Vectors</a></li>
+        <li><a href="/publication/infosc-17-art/">Uncertain Fuzzy Self-organization based Clustering: Interval Type-2 Approach to Adaptive Resonance Theory</a></li>
         
-        <li><a href="/post/unsupervised-approaches-for-nmt/">Unsupervised Approaches for NMT</a></li>
+        <li><a href="/project/bosch/">Monitoring production line performance to reduce failures</a></li>
         
-        <li><a href="/post/beyond-euclidean-embeddings/">Beyond Euclidean Embeddings</a></li>
-        
-        <li><a href="/post/trends-in-semantic-parsing-2/">Trends in Semantic Parsing - Part 2</a></li>
-        
-        <li><a href="/post/last-3-years-in-text-classification/">The Last 3 Years in Text Classification</a></li>
+        <li><a href="/project/fuzzy-art/">Fuzzy adaptive resonance theory (ART) clustering</a></li>
         
       </ul>
     </div>

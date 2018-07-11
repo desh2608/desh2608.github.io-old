@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.42.2" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="Sparse vectors have become popular recently for 2 reasons:
+ Sparse matrices require much less storage since they can be stored using various space-saving methods. Sparse vectors are much more interpretable than dense vectors. For instance, the non-zero non-negative components of a sparse word vector may be taken to denote the weights for certain features. In contrast, there is no interpretation for a value like $-0.1347$.  Sparsity is often induced through the use of L1 (or Lasso) regularization.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/sparse-online-learning-lasso-regularization/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/sparse-online-learning-lasso-regularization/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/sparse-online-learning-lasso-regularization/">
+  <meta property="og:title" content="Sparsity in Online Learning with Lasso Regularization | Desh Raj">
+  <meta property="og:description" content="Sparse vectors have become popular recently for 2 reasons:
+ Sparse matrices require much less storage since they can be stored using various space-saving methods. Sparse vectors are much more interpretable than dense vectors. For instance, the non-zero non-negative components of a sparse word vector may be taken to denote the weights for certain features. In contrast, there is no interpretation for a value like $-0.1347$.  Sparsity is often induced through the use of L1 (or Lasso) regularization.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2018-02-24T13:40:42&#43;05:30">
+  
+  <meta property="article:modified_time" content="2018-02-24T13:40:42&#43;05:30">
+  
+
+  
+  
+
+  <title>Sparsity in Online Learning with Lasso Regularization | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Sparsity in Online Learning with Lasso Regularization</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2018-02-24 13:40:42 &#43;0530 IST" itemprop="datePublished dateModified">
+      Feb 24, 2018
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    9 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/sparse-online-learning-lasso-regularization/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Sparsity%20in%20Online%20Learning%20with%20Lasso%20Regularization&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fsparse-online-learning-lasso-regularization%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fsparse-online-learning-lasso-regularization%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fsparse-online-learning-lasso-regularization%2f&amp;title=Sparsity%20in%20Online%20Learning%20with%20Lasso%20Regularization"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fsparse-online-learning-lasso-regularization%2f&amp;title=Sparsity%20in%20Online%20Learning%20with%20Lasso%20Regularization"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Sparsity%20in%20Online%20Learning%20with%20Lasso%20Regularization&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fsparse-online-learning-lasso-regularization%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p>Sparse vectors have become popular recently for 2 reasons:</p>
+
+<ol>
+<li>Sparse matrices require much less storage since they can be stored using various space-saving methods.</li>
+<li>Sparse vectors are much more interpretable than dense vectors. For instance, the non-zero non-negative components of a sparse word vector may be taken to denote the weights for certain features. In contrast, there is no interpretation for a value like $-0.1347$.</li>
+</ol>
+
+<p>Sparsity is often induced through the use of L1 (or Lasso) regularization. There are 2 formulations of the Lasso: (i) convex constraint, and (ii) soft regularization.</p>
+
+<p><strong>Convex constraint</strong></p>
+
+<p>As the name suggests, a convex constraint is added to the minimization problem so that the parameters do not exceed a certain value.</p>
+
+<p>$$ \min_{\beta \in \mathbb{R}^p}\lVert y - X\beta \rVert_2^2 \quad \text{s.t.} \quad \lVert \beta \rVert_1 \leq t $$</p>
+
+<p>The smaller the value of the tuning parameter $t$, fewer is the number of non-zero components in the solution.</p>
+
+<p><strong>Soft regularization</strong></p>
+
+<p>This is just the Lagrange form the the convex constraint, and is used because it is easier to optimize. Note that it is equivalent to the convex constraint formulation for an appropriately chosen $g$.</p>
+
+<p>$$ \min_{\beta \in \mathbb{R}^p}\lVert y - X\beta \rVert_2^2 + g\lVert \beta \rVert_1 $$</p>
+
+<hr />
+
+<p>There is a great theoretical explanation of sparsity with Lasso regularization by <a href="http://www.stat.cmu.edu/~ryantibs/" target="_blank">Ryan Tibshirani</a> and <a href="http://www.stat.cmu.edu/~larry/" target="_blank">Larry Wasserman</a> which you can find <a href="http://www.stat.cmu.edu/~larry/=sml/sparsity.pdf" target="_blank">here</a>. I will instead be focusing on some methods that have been introduced recently for inducing sparsity while learning online i.e., when the samples are obtained one at a time. In addition to such a scenario, online learning also comes into the picture when the data set is simply too large to be loaded in memory at once, and there are not sufficient resources for performing batch learning in a parallel fashion.</p>
+
+<p>In this post, I will summarize 3 such methods:</p>
+
+<ol>
+<li><a href="http://www.jmlr.org/papers/volume10/langford09a/langford09a.pdf" target="_blank">Stochastic Truncated Gradient</a><sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup></li>
+<li><a href="http://www.jmlr.org/papers/volume10/duchi09a/duchi09a.pdf" target="_blank">Forward Backward Splitting</a><sup class="footnote-ref" id="fnref:2"><a href="#fn:2">2</a></sup></li>
+<li><a href="https://www.mendeley.com/viewer/?fileId=00e458de-d9ca-a697-5d67-a4c177759778&amp;documentId=0e9eba78-0cbb-3cb2-a8ea-385a2afb64f5" target="_blank">Regularized Dual Averaging</a><sup class="footnote-ref" id="fnref:3"><a href="#fn:3">3</a></sup></li>
+</ol>
+
+<p>But first, why a simple soft Lasso regularization won’t work? With the soft regularization method, we are essentially summing up 2 floating point values. As such, it is highly improbable that the sum will be zero, since very few pairs of floats add up to zero.</p>
+
+<hr />
+
+<h4 id="stochastic-truncated-gradient-stg">Stochastic Truncated Gradient (STG)</h4>
+
+<p><img src="/img/14/stg.png" alt="Simple round-off (T0) vs. Truncated Gradient (T1). Image taken from paper" /></p>
+
+<p>STG combines ideas from 2 simple techniques:</p>
+
+<ol>
+<li><em>Coefficient rounding</em>: In this method, the coefficients are rounded to 0 if they are less than a value $\theta$. This is denoted in the figure above (left graph). The rounding is done after every $k$ steps. The problem with this approach is that if $k$ is small, the coefficients do not get an opportunity to reach a value above $\theta$ before they are pulled back to $0$. On the other hand, if $k$ is large, the intermediate steps in the algorithm need to store a large number of non-zero coefficients, which does not solve the storage issue.</li>
+<li><em>Sub-gradient method</em>: In this method, L1-regularization is performed by shifting the update in the opposite direction depending on the sign of the coefficient. The update equation is</li>
+</ol>
+
+<p>$$ f(w_i) = w_i - \eta\nabla_1 L(w_i,z_i) - \eta g \text{sgn}(w_i) $$</p>
+
+<p>STG combines <em>rounding</em> from (1) and <em>gravity</em> from (2) so that (i) sparsity is achieved (unlike the sub-gradient method), and (ii) the rounding off is not too aggressive (unlike the direct rounding approach). The parameter update is then given by the function $T_1$ (shown in the right graph above).</p>
+
+<p>$$ T_1(v_j,\alpha,\theta) = \begin{cases} \max(0,v_j-\alpha) \quad &amp;\text{if}~ v_j \in [0,\theta] \\\ \min(0,v_j+\alpha) \quad &amp;\text{if}~ v_j \in [-\theta,0] \\\ 0 \quad &amp;\text{otherwise}   \end{cases} $$</p>
+
+<p>The update rule is given using $T_1$ as</p>
+
+<p>$$ f(w_i) = T_1 (w_i - \nabla_1 L_1 (w_i,z_i,\eta g_i,\theta)) $$</p>
+
+<p>Here, $g$ may be called the gravity parameter, and $\theta$ is called the truncation parameter. In general, the larger these parameters are, the more sparsity is incurred. This can be understood easily from the definition of the truncation function.</p>
+
+<p>Furthermore, note that on setting $\theta = \infty$ in the truncation function yields a special case of the Sub-gradient method wherein <strong>max</strong> and <strong>min</strong> operations are performed after applying gravity pull.</p>
+
+<p>In the remainder of the paper, the authors prove a strong regret bound for the STG method, and also provide an efficient implementation for the same. Furthermore, they show the asymptotic solution of one instance of the algorithm is essentially equivalent to the Lasso regression, thus justifying the algorithm’s ability to produce sparse weight vectors when the number of features is intractably large.</p>
+
+<hr />
+
+<h4 id="forward-backward-splitting-fobos">Forward Backward Splitting (FOBOS)</h4>
+
+<p><em>Note: The method was named Forward Looking Subgradient (FOLOS) in the first draft and later renamed since it was essentially the same as an earlier proposed technique, the Forward Backward Splitting. The authors abbreviated it to FOBOS instead of FOBAS to avoid confusing readers of the first draft.</em></p>
+
+<p>First, a little background. Consider an objective function of the form $f(w) + r(w)$. In the case of a number of machine learning algorithms, the function $f$ denotes the empirical sum of some loss function (such as mean squared error), and the function $r$ is a regularizer (such as Lasso). If we use a simple gradient descent technique to minimize this objective function, the iterates would be of the form</p>
+
+<p>$$ w_{t+1} = w_t - \eta_t g_t^f - \eta_t g_t^r $$</p>
+
+<p>where the $g$’s are vectors from the subgradient sets of the corresponding functions. From the paper:</p>
+
+<blockquote>
+<p>A common problem in subgradient methods is that if $r$ or $f$ is non-differentiable, the iterates of the subgradient method are very rarely at the points of non-differentiability. In the case of the Lasso regularization function, however, these points are often the true minima of the function.</p>
+</blockquote>
+
+<p>In other words, the subgradient approach will result in neither a true minima nor a sparse solution if $r$ is the L1 regularizer.</p>
+
+<p>FOBOS, as the name suggests, splits every iteration into 2 steps — a forward step and a backward step, instead of minimizing both $f$ and $r$ simultaneously. The motivation for the method is that for L1 regularization functions, true minima is usually attained at the points of non-differentiability. For example, in the 2-D space, the function resembles a Diamond shape and the minima is obtained at one of the corner points. Each iteration of FOBOS consists of the following 2 steps:</p>
+
+<p>$$ w_{t+\frac{1}{2}} = w_t - \eta_t g_t^f \\\ w_{t+1} = \text{argmin}_w { \frac{1}{2}(w_t - w_{t+\frac{1}{2}})^2 + \eta_{t+\frac{1}{2}}r(w) } $$</p>
+
+<p>The first step is a simple unconstrained subgradient step with respect to the function $f$. In the second step, we try to achieve 2 objectives:</p>
+
+<ol>
+<li>Stay close to the interim update vector. This is achieved by the first term.</li>
+<li>Attain a low complexity value as expressed by $r$. (Second term)</li>
+</ol>
+
+<p>So the first step is a <em>forward</em> step, where we update the coefficient in the direction of the subgradient, while the second is a <em>backward</em> step where we pull the update back a little so as to obtain sparsity by moving in the direction of the non-differentiable points of $r$.</p>
+
+<p>Using the first equation in the second, taking derivative w.r.t $w$, and equating the derivative to $0$, we obtain the update scheme as</p>
+
+<p>$$ w_{t+1} = w_t - \eta_t g_t^f + \eta_{t+\frac{1}{2}} g_{t+1}^r $$</p>
+
+<p>(<strong>Note</strong>: The equation above looks suspiciously similar to the <strong><em>Nesterov Accelerated Gradient (NAG)</em></strong> method for optimization. The authors have even cited Nesterov’s paper in related work. It might be interesting to  investigate this further.)</p>
+
+<p>This update scheme has 2 major advantages, according to the author.</p>
+
+<blockquote>
+<p>First, from an algorithmic standpoint, it enables sparse solutions at virtually no additional computational cost. Second, the forward-looking gradient allows us to build on existing analyses and show that the resulting framework enjoys the formal convergence properties of many existing gradient-based and online convex programming algorithms.</p>
+</blockquote>
+
+<p>In the paper, the authors also prove convergence of the method and show that on setting the intermediate learning rate properly, low regret bounds can be proved for both online as well as batch settings.</p>
+
+<hr />
+
+<h4 id="regularized-dual-averaging-rda">Regularized Dual Averaging (RDA)</h4>
+
+<p>Both of the above discussed techniques have one limitation — they perform updates depending only on the subgradients at a particular time step. In contrast, the RDA method “exploits the full regularization structure at each iteration.” Also, since the authors derive closed-form solutions for several popular optimization objectives, it follows that the computational complexity of such an approach is not worse than the methods which perform updates only based on current subgradients (both being $\mathcal{O}(n)$).</p>
+
+<p>RDA comprises of 3 steps in every iteration.</p>
+
+<p>In the first step, the subgradient is computed for that particular time step. This is the same as every other subgradient-based online optimization method.</p>
+
+<p>The second step consists of computing a running average of all past subgradients. This is done using the online approach as</p>
+
+<p>$$ \bar{g}_t = \frac{t-1}{t}\bar{g}_{t-1} + \frac{1}{t}g_t $$</p>
+
+<p>In the third step, the update is computed as</p>
+
+<p>$$ w_{t+1} = \text{argmin}_w { &lt;\bar{g}_t,w&gt; + \psi(w) + \frac{\beta}{t}h(w) } $$</p>
+
+<p>Let us try to understand this update scheme. First, the function $h(w)$ is a strongly convex function such that the update vector which minimizes it also minimizes the regularizer. In the case of Lasso regularization, $h(w)$ is chosen as follows.</p>
+
+<p>$$ h(w) = \frac{1}{2}\lVert w \rVert_2^2 + \rho \lVert w \rVert_1 $$</p>
+
+<p>where $\rho$ is a parameter called the sparsity enhancing parameter. $\beta$ is a predetermined non-negative and non-decreasing sequence.</p>
+
+<p>Now to solve the equation, we can just take the derivative of the argument of argmin and equate it to $0$. On solving this equation, we get an update of the form</p>
+
+<p>$$ w_{t+1} = \frac{t}{\beta_t}(\bar{g}_t + \rho) $$</p>
+
+<p>So the scheme ensures that the update is in the same convex space as the regularized dual average. Sparsity can further be controlled by tuning the value of the parameter $\rho$. The scaling factor can be regulated using the
+non-decreasing sequence selected at the beginning of the algorithm. For the case when it is equal to the time step $t$, the new coefficient is simply the sum of the dual average and the sparsity parameter.</p>
+
+<p>The above is just my attempt at understanding the update scheme for RDA. I would be happy to discuss it further if you find something wrong with this explanation.</p>
+
+<p>Now the method itself would become extremely infeasible if this differentiation would have to be performed for every iteration. However, for most commonly used regularizers and loss functions, the update rule can be represented with a closed-form solution. For this reason, the overall algorithm has the same complexity as earlier algorithms which use only the current step subgradient for performing updates.</p>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1">Langford, John, Lihong Li, and Tong Zhang. “Sparse online learning via truncated gradient.” <em>Journal of Machine Learning Research</em> 10.Mar (2009): 777–801.
+ <a class="footnote-return" href="#fnref:1"><sup>^</sup></a></li>
+<li id="fn:2">Duchi, John, and Yoram Singer. “Efficient online and batch learning using forward backward splitting.” <em>Journal of Machine Learning Research</em> 10.Dec (2009): 2899–2934.
+ <a class="footnote-return" href="#fnref:2"><sup>^</sup></a></li>
+<li id="fn:3">Xiao, Lin. “Dual averaging methods for regularized stochastic learning and online optimization.” <em>Journal of Machine Learning Research</em> 11.Oct (2010): 2543–2596.
+ <a class="footnote-return" href="#fnref:3"><sup>^</sup></a></li>
+</ol>
+</div>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/machine-learning/">machine learning</a>
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/online-learning/">online learning</a>
+  
+</div>
+
+
+
+
+    
+    
+    <div class="article-widget">
+      <div class="hr-light"></div>
+      <h3>Related</h3>
+      <ul>
+        
+        <li><a href="/post/short-note-sgd-algorithms/">A Short Note on Stochastic Gradient Descent Algorithms</a></li>
+        
+        <li><a href="/publication/infosc-17-art/">Uncertain Fuzzy Self-organization based Clustering: Interval Type-2 Approach to Adaptive Resonance Theory</a></li>
+        
+        <li><a href="/project/bosch/">Monitoring production line performance to reduce failures</a></li>
+        
+        <li><a href="/project/fuzzy-art/">Fuzzy adaptive resonance theory (ART) clustering</a></li>
+        
+      </ul>
+    </div>
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "desh2608-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//desh2608-github-io.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+
