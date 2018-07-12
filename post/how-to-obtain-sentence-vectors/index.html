@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.42.2" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="In several of my previous posts, I have discussed methods for obtaining word embeddings, such as SVD, word2vec, or GloVe. In this post, I will abstract a level higher and talk about 4 different methods that have been proposed to get embeddings for sentences.
+But first, some of you may ask why do we even need a different method for obtaining sentence vectors. Since sentences are essentially made up of words, it may be reasonable to argue that simply taking the sum or the average of the constituent word vectors should give a decent sentence representation.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/how-to-obtain-sentence-vectors/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/how-to-obtain-sentence-vectors/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/how-to-obtain-sentence-vectors/">
+  <meta property="og:title" content="How to Obtain Sentence Vectors | Desh Raj">
+  <meta property="og:description" content="In several of my previous posts, I have discussed methods for obtaining word embeddings, such as SVD, word2vec, or GloVe. In this post, I will abstract a level higher and talk about 4 different methods that have been proposed to get embeddings for sentences.
+But first, some of you may ask why do we even need a different method for obtaining sentence vectors. Since sentences are essentially made up of words, it may be reasonable to argue that simply taking the sum or the average of the constituent word vectors should give a decent sentence representation.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2018-04-12T13:41:14&#43;05:30">
+  
+  <meta property="article:modified_time" content="2018-04-12T13:41:14&#43;05:30">
+  
+
+  
+  
+
+  <title>How to Obtain Sentence Vectors | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">How to Obtain Sentence Vectors</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2018-04-12 13:41:14 &#43;0530 IST" itemprop="datePublished dateModified">
+      Apr 12, 2018
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    7 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/how-to-obtain-sentence-vectors/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=How%20to%20Obtain%20Sentence%20Vectors&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fhow-to-obtain-sentence-vectors%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fhow-to-obtain-sentence-vectors%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fhow-to-obtain-sentence-vectors%2f&amp;title=How%20to%20Obtain%20Sentence%20Vectors"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fhow-to-obtain-sentence-vectors%2f&amp;title=How%20to%20Obtain%20Sentence%20Vectors"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=How%20to%20Obtain%20Sentence%20Vectors&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fhow-to-obtain-sentence-vectors%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p>In several of my previous posts, I have discussed methods for obtaining word embeddings, such as SVD, word2vec, or GloVe. In this post, I will abstract a level higher and talk about 4 different methods that have been proposed to get embeddings for sentences.</p>
+
+<p>But first, some of you may ask why do we even need a different method for obtaining sentence vectors. Since sentences are essentially made up of words, it may be reasonable to argue that simply taking the sum or the average of the constituent word vectors should give a decent sentence representation. This is akin to a bag-of-words representation, and hence suffers from the same limitations, i.e.</p>
+
+<ol>
+<li>It ignores the order of words in the sentence.</li>
+<li>It ignores the sentence semantics completely.</li>
+</ol>
+
+<p>Other word vector based approaches are also similarly constrained. For instance, a weighted average technique again loses word order within the sentence. To remedy this issue, <a href="https://nlp.stanford.edu/~socherr/EMNLP2013_RNTN.pdf" target="_blank">Socher et al.</a> combined the words in the order given by the parse tree of the sentence. While this technique may be suitable for complete sentences, it does not work for phrases or paragraphs.</p>
+
+<p>In an earlier <a href="https://desh2608.github.io/post/last-3-years-in-text-classification/" target="_blank">post</a>, I discussed several ways in which sentence representations are obtained as an intermediate step during text classification. Several approaches are used for this purpose, such as character to sentence level feature encoding, parse trees, regional (two-view) embeddings, and so on. However, the limitation with such an &ldquo;intermediate&rdquo; representation is that the vectors obtained are not generic in that they are closely tied to the classification objective. As such, vectors obtained through training on one objective may not be extrapolated for other tasks.</p>
+
+<p>In light of this discussion, I will now describe 4 recent methods that have been proposed to obtain general sentence vectors. Note that each of these belongs to either of 2 categories: (i) inter-sentence, wherein the vector of one sentence depends on its surrounding sentences, and (ii) intra-sentence, where a sentence vector only depends on that particular sentence in isolation.</p>
+
+<h4 id="paragraph-vectors">Paragraph Vectors</h4>
+
+<p>In this <a href="http://www.jmlr.org/proceedings/papers/v32/le14.pdf" target="_blank">ICML’14 paper</a><sup class="footnote-ref" id="fnref:1"><a href="#fn:1">1</a></sup> from Mikolov (who also invented <em>word2vec</em>), the authors propose the following solution: a sentence vector can be learned simply by assigning an index to each sentence, and then treating the index like any other word. This is shown in the following figure.</p>
+
+<p><img src="/img/16/doc2vec.png" alt="Paragraph vectors model. Figure taken from paper" /></p>
+
+<p>Essentially, every paragraph (or sentence) is mapped to a unique vector, and the combined paragraph and word vectors are used to predict the next word. Through such a training, the paragraph vectors may start storing missing information, thus acting like a memory for the paragraph. For this reason, this method is called the Distributed Memory model (PV-DM).</p>
+
+<p>To obtain the embeddings for an unknown sentence, an inference step needs to be performed. A new column of randomly initialized values is added to the sentence embedding matrix. The inference step is performed keeping all the other parameters fixed to obtain the required vector.</p>
+
+<p>The PV-DM model requires a large amount of storage space since the paragraph vectors are concatenated with all the vectors in the context window at every training step. To solve this, the authors propose another model, called the Distributed BOW (PV-DBOW), which predicts random words in the context window. The downside is that this model does not use word order, and hence performs worse than PV-DM.</p>
+
+<h4 id="skip-thoughts">Skip-thoughts</h4>
+
+<p>While PV was an intra-sentence model, <a href="https://papers.nips.cc/paper/5950-skip-thought-vectors.pdf" target="_blank">skip-thoughts</a><sup class="footnote-ref" id="fnref:2"><a href="#fn:2">2</a></sup> is inter-sentence. The method uses continuity of text to predict the next sentence from the given sentence. This also solves the problem of the inference step that is present in the PV model. If you have read about the skip-gram algorithm in word2vec, skip-thoughts is essentially the same technique abstracted to the sentence level.</p>
+
+<p>In the paper, the authors propose an encoder-decoder framework for training, with an RNN used for both encoding and decoding. In addition to a sentence embedding matrix, this method also generates vectors for the words in the corpus vocabulary. Finally, the objective function to be maximized is as follows.</p>
+
+<p>$$ \sum_t \log P(w_{i+1}^t|w_{i+1}^{&lt; t},\mathbf{h}_i) + \sum_t \log P(w_{i-1}^t|w_{i-1}^{&lt; t},\mathbf{h}_i) $$</p>
+
+<p>Here, the indices $i+1$ and $i-1$ represent the next sentence and the previous sentence, respectively. Overall, the function represents the sum of log probabilities of correctly predicting the next sentence and the previous sentence, given the current sentence.</p>
+
+<p>Since word vectors are also precited at training time, a problem may arise at the time of inference if the new sentence contains an OOV word. To solve this, the authors present a simple solution for vocabulary expansion. We assume that any word, even if it is OOV, will definitely come from some vector space (say w2v), such that we have its vector representation in that space. As such, every known word has 2 representations, one in the RNN space and another in the w2v space. We can then identify a linear transformation matrix that transforms w2v space vectors into RNN space vectors, and this matrix may be used to obtain the RNN vectors for OOV words.</p>
+
+<h4 id="fastsent">FastSent</h4>
+
+<p><a href="https://arxiv.org/pdf/1602.03483.pdf" target="_blank">This model</a>, proposed by Kyunghun Cho<sup class="footnote-ref" id="fnref:3"><a href="#fn:3">3</a></sup>, is also an inter-sentence technique, and is conceptually very similar to skip-thoughts. The only difference is that it uses a BOW representation of the sentence to predict the surrounding sentences, which makes it computationally much more efficient than skip-thoughts. The training hypothesis remains the same, i.e., rich sentence semantics can be inferred from the content of adjacent sentences. Since the details of the method are same as skip-thoughts, I will not repeat them here to avoid redundancy.</p>
+
+<h4 id="sequential-denoising-autoencoders-sdae">Sequential Denoising Autoencoders (SDAE)</h4>
+
+<p>This technique was also proposed in the <a href="https://arxiv.org/pdf/1602.03483.pdf" target="_blank">same paper</a><sup class="footnote-ref" id="fnref:3"><a href="#fn:3">3</a></sup> as FastSent. However, it is essentially an intra-sentence method wherein the objective is to regenerate a sentence from a noisy version.</p>
+
+<p>In essence, in an SDAE, a high-dimensional input data is corrupted according to some noise function and the model is trained to recover the original data from the corrputed version.</p>
+
+<p>In the paper, the noise function $N$ uses 2 parameters as follows.</p>
+
+<ol>
+<li>For each word $w$ in the sentence $S$, $N$ deletes it according to some probability $p_0$.</li>
+<li>For each non-overlapping bigram in $S$, $N$ swaps the bigram tokens with probability $p_x$.</li>
+</ol>
+
+<p>These are inspired from the “word dropout” and “debagging” approaches, respectively, which have earlier been studied in some detail.</p>
+
+<hr />
+
+<p>In the last paper<sup class="footnote-ref" id="fnref:3"><a href="#fn:3">3</a></sup>, the authors have performed detailed empirical evaluations of several sentence vector methods, including all of the above. From this analysis, the following observations can be drawn,</p>
+
+<ul>
+<li><strong>Task-dependency:</strong> Although the methods intend to produce general sentence representations which work well across different tasks, it is found that some methods are more suitable from some tasks due to the inherent algorithm. For instance, skip-thoughts perform well on textual entailment tasks, whereas SDAEs perform much better on paraphrase detection.</li>
+<li><strong>Inter vs. intra:</strong> The inter-sentence models generate similar vectors in that their nearest neighbors are those sentences which have shared concepts. In contrast, for the intra-sentence models, these are sentences which have more overlapping words.</li>
+<li><strong>Dependency on word order:</strong> Although the widely held view is that word order is critical for sentence vectors, the average score for models which are sensitive to word order was found to be almost equal to those which are not. It was even lower for RNN models in unsupervised objectives, which is indeed surprising. One explanation for this may be that the sentences in the dataset, or the evaluation techniques, are not robust enough so as to sufficiently challenge simple word frequency based techniques.</li>
+</ul>
+<div class="footnotes">
+
+<hr />
+
+<ol>
+<li id="fn:1">Le, Quoc, and Tomas Mikolov. “Distributed representations of sentences and documents.” International Conference on Machine Learning. 2014.
+ <a class="footnote-return" href="#fnref:1"><sup>^</sup></a></li>
+<li id="fn:2">Kiros, Ryan, et al. “Skip-thought vectors.” Advances in neural information processing systems. 2015.
+ <a class="footnote-return" href="#fnref:2"><sup>^</sup></a></li>
+<li id="fn:3">Hill, Felix, Kyunghyun Cho, and Anna Korhonen. “Learning distributed representations of sentences from unlabelled data.” arXiv preprint arXiv:1602.03483 (2016).
+ <a class="footnote-return" href="#fnref:3"><sup>^</sup></a></li>
+</ol>
+</div>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/representation-learning/">representation learning</a>
+  
+</div>
+
+
+
+
+    
+    
+    <div class="article-widget">
+      <div class="hr-light"></div>
+      <h3>Related</h3>
+      <ul>
+        
+        <li><a href="/post/online-learning-word-embeddings/">Online Learning of Word Embeddings</a></li>
+        
+        <li><a href="/post/irony-detection-in-tweets/">Irony Detection in Tweets</a></li>
+        
+        <li><a href="/post/beyond-euclidean-embeddings/">Beyond Euclidean Embeddings</a></li>
+        
+        <li><a href="/post/understanding-word-vectors/">Understanding Word Vectors</a></li>
+        
+      </ul>
+    </div>
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "desh2608-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//desh2608-github-io.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+

@@ -14,8 +14,35 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/post/intro-speech-recognition-wfst/</loc>
+      <lastmod>2018-04-23T13:41:31+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/post/how-to-obtain-sentence-vectors/</loc>
+      <lastmod>2018-04-12T13:41:14+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/project/irony-tweet/</loc>
       <lastmod>2018-03-20T17:00:16+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/post/online-learning-word-embeddings/</loc>
+      <lastmod>2018-03-14T13:40:57+05:30</lastmod>
     </url>
     
   
@@ -383,7 +410,7 @@
     <url>
     
       <loc>https://desh2608.github.io/tags/machine-learning/</loc>
-      <lastmod>2018-02-24T13:40:42+05:30</lastmod>
+      <lastmod>2018-04-23T13:41:31+05:30</lastmod>
       <priority>0</priority>
     </url>
     
@@ -433,7 +460,7 @@
     <url>
     
       <loc>https://desh2608.github.io/tags/online-learning/</loc>
-      <lastmod>2018-02-24T13:40:42+05:30</lastmod>
+      <lastmod>2018-03-14T13:40:57+05:30</lastmod>
       <priority>0</priority>
     </url>
     
@@ -463,7 +490,7 @@
     <url>
     
       <loc>https://desh2608.github.io/tags/representation-learning/</loc>
-      <lastmod>2018-02-07T13:40:06+05:30</lastmod>
+      <lastmod>2018-04-12T13:41:14+05:30</lastmod>
       <priority>0</priority>
     </url>
     
@@ -474,6 +501,16 @@
     
       <loc>https://desh2608.github.io/tags/semantic-parsing/</loc>
       <lastmod>2017-11-08T13:38:39+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/tags/speech-recognition/</loc>
+      <lastmod>2018-04-23T13:41:31+05:30</lastmod>
       <priority>0</priority>
     </url>
     

@@ -28,6 +28,237 @@
     </item>
     
     <item>
+      <title>An Introduction to Speech Recognition using WFSTs</title>
+      <link>https://desh2608.github.io/post/intro-speech-recognition-wfst/</link>
+      <pubDate>Mon, 23 Apr 2018 13:41:31 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/intro-speech-recognition-wfst/</guid>
+      <description>
+
+&lt;p&gt;Until now, all of my blog posts have been about deep learning methods or their application to NLP. Since the last couple of weeks, however, I have started learning about Automatic Speech Recognition (ASR)&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;. Therefore, I will also include speech-related articles in this publication now.&lt;/p&gt;
+
+&lt;p&gt;The ASR logic is very simple (it’s just Bayes rule, like most other things in machine learning). Essentially, given a speech waveform, the objective is to transcribe it, i.e., identify a text which aligns with the waveform. Suppose $Y$ represents the feature vectors obtained from the waveform (Note: this “feature extraction” itself is an involved procedure, and I will describe it in detail in another post), and $\mathbf{w}$ denotes an arbitrary string of words. Then, we have the following.&lt;/p&gt;
+
+&lt;p&gt;$$ \hat{\mathbf{w}} = \text{arg}\max_{\mathbf{w}} { P(\mathbf{w}|Y)} = \text{arg} \max_{\mathbf{w}} {P(Y|\mathbf{w})P(\mathbf{w}) } $$&lt;/p&gt;
+
+&lt;p&gt;The two likelihoods in the term are trained separately. The first component, known as &lt;em&gt;acoustic modeling&lt;/em&gt;, is trained using a parallel corpus of utterances and speech waveforms. The second component, called &lt;em&gt;language modeling&lt;/em&gt;, is trained in an unsupervised fashion from a large corpus of text.&lt;/p&gt;
+
+&lt;p&gt;Although the ASR training appears simple from this abstract level, the implementation is arguably more complex, and is usually done using Weighted Finite State Transducers (WFSTs). In this post, I’ll describe WFSTs, some of their basic algorithms, and give a brief introduction to how they are used for speech recognition.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;weighted-finite-state-transducers-wfsts&#34;&gt;Weighted Finite State Transducers (WFSTs)&lt;/h4&gt;
+
+&lt;p&gt;If you have taken any Theory of Computation course before, you’d probably already be aware what an &lt;em&gt;automata&lt;/em&gt; is. Essentially, a finite automaton accepts a language (which is a set of strings). They are represented by directed graphs as shown below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/dag.gif&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Each such automaton has a start state, one or more final states, and labeled edges connecting the states. A string is accepted if it ends in a final state after traversing through some path in the graph. For instance in the above DFA (deterministic finite automata), &lt;em&gt;a&lt;/em&gt;, &lt;em&gt;ac&lt;/em&gt;, and &lt;em&gt;ae&lt;/em&gt; are allowed.&lt;/p&gt;
+
+&lt;p&gt;So an &lt;em&gt;acceptor&lt;/em&gt; maps any input string to a binary class {0,1} depending on whether or not the string is accepted. A &lt;em&gt;transducer&lt;/em&gt;, on the other hand, has 2 labels on each edge — an input label, and an output label. Furthermore, a &lt;em&gt;weighted&lt;/em&gt; finite state transducer has weights corresponding to each edge and every final state.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/wfst.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Therefore, a WFST is a mapping from a pair of strings to a weight sum. The pair is formed from the input/output labels along any path of the WFST. For pairs which are not possible in the graph, the corresponding weight is infinite.&lt;/p&gt;
+
+&lt;p&gt;In practice, there are libraries available in every language to implement WFSTs. For C++, &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/WebHome&#34; target=&#34;_blank&#34;&gt;OpenFST&lt;/a&gt; is a popular library, which is also used in the &lt;a href=&#34;http://kaldi-asr.org/&#34; target=&#34;_blank&#34;&gt;Kaldi speech recognition toolkit&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In principle, it is possible to implement speech recognition algorithms without using WFSTs. However, these data structures have &lt;a href=&#34;https://cs.nyu.edu/~mohri/pub/csl01.pdf&#34; target=&#34;_blank&#34;&gt;several proven results&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; and algorithms which can directly be used in ASRs without having to worry about correctness and complexity. These advantages have made WFSTs almost omniscient in speech recognition. I’ll now summarize some algorithms on WFSTs.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;some-basic-algorithms-on-wfsts&#34;&gt;Some basic algorithms on WFSTs&lt;/h3&gt;
+
+&lt;h4 id=&#34;composition&#34;&gt;Composition&lt;/h4&gt;
+
+&lt;p&gt;Composition, as the name suggests, refers to the process of combining 2 WFSTs to form a single WFST. If we have transducers for pronunciation and word-level grammar, such an algorithm would enable us to form a phone-to-word level system easily.&lt;/p&gt;
+
+&lt;p&gt;Composition is done using 3 rules:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Initial state in the new WFST are formed by combining the initial states of the old WFSTs into pairs.&lt;/li&gt;
+&lt;li&gt;Similarly, final states are combined into pairs.&lt;/li&gt;
+&lt;li&gt;For every pair of edges such that the o-label of the first WFST is the i-label of the second, we add an edge from the source pair to the destination pair. The edge weight is summed using the sum rules.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;An example of composition is shown below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/composition.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;At this point, it may be important to define what &amp;ldquo;sum&amp;rdquo; means for edge weights. Formally, the &amp;ldquo;languages&amp;rdquo; accepted by WFSTs are generalized through the notion of &lt;a href=&#34;https://en.wikipedia.org/wiki/Semiring&#34; target=&#34;_blank&#34;&gt;semirings&lt;/a&gt;. Basically, it is a set of elements with 2 operators, namely $\oplus$ and $\otimes$. Depending on the type of semiring, these operators can take on different definitions. For example, in a tropical semiring, $\oplus$ denotes &lt;strong&gt;$\min$&lt;/strong&gt;, and $\otimes$ denotes &lt;strong&gt;sum&lt;/strong&gt;. Furthermore, in any WFST, weights are $\otimes$-multiplied along paths (Note: here “multiplied” would mean summed for a tropical semiring) and $\oplus$-summed over paths with identical symbol sequence.&lt;/p&gt;
+
+&lt;p&gt;See &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/ComposeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; for OpenFST implementation of composition.&lt;/p&gt;
+
+&lt;h4 id=&#34;determinization&#34;&gt;Determinization&lt;/h4&gt;
+
+&lt;p&gt;A deterministic automaton is one in which there is only one transition for each label in every state. By such a formulation, a deterministic WFST removes all redundancy and greatly reduces the complexity of the underlying grammar. But, are all WFSTs determinizable?&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;The Twins Property:&lt;/em&gt; Let us consider an automaton A. Two states &lt;em&gt;p&lt;/em&gt; and &lt;em&gt;q&lt;/em&gt; in A are said to be siblings if both can be reached by string &lt;em&gt;x&lt;/em&gt; and both have cycles with label &lt;em&gt;y&lt;/em&gt;. Essentially, siblings are twins if the total weight for the paths until the states, as well as that including the cycle, are equal for both.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;A WFST is determinizable if all its siblings are twins.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This is an example of what I said earlier regarding WFSTs being an efficient implementation of the algorithms used in ASR. There are several methods to determinize a WFST. One such algorithm is shown below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/determinization.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In simpler steps, this algorithm does the following:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;At each state, for every outgoing label, if there are multiple outgoing edges for that label, replace them with a single edge with weight as the $\otimes$-sum of all edge weights containing that label.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Since this is a local algorithm, it can be efficiently implemented in-memory. To see how to perform determinization in OpenFST, see &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/DeterminizeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;minimization&#34;&gt;Minimization&lt;/h4&gt;
+
+&lt;p&gt;Although minimization is not as essential as determinization, it is still a nice optimization technique. It refers to minimizing the number of states and transitions in a deterministic WFST.&lt;/p&gt;
+
+&lt;p&gt;Minimization is carried out in 2 steps:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Weight pushing: All weights are pushed towards the start state. See the following example.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/pushing.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;After this is done, we combine those states which have identical paths to any final state. For example in the above WFST, states 1 and 2 have become identical after weight pushing, so they are combined into one state.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In OpenFST, the implementation details for minimization can be found &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/MinimizeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The following&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; shows the complete pipeline for a WFST reduction.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/pipeline.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;wfsts-in-speech-recognition&#34;&gt;WFSTs in speech recognition&lt;/h4&gt;
+
+&lt;p&gt;Several WFSTs are composed in sequence for use in speech recognition. These are:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Grammar (&lt;strong&gt;G&lt;/strong&gt;): This is the language model trained on large text corpus.&lt;/li&gt;
+&lt;li&gt;Lexicon (&lt;strong&gt;L&lt;/strong&gt;): This encodes information about the likelihood of phones without context.&lt;/li&gt;
+&lt;li&gt;Context-dependent phonetics (&lt;strong&gt;C&lt;/strong&gt; ): This is similar to n-gram language modeling, except that it is for phones.&lt;/li&gt;
+&lt;li&gt;HMM structure (&lt;strong&gt;H&lt;/strong&gt;): This is the model for the waveform.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In general, the composed transducer &lt;strong&gt;H&lt;/strong&gt;o&lt;strong&gt;C&lt;/strong&gt;o&lt;strong&gt;L&lt;/strong&gt;o&lt;strong&gt;G&lt;/strong&gt; represents the entire pipeline of speech recognition. Each of the components can individually be improved, so that the entire ASR system gets improved.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;em&gt;This was just a brief introduction to WFSTs which are an important component in ASR systems. In further posts on speech, I hope to discuss things such as feature extraction, popular GMM-HMM models, and latest deep learning advances. I am also reading papers mentioned &lt;a href=&#34;http://jrmeyer.github.io/asr/2017/04/05/seminal-asr-papers.html&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; to get a good overview of how ASR has progressed over the years.&lt;/em&gt;&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Gales, Mark, and Steve Young. &amp;ldquo;The application of hidden Markov models in speech recognition.&amp;rdquo; Foundations and Trends in Signal Processing 1.3 (2008): 195–304.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Mohri, Mehryar, Fernando Pereira, and Michael Riley. &amp;ldquo;Weighted finite-state transducers in speech recognition.&amp;rdquo; Computer Speech &amp;amp; Language 16.1 (2002): 69–88.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;&lt;a href=&#34;https://wiki.eecs.yorku.ca/course_archive/2011-12/W/6328/_media/wfst-tutorial.pdf&#34; target=&#34;_blank&#34;&gt;Lecture slides&lt;/a&gt; from Prof. Hui Jiang (York University)
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>How to Obtain Sentence Vectors</title>
+      <link>https://desh2608.github.io/post/how-to-obtain-sentence-vectors/</link>
+      <pubDate>Thu, 12 Apr 2018 13:41:14 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/how-to-obtain-sentence-vectors/</guid>
+      <description>
+
+&lt;p&gt;In several of my previous posts, I have discussed methods for obtaining word embeddings, such as SVD, word2vec, or GloVe. In this post, I will abstract a level higher and talk about 4 different methods that have been proposed to get embeddings for sentences.&lt;/p&gt;
+
+&lt;p&gt;But first, some of you may ask why do we even need a different method for obtaining sentence vectors. Since sentences are essentially made up of words, it may be reasonable to argue that simply taking the sum or the average of the constituent word vectors should give a decent sentence representation. This is akin to a bag-of-words representation, and hence suffers from the same limitations, i.e.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;It ignores the order of words in the sentence.&lt;/li&gt;
+&lt;li&gt;It ignores the sentence semantics completely.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Other word vector based approaches are also similarly constrained. For instance, a weighted average technique again loses word order within the sentence. To remedy this issue, &lt;a href=&#34;https://nlp.stanford.edu/~socherr/EMNLP2013_RNTN.pdf&#34; target=&#34;_blank&#34;&gt;Socher et al.&lt;/a&gt; combined the words in the order given by the parse tree of the sentence. While this technique may be suitable for complete sentences, it does not work for phrases or paragraphs.&lt;/p&gt;
+
+&lt;p&gt;In an earlier &lt;a href=&#34;https://desh2608.github.io/post/last-3-years-in-text-classification/&#34; target=&#34;_blank&#34;&gt;post&lt;/a&gt;, I discussed several ways in which sentence representations are obtained as an intermediate step during text classification. Several approaches are used for this purpose, such as character to sentence level feature encoding, parse trees, regional (two-view) embeddings, and so on. However, the limitation with such an &amp;ldquo;intermediate&amp;rdquo; representation is that the vectors obtained are not generic in that they are closely tied to the classification objective. As such, vectors obtained through training on one objective may not be extrapolated for other tasks.&lt;/p&gt;
+
+&lt;p&gt;In light of this discussion, I will now describe 4 recent methods that have been proposed to obtain general sentence vectors. Note that each of these belongs to either of 2 categories: (i) inter-sentence, wherein the vector of one sentence depends on its surrounding sentences, and (ii) intra-sentence, where a sentence vector only depends on that particular sentence in isolation.&lt;/p&gt;
+
+&lt;h4 id=&#34;paragraph-vectors&#34;&gt;Paragraph Vectors&lt;/h4&gt;
+
+&lt;p&gt;In this &lt;a href=&#34;http://www.jmlr.org/proceedings/papers/v32/le14.pdf&#34; target=&#34;_blank&#34;&gt;ICML’14 paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; from Mikolov (who also invented &lt;em&gt;word2vec&lt;/em&gt;), the authors propose the following solution: a sentence vector can be learned simply by assigning an index to each sentence, and then treating the index like any other word. This is shown in the following figure.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/16/doc2vec.png&#34; alt=&#34;Paragraph vectors model. Figure taken from paper&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Essentially, every paragraph (or sentence) is mapped to a unique vector, and the combined paragraph and word vectors are used to predict the next word. Through such a training, the paragraph vectors may start storing missing information, thus acting like a memory for the paragraph. For this reason, this method is called the Distributed Memory model (PV-DM).&lt;/p&gt;
+
+&lt;p&gt;To obtain the embeddings for an unknown sentence, an inference step needs to be performed. A new column of randomly initialized values is added to the sentence embedding matrix. The inference step is performed keeping all the other parameters fixed to obtain the required vector.&lt;/p&gt;
+
+&lt;p&gt;The PV-DM model requires a large amount of storage space since the paragraph vectors are concatenated with all the vectors in the context window at every training step. To solve this, the authors propose another model, called the Distributed BOW (PV-DBOW), which predicts random words in the context window. The downside is that this model does not use word order, and hence performs worse than PV-DM.&lt;/p&gt;
+
+&lt;h4 id=&#34;skip-thoughts&#34;&gt;Skip-thoughts&lt;/h4&gt;
+
+&lt;p&gt;While PV was an intra-sentence model, &lt;a href=&#34;https://papers.nips.cc/paper/5950-skip-thought-vectors.pdf&#34; target=&#34;_blank&#34;&gt;skip-thoughts&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; is inter-sentence. The method uses continuity of text to predict the next sentence from the given sentence. This also solves the problem of the inference step that is present in the PV model. If you have read about the skip-gram algorithm in word2vec, skip-thoughts is essentially the same technique abstracted to the sentence level.&lt;/p&gt;
+
+&lt;p&gt;In the paper, the authors propose an encoder-decoder framework for training, with an RNN used for both encoding and decoding. In addition to a sentence embedding matrix, this method also generates vectors for the words in the corpus vocabulary. Finally, the objective function to be maximized is as follows.&lt;/p&gt;
+
+&lt;p&gt;$$ \sum_t \log P(w_{i+1}^t|w_{i+1}^{&amp;lt; t},\mathbf{h}_i) + \sum_t \log P(w_{i-1}^t|w_{i-1}^{&amp;lt; t},\mathbf{h}_i) $$&lt;/p&gt;
+
+&lt;p&gt;Here, the indices $i+1$ and $i-1$ represent the next sentence and the previous sentence, respectively. Overall, the function represents the sum of log probabilities of correctly predicting the next sentence and the previous sentence, given the current sentence.&lt;/p&gt;
+
+&lt;p&gt;Since word vectors are also precited at training time, a problem may arise at the time of inference if the new sentence contains an OOV word. To solve this, the authors present a simple solution for vocabulary expansion. We assume that any word, even if it is OOV, will definitely come from some vector space (say w2v), such that we have its vector representation in that space. As such, every known word has 2 representations, one in the RNN space and another in the w2v space. We can then identify a linear transformation matrix that transforms w2v space vectors into RNN space vectors, and this matrix may be used to obtain the RNN vectors for OOV words.&lt;/p&gt;
+
+&lt;h4 id=&#34;fastsent&#34;&gt;FastSent&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1602.03483.pdf&#34; target=&#34;_blank&#34;&gt;This model&lt;/a&gt;, proposed by Kyunghun Cho&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;, is also an inter-sentence technique, and is conceptually very similar to skip-thoughts. The only difference is that it uses a BOW representation of the sentence to predict the surrounding sentences, which makes it computationally much more efficient than skip-thoughts. The training hypothesis remains the same, i.e., rich sentence semantics can be inferred from the content of adjacent sentences. Since the details of the method are same as skip-thoughts, I will not repeat them here to avoid redundancy.&lt;/p&gt;
+
+&lt;h4 id=&#34;sequential-denoising-autoencoders-sdae&#34;&gt;Sequential Denoising Autoencoders (SDAE)&lt;/h4&gt;
+
+&lt;p&gt;This technique was also proposed in the &lt;a href=&#34;https://arxiv.org/pdf/1602.03483.pdf&#34; target=&#34;_blank&#34;&gt;same paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; as FastSent. However, it is essentially an intra-sentence method wherein the objective is to regenerate a sentence from a noisy version.&lt;/p&gt;
+
+&lt;p&gt;In essence, in an SDAE, a high-dimensional input data is corrupted according to some noise function and the model is trained to recover the original data from the corrputed version.&lt;/p&gt;
+
+&lt;p&gt;In the paper, the noise function $N$ uses 2 parameters as follows.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;For each word $w$ in the sentence $S$, $N$ deletes it according to some probability $p_0$.&lt;/li&gt;
+&lt;li&gt;For each non-overlapping bigram in $S$, $N$ swaps the bigram tokens with probability $p_x$.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;These are inspired from the “word dropout” and “debagging” approaches, respectively, which have earlier been studied in some detail.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;In the last paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;, the authors have performed detailed empirical evaluations of several sentence vector methods, including all of the above. From this analysis, the following observations can be drawn,&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Task-dependency:&lt;/strong&gt; Although the methods intend to produce general sentence representations which work well across different tasks, it is found that some methods are more suitable from some tasks due to the inherent algorithm. For instance, skip-thoughts perform well on textual entailment tasks, whereas SDAEs perform much better on paraphrase detection.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Inter vs. intra:&lt;/strong&gt; The inter-sentence models generate similar vectors in that their nearest neighbors are those sentences which have shared concepts. In contrast, for the intra-sentence models, these are sentences which have more overlapping words.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Dependency on word order:&lt;/strong&gt; Although the widely held view is that word order is critical for sentence vectors, the average score for models which are sensitive to word order was found to be almost equal to those which are not. It was even lower for RNN models in unsupervised objectives, which is indeed surprising. One explanation for this may be that the sentences in the dataset, or the evaluation techniques, are not robust enough so as to sufficiently challenge simple word frequency based techniques.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Le, Quoc, and Tomas Mikolov. “Distributed representations of sentences and documents.” International Conference on Machine Learning. 2014.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Kiros, Ryan, et al. “Skip-thought vectors.” Advances in neural information processing systems. 2015.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;Hill, Felix, Kyunghyun Cho, and Anna Korhonen. “Learning distributed representations of sentences from unlabelled data.” arXiv preprint arXiv:1602.03483 (2016).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Irony detection in tweets</title>
       <link>https://desh2608.github.io/project/irony-tweet/</link>
       <pubDate>Tue, 20 Mar 2018 17:00:16 +0530</pubDate>
@@ -41,6 +272,153 @@
 &lt;/ul&gt;
 
 &lt;p&gt;We were able to obtain a validation accuracy of 69%, although the model performed poorly in the final test phase. The code for the project is available &lt;a href=&#34;https://github.com/desh2608/tweet-irony-detection&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Online Learning of Word Embeddings</title>
+      <link>https://desh2608.github.io/post/online-learning-word-embeddings/</link>
+      <pubDate>Wed, 14 Mar 2018 13:40:57 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/online-learning-word-embeddings/</guid>
+      <description>
+
+&lt;p&gt;Word vectors have become the building blocks for all natural language processing systems. I have earlier written an overview of popular algorithms for learning word embeddings &lt;a href=&#34;https://desh2608.github.io/post/understanding-word-vectors/&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. One limitation with all these methods (namely SVD, skip-gram, and GloVe) is that they are all “batch” techniques. In this post, I will discuss two recent papers (which are very similar but were developed independently) which aim to provide an online approximation for the skip-gram algorithm.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;But first, what do we mean by a “batch” algorithm?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Simply put, in a batch algorithm, the entire data set needs to be available before we begin the processing. In contrast, an “online” algorithm can process inputs on-the-fly, i.e., in a streaming fashion. Needless to say, such algorithms are also preferable when the available resources are not sufficient to process the entire dataset at once.&lt;/p&gt;
+
+&lt;p&gt;Now that we have some idea about batch algorithms, I’ll explain why the existing methods for word representation learning are of this kind. First, in the case of the standard SVD and Stanford’s GloVe, the entire cooccurence matrix needs to be computed, and only then can the processing be started. If some additional data arrives later, the matrix would have to be recomputed, and training would have to be restarted (if at least one of the updates depends on a changed matrix element). Second, in the case of Mikolov’s &lt;em&gt;word2vec&lt;/em&gt; (skip-gram and CBOW), negative sampling is often used to make the computation more efficient. This sampling depends on the unigram probability distribution of the vocabulary words in the corpus. As such, before learning can happen, we need to compute the vocabulary as well as the unigram distribution.&lt;/p&gt;
+
+&lt;p&gt;Recently, two very similar methods (developed independently) have been proposed to make the skip-gram with negative sampling (SGNS) algorithm learn in a streaming fashion. I’ll quickly review the SGNS algorithm first so that there is some context when we discuss the papers.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;batch-sgns-algorithm&#34;&gt;Batch SGNS algorithm&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/15/skipgram.png&#34; alt=&#34;Skip-gram objective. Image taken from [The Morning Paper](https://blog.acolyer.org/2016/04/21/the-amazing-power-of-word-vectors/).&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;SGNS is a window-based method with the following training objective: Given the target word, predict all the context words in the window.&lt;/p&gt;
+
+&lt;p&gt;Suppose we have a context window where $w$ is the target word and $c$ is one of the context words. Then, skip-gram’s objective is to compute $P(c|w)$, which is given as&lt;/p&gt;
+
+&lt;p&gt;$$ p(c|w;\theta) = \frac{\exp(v_c \cdot v_w)}{\sum_{c^{\prime}\in C}\exp(v_{c^{\prime}}\cdot v_w)} $$&lt;/p&gt;
+
+&lt;p&gt;Basically, it is just a softmax probability distribution over all the word-context pairs in the corpus, directed by the cosine similarity. However, the denominator term here is very expensive to compute since there may be a very large number of possible context words. To solve this problem, negative sampling is used.&lt;/p&gt;
+
+&lt;p&gt;Goldberg and Levy have explained the derivation for the objective function in SGNS very clearly in their &lt;a href=&#34;https://arxiv.org/pdf/1402.3722.pdf&#34; target=&#34;_blank&#34;&gt;note&lt;/a&gt;. I will try to provide a little intuition here.&lt;/p&gt;
+
+&lt;p&gt;For the word $w$, we are trying to predict the context word $c$. Since we are using softmax, this is essentially like a multi-class classification problem, where we are trying to classify the next word into one of $N$ classes (where $N$ is the number of words in the dictionary). Since $N$ may be quite large, this is a very difficult problem.&lt;/p&gt;
+
+&lt;p&gt;What SGNS does is that it converts this multi-classification problem into binary classification. The new objective is to predict, for any given word-context pair $(w,c)$, whether the pair is in the window or not. For this, we try to increase the probability of a &amp;ldquo;positive&amp;rdquo; pair $(w,c)$, while at the same time reducing the probability of $k$ randomly chosen &amp;ldquo;negative samples&amp;rdquo; $(w,s)$ where $s$ is a word not found in $w$’s context. This leads to the following objective function which we try to maximize in SGNS:&lt;/p&gt;
+
+&lt;p&gt;$$ J = \log \sigma(c\cdot w) + \sum_{i=1}^k \mathbb{E}_{w_i \sim p(w)}[\log \sigma (-w_i \cdot w)]  $$&lt;/p&gt;
+
+&lt;p&gt;In other words, we push the target vector in the direction of the positive context vector, and pull it away from $k$ randomly chosen (w.r.t. the unigram probability distribution) negative vectors. Here &amp;ldquo;negative&amp;rdquo; means that these vectors are not actually present in the target’s context.&lt;/p&gt;
+
+&lt;h4 id=&#34;what-do-we-need-to-make-sgns-online&#34;&gt;What do we need to make SGNS online?&lt;/h4&gt;
+
+&lt;p&gt;As is evident from the above discussion, since SGNS is a window-based approach, the training itself is very much in an online paradigm. However, the constraints are in creating a vocabulary and a unigram distribution for negative sampling, which makes SGNS a two-pass method. Further, if additional data is seen later, the distribution and vocabulary would change, and the model would have to be retrained.&lt;/p&gt;
+
+&lt;p&gt;Essentially, we need online alternatives for 2 aspects of the algorithms:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Dynamic vocabulary building&lt;/li&gt;
+&lt;li&gt;Adaptive unigram distribution&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;With this background, I will now discuss the two proposed methods for online SGNS.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;space-saving-word2vec&#34;&gt;Space-Saving word2vec&lt;/h3&gt;
+
+&lt;p&gt;In &lt;a href=&#34;https://arxiv.org/pdf/1704.07463.pdf&#34; target=&#34;_blank&#34;&gt;this paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; from researchers at Johns Hopkins, the following solutions were proposed for the two problems mentioned above.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Space-saving algorithm for dynamic vocabulary building.&lt;/li&gt;
+&lt;li&gt;Reservoir sampling for adaptive unigram distribution.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;Space-saving algorithm:&lt;/strong&gt; It is a popular method to estimate the top-$k$ most frequent items in a streaming data.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;We declare a structure V containing $k$ pairs of word and their counts, and initialize it to empty pairs.&lt;/li&gt;
+&lt;li&gt;As word $w$ arrives, if $w \in V$, we increment its count.&lt;/li&gt;
+&lt;li&gt;Otherwise, if $V$ has space, we append the pair $(w,1)$ to $V$.&lt;/li&gt;
+&lt;li&gt;If not, the word with the lowest count is replaced by $w$.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;At any instant, the words in the structure V denote the dynamic vocabulary of the corpus.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Reservoir sampling:&lt;/strong&gt; Reservoir sampling is a family of randomized algorithms for randomly choosing a sample of $k$ items from a list S containing $n$ items, where $n$ is either a very large or unknown number. (Wikipedia)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Similar to the SS algorithm, we declare a structure (called the reservoir) of $k$ empty elements (not pairs this time). In addition, we initialize a counter $c$ to 0.&lt;/li&gt;
+&lt;li&gt;The first $k$ elements in the stream are filled into the reservoir. $c$ is incremented at every occurence.&lt;/li&gt;
+&lt;li&gt;For the remaining items, we draw $j$ from $1,\ldots,c$ randomly. If $j &amp;lt; k$, the $j^{\text{th}}$ element of the reservoir is replaced with the new element.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;At any instant, the samples present in the reservoir provide an approximate distribution of items in the entire data stream.&lt;/p&gt;
+
+&lt;p&gt;While the algorithm itslelf is conceptually simple, the authors have mentioned several implementation choices which are important for training SGNS online. I list them here with some observations:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;When a word is ejected from a bin in the dynamic vocabulary, its embeddings are re-initialized. As such, every bin has its own learning rate which is reset when the word in the bin is changed.&lt;/li&gt;
+&lt;li&gt;During sentence subsampling, all words not in $W$ are retained. Those in $W$ are retained with a probability which is inversely proportional to the square root of its count in the dictionary.&lt;/li&gt;
+&lt;li&gt;Probably the most important deviation from the SGNS algorithm is that the reservoir sampling essentially generates an empirical distribution from which to sample negative context words. In contrast, in the original SGNS algorithm, a &lt;em&gt;smoothed&lt;/em&gt; empirical distribution is used. The authors have themselves allowed that “ smoothing the negative sampling distribution was (sic) shown to increase word embedding quality consistently.”&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;incremental-sgns&#34;&gt;Incremental SGNS&lt;/h3&gt;
+
+&lt;p&gt;This &lt;a href=&#34;http://aclweb.org/anthology/D17-1037&#34; target=&#34;_blank&#34;&gt;EMNLP’17 paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; from researchers at Yahoo Japan proposes the following alternative solutions for the aforementioned problems.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Misra-Gries algorithm for dynamic vocabulary building.&lt;/li&gt;
+&lt;li&gt;A modified reservoir sampling algorithm for adaptive unigram table.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;Misra-Gries algorithm:&lt;/strong&gt; This was developed long before the space-saving algorithm (1982) and was the go-to technique for top-$k$ most frequent itemset estimation in streaming data, before the space-saving algorithm was developed. The method is very similar to SS except for one difference:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;When word $w$ is not in $V$ and there is no space to append, every element in $V$ is decremented until some element becomes 0, at which point it is replaced by the new word.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Modified reservoir sampling:&lt;/strong&gt; Here is the pseudocode from the paper.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/15/reservoir.png&#34; alt=&#34;Modified reservoir sampling. Image taken from original paper&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This algorithm differs from the conventional Reservoir Sampling in two important ways:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;The counts used here are &lt;em&gt;smoothed&lt;/em&gt; (see line 4 to 6). This has been shown to be important for word vector quality, as discussed above.&lt;/li&gt;
+&lt;li&gt;If the reservoir does not have enough space, we iterate over all existing words and replace them with some probability (which is proportional to the smoothed count of $w$). Contrast this with the earlier technique, where a $j$ was randomly sampled and word at that index was replaced. (&lt;strong&gt;Disclaimer&lt;/strong&gt;: &lt;em&gt;I am not sure how exactly this modification helps in learning. If I am allowed to venture a guess, I would say that it is a “soft” equivalent of the hard replacement in the original algorithm. This probably helps in the theoretical analysis of the algorithm.&lt;/em&gt;)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In addition, the authors have also provided theoretical justification for their algorithm and proved the following theorem: &lt;em&gt;The loss in case of incremental SGNS converges in probability to that of batch SGNS.&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;In summary, SGNS is probably the easiest batch word embedding algorithm to “streamify” because of its inherent window-based nature. The constraints of vocabulary and counts are addressed with approximation algorithms. I can think of several possible directions in which this work can be continued.&lt;/p&gt;
+
+&lt;p&gt;First, there are several algorithms for estimating the top-$k$ most frequent items in a data stream. These are divided into count-based and sketch-based methods. The SS algorithm is probably the most efficient count-based technique, but it may be useful to look at other methods to see if they provide some edge. (Although I’m pretty sure the JHU researchers would have been thorough in their
+selection of the algorithm.)&lt;/p&gt;
+
+&lt;p&gt;Second, GloVe and SVD are yet to be addressed. In case of GloVe in particular, the problem would be to construct the co-occurence matrix in a online fashion. There should be some related work in statistics which can be leveraged for this, but I haven’t conducted much literature survey in this direction.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;May, Chandler, Kevin Duh, Benjamin Van Durme, and Ashwin Lall. &amp;ldquo;&lt;em&gt;Streaming word embeddings with the space-saving algorithm.&lt;/em&gt;&amp;rdquo; arXiv preprint arXiv:1704.07463 (2017).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Kaji, Nobuhiro, and Hayato Kobayashi. &amp;ldquo;&lt;em&gt;Incremental skip-gram model with negative sampling.&lt;/em&gt;&amp;rdquo; arXiv preprint arXiv:1704.03956 (2017).*
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
 </description>
     </item>
     
@@ -1049,333 +1427,6 @@ natural language processing tasks).&lt;/p&gt;
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>The Best Papers at ICLR 2017</title>
-      <link>https://desh2608.github.io/post/best-papers-at-iclr-17/</link>
-      <pubDate>Sun, 15 Oct 2017 13:38:17 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/best-papers-at-iclr-17/</guid>
-      <description>
-
-&lt;p&gt;The International Conference on Learning Representations (ICLR) has evolved into &lt;em&gt;the&lt;/em&gt; deep learning conference over the last few years, and with its open review system, it is not difficult to understand why. I was recently going through some of the papers accepted at this year’s ICLR, especially the 3 that were awarded the Best Paper award. In this article, I will try to summarize these 3 papers in simple words, and hopefully get an idea about what’s hot in deep learning.&lt;/p&gt;
-
-&lt;p&gt;The 3 best papers are:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/1611.03530.pdf&#34; target=&#34;_blank&#34;&gt;Understanding deep learning requires rethinking generalization&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/1704.06611.pdf&#34; target=&#34;_blank&#34;&gt;Making neural programming architectures generalize via recursion&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://arxiv.org/pdf/1610.05755.pdf&#34; target=&#34;_blank&#34;&gt;Semi-supervised knowledge knowledge transfer for deep learning from private training data&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Statisticians always like saying that deep learning is a black box and eveything that happens is a result of hyperparameter tuning. You cannot say why you have obtained a good result, let alone providing a guarantee for a result. Well, not anymore. The 3 best papers were all about providing proveable guarantees, and it looks like the deep learning community is all set to move past its “black box” days.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;understanding-deep-learning-requires-rethinking-generalization&#34;&gt;Understanding deep learning requires rethinking generalization&lt;/h4&gt;
-
-&lt;p&gt;This paper from Google Brain is very readable and discusses some very common occurences. The authors make 2 very straightforward observations: (i) Deep neural networks easily fit random labels, and (ii) Explicit regularization is neither necessary nor sufficient for controlling generalization error.&lt;/p&gt;
-
-&lt;p&gt;Essentially, they evaluate well-known deep architectures on several popular datasets, with some randomness added, such as random labels, or Gaussian noise-added labels, or shifted input features, in an attempt to show that even though training error is still close to negligible, generalization error increases alarmingly even in the presence of explicit regularizers such as weight decay, dropout, and data augmentation, and for implicit regularizers such as early stopping. This serves as a wake-up call for people who study the performance of neural networks.&lt;/p&gt;
-
-&lt;p&gt;The most interesting (and PROVABLE) guarantee that the paper contains is the following theorem: &lt;em&gt;There exists a two-layer neural network with ReLU activations and 2n+d weights that can represent any function on a sample of size n in d dimensions.&lt;/em&gt; While I will not go into the detailed proof here, it is essentially based on solving the system of linear equations based on the ReLU activation function. For the system to have a solution, the coefficient matrix should be full-ranked, which the authors show is indeed the case. If the proof in the paper is too formal (read: succinct) for you, you can find a more detailed one &lt;a href=&#34;https://danieltakeshi.github.io/2017/05/19/understanding-deep-learning-requires-rethinking-generalization-my-thoughts-and-notes&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. In addition, they also show ways in which we can reduce the width of the network
-at each layer by increasing its depth.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;making-neural-programming-architectures-generalize-via-recursion&#34;&gt;Making neural programming architectures generalize via recursion&lt;/h4&gt;
-
-&lt;p&gt;Understanding this paper from researchers at UC Berkeley requires a little background of neural programmer-interpreter (NPI) architectures, which can be found in the paper as well as in the &lt;a href=&#34;https://arxiv.org/pdf/1511.06279.pdf&#34; target=&#34;_blank&#34;&gt;ICLR ’16 paper&lt;/a&gt; in which they were introduced. Basically, an NPI framework consists of a controller (such as an LSTM), which takes as input the environment state and arguments, and returns the next program pointer to be executed. In this way, given a set of sequences that an algorithm must follow to get to the output, the NPI can learn the algorithm itself. In the original paper, the authors learned to perform tasks such as adding, sorting,
-etc. using NPIs.&lt;/p&gt;
-
-&lt;p&gt;In this paper, the concept of &lt;em&gt;recursion&lt;/em&gt; is added to the existing NPI framework, and this makes it capable of performing much more complex tasks such as quick sort. Formally, a function exhibits recursive behavior when it possesses two properties: (1) Base cases — terminating scenarios that do not use recursion to produce answers; (2) A set of rules that reduces all other problems toward the base cases. In the paper, the author describe how they construct NPI training traces so as to make them contain recursive elements and thus enable NPI to learn recursive programs.&lt;/p&gt;
-
-&lt;p&gt;Furthermore, the authors show &lt;em&gt;provably perfect generalization&lt;/em&gt; for their new architecture. The theorem states that for the same sequence of step inputs, the model produces the exact same step output as the target program it aims to learn.&lt;/p&gt;
-
-&lt;p&gt;To prove this, we again go to the notions of base case and recursive case. For example, in the addition task, the base case is always a set of small, fixed size step input sequences during which the LSTM state remains constant. So the base case is trivially true. The key in proving the recursive step is to construct the verification set well, so that the step inputs are neither too large so as to be outside the scope of evaluation, nor too small so that the semantics of the problem are not well defined. The actual verification process is simple and can be read in the paper.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;semi-supervised-knowledge-transfer-for-deep-learning-from-private-training-data&#34;&gt;Semi-supervised knowledge transfer for deep learning from private training data&lt;/h4&gt;
-
-&lt;p&gt;Another paper from Google Brain, this deals with the important subject of building a model which learns from sensitive data while also keeping it private. A new model called PATE (Private Aggregation of Teacher Ensembles) is introduced which basically trains in a 2-step strategy:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;An ensemble of teacher models is trained on disjoint subsets of the sensitive dataset.&lt;/li&gt;
-&lt;li&gt;A student model is trained on the aggregate output of the ensemble.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The aggregation is “private” because the number of times the student can access the teacher model is limited, and the top vote of the ensemble is revealed only after adding random noise. Due to these restrictions, no amount of querying can get hold of the private training data used to train the teacher models. Furthermore, in the Laplacian noise added to the teacher aggregation, the noise
-parameter can be used to tune the privacy-accuracy tradeoff for the student model. For example, if the noise is large, privacy is high at the cost of reduced accuracy, and vice versa.&lt;/p&gt;
-
-&lt;p&gt;For the transfer of knowledge from the ensemble to the student model, the authors experimented with various techniques and finally used semi-supervised learning with GANs. The student is trained on nonsensitive data (which may be labeled or unlabeled). The discriminator is a multi-class classifier which is trained such that it classifies the labeled data into the correct class, the unlabeled (true) data into any of the &lt;em&gt;k&lt;/em&gt; classes, and the generated data (from the generator) into an extra class.&lt;/p&gt;
-
-&lt;p&gt;Again, the authors use the notion of “differentiable privacy guarantee” to come up with a lower bound for the privacy guarantee for their model. (The derivation is a little involved and I skipped it since I don’t have the prerequisites of security and privacy.)&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;To sum up, all the papers seem to provide some generalization guarantee rather than just proposing a “good” model. Looks like sunny days for deep learning!&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>The Last 3 Years in Text Classification</title>
-      <link>https://desh2608.github.io/post/last-3-years-in-text-classification/</link>
-      <pubDate>Mon, 02 Oct 2017 12:49:14 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/last-3-years-in-text-classification/</guid>
-      <description>
-
-&lt;p&gt;While working on my &lt;a href=&#34;https://desh2608.github.io/project/btp/&#34; target=&#34;_blank&#34;&gt;undergrad thesis&lt;/a&gt; on relation classification of biomedical text using deep learning methods, I quickly hacked together models in Tensorflow that combined convolutional and recurrent layers in various combinations. While some of these “network architectures” worked superbly (even surpassing state-of-the-art results), I had no clue what was happening inside the model. To gain such an intuition, I read about 20 recent papers on text classification (starting with the first “CNN for sentence classification” paper by Yoon Kim) over the course of a week. Aside from an obvious enlightenment about why my architecture was working the way it was, I also gained valuable insight into how results are presented by experts like Yann LeCunn and Tommi Jaakkola (which would later help me in getting my CoNLL paper accepted as an undergrad).&lt;/p&gt;
-
-&lt;p&gt;Anyway, so while reading these myriad of text classification papers, I subconsciously began organizing them under different heads, depending upon the kind of approach used. The common objective across each of these approaches was that they all wanted to model the structural information of the sentence into the sentence embedding. All of this was in March, and ever since, I have wanted to organize the notes I made from my readings into a formal article, so that others may benefit from the insights.&lt;/p&gt;
-
-&lt;p&gt;Some background in CNNs and LSTMs is assumed.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;character-to-sentence-level-embeddings&#34;&gt;Character to sentence level embeddings&lt;/h4&gt;
-
-&lt;p&gt;Using word vectors (conventionally obtained using Word2Vec or GloVe) has been the most popular technique for input feature embedding. Yann LeCunn proposed character-level embeddings in his NIPS 2015 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;, and the motivation behind this was that language could also be thought of as a signal similar to speech, with each character representing one bit of information. As such, it was reasonable to encode characters rather than words to obtain sentence level structure more efficiently. Although the proposed method was outperformed even by traditional tf-idf approaches for smaller datasets, the most important hypothesis obtained from empirical analyses was that character level CNNs tend to work well with uncurated user-generated data, such as reviews on Amazon. This makes them especially suitable for use in data wherever misspellings or use of exotic characters is frequent, such as in tweets.&lt;/p&gt;
-
-&lt;p&gt;Even before LeCunn’s work, a COLING 2014 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; from IBM Research (Brazil) combined embeddings from the character, word, and sentence levels to obtain an amalgamation for the sentence representation. This is done in two convolutional layers as follows:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;In the first layer, vectors are obtained for words using traditional lookup techniques like Word2Vec. At the same time, character-level input vectors corresponding to each word are fed into a convolutional layer and a subsequent max pooling layer, and padding is used so that fixed length outputs are obtained for every word. These convolved features are concatenated with the word-level embeddings to obtain the joint word vector. The rationale behind this is that while word-level embeddings are meant to capture syntactic and semantic information, character-level embeddings capture morphological and shape information.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/4/char.png&#34; alt=&#34;Obtaining character-level embeddings. Image taken from Fig. 1 [^2].&#34; /&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;The second layer to obtain sentence-level vectors is similar to the character level. On applying  convolutions and max pooling, we obtain a global feature representation for the sentence.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Embeddings have become a staple in deep learning models for NLP, and the latest trend is to use deep transfer learning to learn entire parameters for word vectors. While the community has mostly stabilized on using word-level vectors for input features, it wasn’t for lack for exploration, as is evident from these early approaches.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;encoding-structural-information-parse-trees-and-tensor-algebra&#34;&gt;Encoding structural information: parse trees and tensor algebra&lt;/h4&gt;
-
-&lt;p&gt;Again, for accurate text classification, it is imperative to obtain a good sentence representation that effectively captures the structural information and any semantics possible. If we think about Yoon Kim’s original CNN model in this vein, the limitations in the simple “conv+pool” model becomes obvious. While the convolutional layer helps to recognize short phrases, the final max pooling layer completely disregards any word order or structural information in the sentence. Essentially, we can reorder phrases in the sentences, and the representation would still remain the same.&lt;/p&gt;
-
-&lt;p&gt;To solve these problems, a myriad of techniques have been proposed. Here I will discuss 2 of them — the first involves using syntactic parse trees, and the second turns to good old tensor algebra.&lt;/p&gt;
-
-&lt;p&gt;A 2015 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; from Peking University proposed two tree-based CNN models, namely c-TBCNN and d-TBCNN, depending on whether constituency or dependency parse trees were used. I will first outline the model:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;A sentence is first converted to a parse tree, and each node is represented as a distributed, real-valued vector. While the nodes of dependency trees are words themselves, those in constituency trees are not. To solve this problem, constituency tree nodes are pretrained using Socher’s RNN and kept fixed thereafter.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/4/tree-cnn.png&#34; alt=&#34;Tree-based convolutional window. Image taken from Fig. 2 [^3].&#34; /&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;A &lt;em&gt;tree-based convolutional window&lt;/em&gt; is defined, which slides over the entire tree to extract structural information of the sentence. The convolutional equation for a window which slides over a parent and its direct children in a constituency tree is given by&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;$$ y = f(w_p^{( c )}\cdot p + w_l^{( c )}\cdot c_l + w_r^{( c )}\cdot c_r + b^{( c )}). $$&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;In a dependency tree, a node can have any number of children. To overcome this, weights in these trees are assigned according to dependency type rather than position, and so the convolution formula becomes&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;$$ y = f(W_p^{(d)}\cdot p + \sum_{i=1}^n W_{r[c_i]}^{(d)}\cdot c_i + b^{(d)}). $$&lt;/p&gt;
-
-&lt;p&gt;In empirical evaluation, d-TBCNN was found to outperform c-TBCNN probably due to d-TBCNN being able to exploit structural features more efficiently because of the compact expressiveness of dependency trees. The paper also provides visualizations for understanding the mechanism of the proposed network, and they show that TBCNNs do integrate information about different words in a window.&lt;/p&gt;
-
-&lt;p&gt;A 2015 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34;&gt;4&lt;/a&gt;&lt;/sup&gt; from Regina Barzilay and Tommi Jaakkola at MIT used non-linear, non-consecutive convolutions, and turned to tensor algebra to reduce computational complexity. The motivation behind this model is two-fold:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Conventional CNNs use linear operations on stacked word vectors, which ignores the interesting non-linear interaction between n-grams.&lt;/li&gt;
-&lt;li&gt;Consecutive convolutions misses out on the non-consecutive phrases e.g. &amp;ldquo;&lt;em&gt;not&lt;/em&gt; nearly as &lt;em&gt;good&lt;/em&gt;&amp;rdquo; etc.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Essentially, they modified the 2 main components of a CNN-based text classification module, namely window-based convolutions, and the linear convolution operation, with 3 novel modifications.&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Stacked n-gram word vectors are replaced by tensor products, and this n-gram tensor can be seen as a generalization of the typical concatenated vector.&lt;/li&gt;
-&lt;li&gt;Since the convolutional filters themselves are high-dimensional tensors (n dimensions corresponding to the size of tensor window, and 1 channel dimension), directly maintaining them as full tensors would lead to parametric explosion. To overcome this, the convolutional tensor is represented using &lt;em&gt;low-rank factorization.&lt;/em&gt;&lt;/li&gt;
-&lt;li&gt;Instead of applying convolutions only to consecutive n-grams, all possible n-grams are used. At each position, the aggregate representation is the weighted sum of all n-gram representations ending at that position.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The paper makes use of linear algebra very cleverly to extend simple convolution operations across the whole sentence without making it computationally infeasible. In the results section, the authors have also analyzed the importance of such non-linear and non-consecutive activations empirically.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;regional-two-view-embeddings&#34;&gt;Regional (two-view) embeddings&lt;/h4&gt;
-
-&lt;p&gt;In a series of papers (published at NIPS 2015&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34;&gt;5&lt;/a&gt;&lt;/sup&gt; and ICML 2016&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:6&#34;&gt;&lt;a href=&#34;#fn:6&#34;&gt;6&lt;/a&gt;&lt;/sup&gt;), Rie Johnson and Tong Zhang introduced the concept of regional embedding in sentences, which was based on two-view embeddings. Essentially, they wanted to answer the question: &lt;em&gt;Can an unlabeled data be used to augment a CNN/LSTM module in a better way than by simply obtaining pretrained word vectors?&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;In some way, these embeddings are also related to the first section on character to sentence level  embeddings. However, I have put it in a separate section since my own network architecture in my CoNLL paper derived hugely from the interpretation given in these papers. (You can say this was when I gained enlightenment!)&lt;/p&gt;
-
-&lt;p&gt;In an earlier paper, the authors had showed that using high-dimensional one-hot bag-of-words (BOW) vectors rather than pretrained word vectors proved to be better in simpler systems. Their new objective was to learn regional embeddings from unlabeled data and use it as additional input to the supervised CNN.&lt;/p&gt;
-
-&lt;p&gt;But first, &lt;em&gt;what is a tv-embedding&lt;/em&gt;? Essentially, it is a function of a view that preserves everything required to predict another view. (See the paper section 2 for details. The motivation for using tv-embeddings is also explained theoretically in the Appendix &lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34;&gt;5&lt;/a&gt;&lt;/sup&gt;.)&lt;/p&gt;
-
-&lt;p&gt;In the papers, the authors used a CNN and an LSTM, respectively, to obtain these tv-embeddings for short regions in the sentences using an unlabeled corpus. They called these as “regional embeddings,” and used them as additional input for the supervised classification task. Furthermore, in their ICML paper, they did away with CNNs entirely, and argued that using bidirectional LSTMs for obtaining the regional embedding and then pooling for the sentence vector gives and adequate sentence representation. However, experimental results showed that using tv-embeddings from networks resulted in the best performing model.&lt;/p&gt;
-
-&lt;p&gt;This “regional embedding+pooling” logic was what finally provided the necessary intuition for my own relation classification network.&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:1&#34;&gt;Zhang, Xiang, Junbo Zhao, and Yann LeCun. “&lt;a href=&#34;http://papers.nips.cc/paper/5782-character-level-convolutional-networks-for-text-classification.pdf&#34; target=&#34;_blank&#34;&gt;Character-level convolutional networks for text classification.&lt;/a&gt;” &lt;em&gt;Advances in neural information processing systems&lt;/em&gt;. 2015.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:2&#34;&gt;Dos Santos, Cícero Nogueira, and Maira Gatti. “&lt;a href=&#34;http://anthology.aclweb.org/C/C14/C14-1008.pdf&#34; target=&#34;_blank&#34;&gt;Deep Convolutional Neural Networks for Sentiment Analysis of Short Texts.&lt;/a&gt;” &lt;em&gt;COLING&lt;/em&gt;. 2014.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:3&#34;&gt;Mou, Lili, et al. “&lt;a href=&#34;https://arxiv.org/pdf/1504.01106.pdf&#34; target=&#34;_blank&#34;&gt;Discriminative neural sentence modeling by tree-based convolution.&lt;/a&gt;” &lt;em&gt;arXiv preprint arXiv:1504.01106&lt;/em&gt; (2015).
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:4&#34;&gt;Lei, Tao, Regina Barzilay, and Tommi Jaakkola. “&lt;a href=&#34;https://arxiv.org/pdf/1508.04112.pdf&#34; target=&#34;_blank&#34;&gt;Molding CNNs for text: non-linear, non-consecutive convolutions.&lt;/a&gt;” &lt;em&gt;arXiv preprint arXiv:1508.04112&lt;/em&gt; (2015).
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:4&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:5&#34;&gt;Johnson, Rie, and Tong Zhang. “&lt;a href=&#34;http://papers.nips.cc/paper/5849-semi-supervised-convolutional-neural-networks-for-text-categorization-via-region-embedding.pdf&#34; target=&#34;_blank&#34;&gt;Semi-supervised convolutional neural networks for text categorization via region embedding.&lt;/a&gt;” &lt;em&gt;Advances in neural information processing systems&lt;/em&gt;. 2015.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:5&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:6&#34;&gt;Johnson, Rie, and Tong Zhang. “&lt;a href=&#34;http://proceedings.mlr.press/v48/johnson16.pdf&#34; target=&#34;_blank&#34;&gt;Supervised and semi-supervised text categorization using LSTM for region embeddings.&lt;/a&gt;” &lt;em&gt;International Conference on Machine Learning&lt;/em&gt;. 2016.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:6&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Understanding Word Vectors</title>
-      <link>https://desh2608.github.io/post/understanding-word-vectors/</link>
-      <pubDate>Fri, 29 Sep 2017 11:12:55 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/understanding-word-vectors/</guid>
-      <description>
-
-&lt;p&gt;&lt;em&gt;This article is a formal representation of my understanding of vector semantics, from course notes and reading reference papers and chapters from Jurafsky’s SLP book. I will be talking about sparse and dense vector semantics, including SVD, skip-gram, and GloVe. In many places, I will try to explain the ideas in language rather than equations (but I’ll provide links to derivations and stuff wherever it is absolutely essential, which is actually everywhere!).&lt;/em&gt;&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;“You shall know a word by the company it keeps.”&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;In vision, images are represented by the corresponding RGB values (or values obtained from other filters), so they are essentially matrices of integers. Language was more arbitrary because traditionally there was no formal method (or globally accepted standard) for representing words with numerical values. Well, not until &lt;strong&gt;word embeddings&lt;/strong&gt; came into the picture (no pun intended)!&lt;/p&gt;
-
-&lt;p&gt;What are embeddings, though? They are called so because words are essentially transformed into vectors by “embedding” them into a vector space. For this, we make use of the hypothesis that words which occur in similar context tend to have similar meaning, i.e., the meaning of a word can be inferred from the distribution around it. For this reason, these methods are also called “distributional” methods.&lt;/p&gt;
-
-&lt;p&gt;Word vectors may be sparse or dense. I’ll begin with sparse vectors and then describe dense ones.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;sparse-vectors&#34;&gt;Sparse vectors&lt;/h3&gt;
-
-&lt;h4 id=&#34;term-document-and-term-term-matrix&#34;&gt;Term-document and term-term matrix&lt;/h4&gt;
-
-&lt;p&gt;Suppose we have a set of 1000 documents, consisting of a total of 5000 unique words. In a very naive fashion, we can simply count the number of occurrences of each word in every document, and then represent each word by this 1000-dimensional vector of counts. This is exactly what a &lt;strong&gt;term-document matrix&lt;/strong&gt; does.&lt;/p&gt;
-
-&lt;p&gt;Similarly, consider a large corpus of text with 5000 unique words. Now take a window of some fixed size and for each word pair, we count the number of times it occurs in the window. These counts form a &lt;strong&gt;term-term matrix&lt;/strong&gt;, also called a &lt;strong&gt;co-occurrence matrix&lt;/strong&gt; which in this case will be a 5000x5000 matrix (with most cells 0 if the window size is relatively small).&lt;/p&gt;
-
-&lt;h4 id=&#34;pointwise-mutual-information-pmi&#34;&gt;Pointwise Mutual Information (PMI)&lt;/h4&gt;
-
-&lt;p&gt;The co-occurrence matrix is not the best measure of similarity between 2 words since it is based on the raw frequency, and hence is very skewed. Instead, it would be desirable to have a quantity which measures how much more likely is it for 2 words to occur in a window, compared with pure chance. This is exactly what PMI measures.&lt;/p&gt;
-
-&lt;p&gt;$$ \text{PMI}(x,y) = \log \left( \frac{P(x,y)}{P(x)P(y)} \right) $$&lt;/p&gt;
-
-&lt;p&gt;If PMI is positive, the ($x$,$y$) pair is more likely to occur together than pure chance, and vice versa. However, a negative value is unreliable since it is unlikely to get many co-occurrences of a word pair in a small corpus. To solve this problem, we define a Positive PMI (PPMI) as&lt;/p&gt;
-
-&lt;p&gt;$$ \text{PPMI}(x,y) = \max (\text{PMI}(x,y),0). $$&lt;/p&gt;
-
-&lt;h4 id=&#34;tf-idf-term-frequency-inverse-document-frequency&#34;&gt;TF-IDF (Term frequency — inverse document frequency)&lt;/h4&gt;
-
-&lt;p&gt;This is composed of 2 parts: TF, which denotes the count of the word in a document, and IDF, which is a weight component that gives higher weight to words occurring only in a few documents (and hence are more representative of the documents they are present in, in contrast to words like ‘the’ which are present in large number of documents).&lt;/p&gt;
-
-&lt;p&gt;$$ idf_i = \log \left( \frac{N}{df_i} \right) $$&lt;/p&gt;
-
-&lt;p&gt;Here, $N$ is the total number of documents and $df_i$ is the number of documents in which word $i$ occurs.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;dense-vectors&#34;&gt;Dense vectors&lt;/h3&gt;
-
-&lt;p&gt;The problem with sparse vectors is the curse of dimensionality, which makes computation and storage infeasible. For this reason, we prefer dense vectors, with real-valued elements. Dense vector semantics fall into 2 categories: matrix factorization, and neural embeddings.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;matrix-factorization&#34;&gt;Matrix Factorization&lt;/h3&gt;
-
-&lt;h4 id=&#34;singular-vector-decomposition-svd&#34;&gt;Singular vector decomposition (SVD)&lt;/h4&gt;
-
-&lt;p&gt;This is basically a dimensionality reduction technique where we find the dimensions with the highest variances. Suppose we have the co-occurence matrix A of size $m \times n$, then it is possible to factorize A into:&lt;/p&gt;
-
-&lt;p&gt;$$ A_{m \times n} = U_{m\times r}S_{r\times r}V_{r\times n}^T $$&lt;/p&gt;
-
-&lt;p&gt;where $r$ is the rank of matrix $A$ (i.e. $r$ = maximum number of linearly independent vectors that can be used to form $A$). Also, $U$ is a matrix of the eigenvectors of $AA^T)$ and $S$ is a diagonal matrix comprising its eigenvalues. If we rearrange the columns in $U$ to correspond with a decreasing order of eigenvalues, we can keep the first $k$ columns which will represent the dimensions in the latent space which have the highest variance. These will give us a $k$-dimensional representation for each of the $m$ words in the vocabulary.&lt;/p&gt;
-
-&lt;p&gt;But why do we want to perform this truncation?&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;First, removing the lower variance dimensions filters the noise component from the word embeddings.&lt;/li&gt;
-&lt;li&gt;More importantly, having a lower number of parameters leads to better generalization. It is found that 300-dimensional word embeddings perform much better than, say, 3000-dimensional ones.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;However, this approach is still constrained since the matrix factorization of $A$, which in itself may be a large matrix, is computationally complex.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;neural-embeddings&#34;&gt;Neural embeddings&lt;/h3&gt;
-
-&lt;p&gt;The idea is simple. We can treat each element in the vector as a parameter to be updated while training a neural network model. We start with a randomly initialized vector and update it at each iteration. This update is based on the vectors of the context (window) words. The hypothesis is that such an update would ultimately result in similar words having vectors which are closer to each other in the vector space.&lt;/p&gt;
-
-&lt;p&gt;Here, I will describe the 2 most popular neural models — Word2Vec and GloVe.&lt;/p&gt;
-
-&lt;h4 id=&#34;word2vec&#34;&gt;Word2Vec&lt;/h4&gt;
-
-&lt;p&gt;Word2Vec is actually the name of a tool which internally uses skip-gram or CBOW (continuous bag-of-words) with negative sampling. The objectives for both these models are quite similar, except a subtle distinction. In skip-gram, we predict the context words given the target word, and in CBOW, we predict the target word given the context words. In this article, I will limit my discussion to &lt;em&gt;skip-gram with negative sampling&lt;/em&gt; (SGNS).&lt;/p&gt;
-
-&lt;p&gt;Suppose we have a context window where $w$ is the target word and $c$ is one of the context words. Then, skip-gram’s objective is to compute $P(c|w)$, which is given as&lt;/p&gt;
-
-&lt;p&gt;$$ p(c|w;\theta) = \frac{\exp(v_c\cdot v_w)}{\sum_{c^{\prime}\in C}\exp(v_{c^{\prime}}\cdot v_w)}. $$&lt;/p&gt;
-
-&lt;p&gt;Basically, it is just a softmax probability distribution over all the word-context pairs in the corpus, directed by the cosine similarity. However, the denominator term here is very expensive to compute since there may be a very large number of context words. To solve this problem, negative sampling is used.&lt;/p&gt;
-
-&lt;p&gt;Goldberg and Levy have explained the derivation for the objective function in SGNS very clearly in their &lt;a href=&#34;https://arxiv.org/pdf/1402.3722.pdf&#34; target=&#34;_blank&#34;&gt;note&lt;/a&gt;. I will try to provide a little intuition here.&lt;/p&gt;
-
-&lt;p&gt;For the word $w$, we are trying to predict the context word $c$. Since we are using softmax, this is essentially like a multi-class classification problem, where we are trying to classify the next word into one of $N$ classes (where $N$ is the number of words in the dictionary). Since $N$ may be quite large, this is a very difficult problem.&lt;/p&gt;
-
-&lt;p&gt;What SGNS does is that it converts this multi-classification problem into binary classification. The new objective is to predict, for any given word-context pair ($w$,$c$), whether the pair is in the window or not. For this, we try to increase the probability of a “positive” pair ($w$,$c$), while at the same time reducing the probability of $k$ randomly chosen “negative samples” ($w$,$s$) where $s$ is a word not found in $w$’s context. This leads to the following objective function which we try to maximize in SGNS:&lt;/p&gt;
-
-&lt;p&gt;$$ J = \log \sigma(c\cdot w) + \sum_{i=1}^k \mathbb{E}_{w_i \sim p(w)}[\log \sigma (-w_i \cdot w)]  $$&lt;/p&gt;
-
-&lt;h4 id=&#34;glove-global-vectors&#34;&gt;GloVe (Global Vectors)&lt;/h4&gt;
-
-&lt;p&gt;One grievance with skip-gram and CBOW is that since they are both window-based models, the co-occurrence statistics of the corpus are not used efficiently, thereby resulting in suboptimal embeddings. The GloVe model proposed by Pennington et al. seeks to solve this problem by formulating an objective function from probability statistics.&lt;/p&gt;
-
-&lt;p&gt;Again, the original &lt;a href=&#34;https://nlp.stanford.edu/pubs/glove.pdf&#34; target=&#34;_blank&#34;&gt;paper&lt;/a&gt; is very pleasant to read (section 3 describes their model in detail), and it is interesting to note the derivation for the objective function:&lt;/p&gt;
-
-&lt;p&gt;$$ J = \sum_{i,j=1}^V f(X_{ij})(w_i^Tw_j + b_i + b_j - \log X_{ij})^2 $$&lt;/p&gt;
-
-&lt;p&gt;Here, $X_{ij}$ is the count of the word pair ($i$,$j$) in the corpus. The weight function $f(x)$ has 3 requirements:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;$f(0) = 0$, so that the entire term does not tend to $\infty$.&lt;/li&gt;
-&lt;li&gt;It should be non-decreasing to assign low weights to rare occurrences.&lt;/li&gt;
-&lt;li&gt;It should be relatively small for large values of $x$.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Again, please read the paper for details.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;Although the matrix factorization approach and the neural embedding method may initially come off as completely independent, Levy and Goldberg (again!) ingeniously showed in a &lt;a href=&#34;https://papers.nips.cc/paper/5477-neural-word-embedding-as-implicit-matrix-factorization.pdf&#34; target=&#34;_blank&#34;&gt;NIPS 2014 paper&lt;/a&gt; that even the SGNS method implicitly factorizes a word-context matrix where the cells are the PMI (pointwise mutual information) of the respective word-context pairs, shifted by a global context. They derive this in Section 3.1 of the paper, and I urge you to go to the link and read it. It’s a delight! The derivation is really simple and I would have done it here, except that I would only be reproducing the exact proof.&lt;/p&gt;
-
-&lt;p&gt;Very recently, Richard Socher’s group at Salesforce Research have proposed a new kind of embeddings called CoVe (Contextualized Word Vectors) in their paper. The idea is again borrowed from vision, where transfer learning has been used for a long time. Basically, models with various objectives are trained on a large dataset such as ImageNet, and then these weights are used to initialize model parameters for various vision tasks. Similarly, CoVe uses parameters trained on a attentional Seq2Seq machine translation task, and then uses it for various other tasks, including question-answering, where it has shown state-of-the-art performance on the SQuAD dataset. I have only skimmed through the paper, but I suppose such a deep transfer learning is naturally the next step towards improving word embeddings.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;As an aside, there is a series of blog posts by Sanjeev Arora that analyzes the theory of semantic embeddings in great detail. There are 3 posts in the series:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.offconvex.org/2015/12/12/word-embeddings-1/&#34; target=&#34;_blank&#34;&gt;Semantic word embeddings&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.offconvex.org/2016/02/14/word-embeddings-2/&#34; target=&#34;_blank&#34;&gt;Word Embeddings: Explaining their properties&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.offconvex.org/2016/07/10/embeddingspolysemy/&#34; target=&#34;_blank&#34;&gt;Linear algebraic structure of word embeddings&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;These provide great insight into the mathematics behind word vectors, and are beautifully written (which is no surprise since Prof. Arora is one of the authors of the famous and notoriously advanced book on Computational Complexity).&lt;/p&gt;
 </description>
     </item>
     

@@ -13,6 +13,35 @@
     
     
     <item>
+      <title>An Introduction to Speech Recognition using WFSTs</title>
+      <link>https://desh2608.github.io/post/intro-speech-recognition-wfst/</link>
+      <pubDate>Mon, 23 Apr 2018 13:41:31 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/intro-speech-recognition-wfst/</guid>
+      <description>Until now, all of my blog posts have been about deep learning methods or their application to NLP. Since the last couple of weeks, however, I have started learning about Automatic Speech Recognition (ASR)1. Therefore, I will also include speech-related articles in this publication now.
+The ASR logic is very simple (it’s just Bayes rule, like most other things in machine learning). Essentially, given a speech waveform, the objective is to transcribe it, i.</description>
+    </item>
+    
+    <item>
+      <title>How to Obtain Sentence Vectors</title>
+      <link>https://desh2608.github.io/post/how-to-obtain-sentence-vectors/</link>
+      <pubDate>Thu, 12 Apr 2018 13:41:14 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/how-to-obtain-sentence-vectors/</guid>
+      <description>In several of my previous posts, I have discussed methods for obtaining word embeddings, such as SVD, word2vec, or GloVe. In this post, I will abstract a level higher and talk about 4 different methods that have been proposed to get embeddings for sentences.
+But first, some of you may ask why do we even need a different method for obtaining sentence vectors. Since sentences are essentially made up of words, it may be reasonable to argue that simply taking the sum or the average of the constituent word vectors should give a decent sentence representation.</description>
+    </item>
+    
+    <item>
+      <title>Online Learning of Word Embeddings</title>
+      <link>https://desh2608.github.io/post/online-learning-word-embeddings/</link>
+      <pubDate>Wed, 14 Mar 2018 13:40:57 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/online-learning-word-embeddings/</guid>
+      <description>Word vectors have become the building blocks for all natural language processing systems. I have earlier written an overview of popular algorithms for learning word embeddings here. One limitation with all these methods (namely SVD, skip-gram, and GloVe) is that they are all “batch” techniques. In this post, I will discuss two recent papers (which are very similar but were developed independently) which aim to provide an online approximation for the skip-gram algorithm.</description>
+    </item>
+    
+    <item>
       <title>Sparsity in Online Learning with Lasso Regularization</title>
       <link>https://desh2608.github.io/post/sparse-online-learning-lasso-regularization/</link>
       <pubDate>Sat, 24 Feb 2018 13:40:42 +0530</pubDate>
