@@ -28,6 +28,430 @@
     </item>
     
     <item>
+      <title>Transfer Learning in NLP</title>
+      <link>https://desh2608.github.io/post/transfer-learning-nlp/</link>
+      <pubDate>Fri, 15 Jun 2018 13:42:18 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/transfer-learning-nlp/</guid>
+      <description>
+
+&lt;p&gt;Transfer learning is undoubtedly the new (well, relatively anyway) hot thing in deep learning right now. In vision, it has been in practice for some time now, with people using models trained to learn features from the huge ImageNet dataset, and then training it further on smaller data for different tasks. In NLP, though, transfer learning was mostly limited to the use of pretrained word embeddings (which, to be fair, improved baselines significantly). Recently, researchers are moving towards transferring entire models from one task to another, and that is the subject of this post.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://ruder.io/&#34; target=&#34;_blank&#34;&gt;Sebastian Ruder&lt;/a&gt; (whose biweekly newsletter inspires a lot of my deep learning reading) and &lt;a href=&#34;https://www.fast.ai/about/#jeremy&#34; target=&#34;_blank&#34;&gt;Jeremy Howard&lt;/a&gt; were perhaps the first to make transfer learning in NLP exciting through their &lt;a href=&#34;http://nlp.fast.ai/classification/2018/05/15/introducting-ulmfit.html&#34; target=&#34;_blank&#34;&gt;ULMFiT method&lt;/a&gt; which surpassed all text classification state-of-the-art. This Monday, &lt;a href=&#34;https://openai.com/&#34; target=&#34;_blank&#34;&gt;OpenAI&lt;/a&gt; &lt;a href=&#34;https://blog.openai.com/language-unsupervised/&#34; target=&#34;_blank&#34;&gt;extended their idea&lt;/a&gt; and outperformed SOTAs on several NLP tasks. At NAACL 2018, the Best Paper award was given to the paper introducing &lt;a href=&#34;https://allennlp.org/elmo&#34; target=&#34;_blank&#34;&gt;ELMo&lt;/a&gt;, a new word embedding technique very similar to the idea behind ULMFiT, from researchers at &lt;a href=&#34;https://allenai.org/&#34; target=&#34;_blank&#34;&gt;AllenAI&lt;/a&gt; and &lt;a href=&#34;https://www.cs.washington.edu/people/faculty/lsz/&#34; target=&#34;_blank&#34;&gt;Luke Zettlemoyer&lt;/a&gt;’s group at UWash (Seattle).&lt;/p&gt;
+
+&lt;p&gt;In this article, I will discuss all of these new work and how they are interrelated. Let’s start with Ruder and Howard’s trend-setting architecture.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;universal-language-model-fine-tuning-for-text-classification-https-arxiv-org-pdf-1801-06146-pdf&#34;&gt;&lt;a href=&#34;https://arxiv.org/pdf/1801.06146.pdf&#34; target=&#34;_blank&#34;&gt;Universal Language Model Fine-Tuning for Text Classification&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;Most datasets for text classification (or any other supervised NLP tasks) are rather small. This makes it very difficult to train deep neural networks, as they would tend to overfit on these small training data and not generalize well in practice.&lt;/p&gt;
+
+&lt;p&gt;In computer vision, for a couple of years now, the trend is to pre-train any model on the huge ImageNet corpus. This is much better than a random initialization because the model learns general image features and that learning can then be used in any vision task (say captioning, or detection).&lt;/p&gt;
+
+&lt;p&gt;Taking inspiration from this idea, Howard and Ruder propose a bi-LSTM model that is trained on a general language modeling (LM) task and then fine tuned on text classification. This would, in principle, perform well because the model would be able to use its knowledge of the semantics of language acquired from the generative pre-training. Ideally, this transfer can be done from any source task $S$ to a target task $T$. The authors use LM as the source task because:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;it is able to capture long-term dependencies in language&lt;/li&gt;
+&lt;li&gt;it effectively incorporates hierarchical relations&lt;/li&gt;
+&lt;li&gt;it can help the model learn sentiments&lt;/li&gt;
+&lt;li&gt;large data corpus is easily available for LM&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Formally, &amp;ldquo;LM introduces a hypothesis space $H$ that should be useful for many other NLP tasks.&amp;rdquo;&lt;/p&gt;
+
+&lt;p&gt;For the architecture, they use the then SOTA &lt;a href=&#34;https://arxiv.org/pdf/1708.02182.pdf&#34; target=&#34;_blank&#34;&gt;AWD-LSTM&lt;/a&gt; (which is, I suppose, a multi-layer bi-LSTM network without attention, but I would urge you to read the details in the paper from Salesforce Research). The model was trained on the WikiText-103 corpus.&lt;/p&gt;
+
+&lt;p&gt;Once the generic LM is trained, it can be used as is for multiple classification tasks, with some fine-tuning. For this fine tuning and subsequent classification, the authors propose 3 implementation tricks.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Discriminative fine tuning:&lt;/strong&gt; Different learning rates are used for different layers during the fine-tuning phase of LM (on the target task). This is done because the layers capture different types of information.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Slanted triangular learning rates (STLR):&lt;/strong&gt; Learning rates are first increased linearly, and then decreased gradually after a cut, i.e., there is a &amp;ldquo;short increase&amp;rdquo; and a &amp;ldquo;long decay&amp;rdquo;. This is similar to the aggressive cosine annealing learning strategy that is popular now.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/20/stlr.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Gradual unfreezing:&lt;/strong&gt; During the classification training, the LM model is gradually unfreezed starting from the last layer. If all the layers are trained from the beginning, the learning from the LM would be forgotten quickly, and so gradual unfreezing is important to make use of the transfer learning.&lt;/p&gt;
+
+&lt;p&gt;On the 6 text classification tasks that they evaluated, there was a relative improvement of 18–24% on the majority of tasks. Further, the following was observed:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Only 100 labeled samples in classification were sufficient to match the performance of a model trained on 50–100x samples from scratch.&lt;/li&gt;
+&lt;li&gt;Pretraining is more useful on small and medium sized data.&lt;/li&gt;
+&lt;li&gt;LM quality affects final classification performance.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The analysis in the paper is very thorough, and I would recommend going through it for details, and also to learn how to design experiments for strong empirical results. They suggest some possible future directions as follows:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;The LM pretraining and fine-tuning can be improved.&lt;/li&gt;
+&lt;li&gt;The LM can be augmented with other tasks in a multi-task learning setting.&lt;/li&gt;
+&lt;li&gt;The pretrained model can be evaluated on tasks other than classification.&lt;/li&gt;
+&lt;li&gt;Further analysis can be done to determine what information is captured during pretraining and changed during fine-tuning.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;1 and 3 should be noted, in particular, as that makes up the novelty in OpenAI’s new paper discussed below.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;improving-language-modeling-by-generative-pre-training-https-s3-us-west-2-amazonaws-com-openai-assets-research-covers-language-unsupervised-language-understanding-paper-pdf&#34;&gt;&lt;a href=&#34;https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf&#34; target=&#34;_blank&#34;&gt;Improving Language Modeling by Generative Pre-training&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;This paper was published on ArXiv this Monday (11 June), and my Twitter feed has been inundated with talk about it since then. Jeremy Howard himself tweeted favorably about it, saying that this was exactly the kind of work he was hoping for in his &amp;ldquo;future directions&amp;rdquo;.&lt;/p&gt;
+
+&lt;p&gt;&lt;blockquote class=&#34;twitter-tweet&#34; data-lang=&#34;en&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;This is exactly where we were hoping our ULMFit work would head - really great work from &lt;a href=&#34;https://twitter.com/OpenAI?ref_src=twsrc%5Etfw&#34;&gt;@OpenAI&lt;/a&gt;! 😊&lt;br&gt;&lt;br&gt;If you&amp;#39;re doing NLP and haven&amp;#39;t tried language model transfer learning yet, then jump in now, because it&amp;#39;s a Really Big Deal. &lt;a href=&#34;https://t.co/0Dj8ChCxvu&#34;&gt;https://t.co/0Dj8ChCxvu&lt;/a&gt;&lt;/p&gt;&amp;mdash; Jeremy Howard (@jeremyphoward) &lt;a href=&#34;https://twitter.com/jeremyphoward/status/1006262925986652161?ref_src=twsrc%5Etfw&#34;&gt;June 11, 2018&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;&lt;/p&gt;
+
+&lt;p&gt;What Alec Radford (the first author) does here is&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;use a Transformer network (explained below in detail) instead of the AWD-LSTM; and&lt;/li&gt;
+&lt;li&gt;evaluate the LM on a variety of NLP tasks, ranging from textual entailment to question-answering.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;If you are already aware of the ULMFiT architecture, you only need to know 2 things to understand this paper: (a) how the Transformer works, and (b) how an LM-trained model can be used to evaluate the different NLP tasks.&lt;/p&gt;
+
+&lt;h4 id=&#34;the-transformer&#34;&gt;The Transformer&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://mchromiak.github.io/articles/2017/Sep/12/Transformer-Attention-is-all-you-need/#.WyH7hIrhXb0&#34; target=&#34;_blank&#34;&gt;This blog&lt;/a&gt; provides an extensive description of the model, originally proposed in &lt;a href=&#34;https://arxiv.org/pdf/1706.03762.pdf&#34; target=&#34;_blank&#34;&gt;this highly popular paper&lt;/a&gt; from last year. Here I will go over the salient features. For details, you can go through the linked blog post or the paper itself.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/20/transformer.png&#34; alt=&#34;Single layer of Encoder (left) and Decoder (right) that is build out of *N*=6 identical layers.&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The problem with RNN-based seq2seq models is that since they are sequential models, they cannot be parallelized. One possible solution that was proposed to remedy this involved the use of fully convolutional networks with positional embeddings, but it required O(nlogn) time to relate 2 words at some distance in the sentence. The Transformer solves this problem by completely doing away with convolutions or recurrence, and relying entirely upon self-attention.&lt;/p&gt;
+
+&lt;p&gt;In a simple &lt;em&gt;scalar dot-product attention&lt;/em&gt;, weight is computed by taking the dot product of the query (Q) and key (K). The weighted sum of all values V is then the required output. In contrast, in a &lt;em&gt;multihead attention&lt;/em&gt;, the input vector itself is divided into chunks and then the scalar dot-product attention is applied on each chunk in parallel. Finally, we compute the average of all the chunk outputs.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/20/multiatt.png&#34; alt=&#34;Multi-head attention architecture&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The final step consists of a position-wise FFN, which itself is a combination of 2 linear transformations and a ReLU for each position. The following GIF explains this process very effectively.&lt;/p&gt;
+
+&lt;p&gt;&lt;blockquote class=&#34;imgur-embed-pub&#34; lang=&#34;en&#34; data-id=&#34;a/GUwAEe9&#34;&gt;&lt;a href=&#34;//imgur.com/GUwAEe9&#34;&gt;Transformer&lt;/a&gt;&lt;/blockquote&gt;&lt;script async src=&#34;//s.imgur.com/min/embed.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;task-specific-input-transformations&#34;&gt;Task-specific input transformations&lt;/h4&gt;
+
+&lt;p&gt;The second novelty in the OpenAI paper is how they use the pretrained LM model on several NLP tasks.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;Textual entailment&lt;/em&gt;: The text (t) and the hypothesis (h) are cocatenated with a $ in between. This makes it naturally suitable for evaluation on an LM model.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Text similarity&lt;/em&gt;: Since the order is not important here, the texts are concatenated in both orders and then processed independently and added element-wise.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Question-answering and commonsense reasoning&lt;/em&gt;: The text, query, and answer option are concatenated with some differentiation symbol in between and each such sample is processed. They are then normalized via softmax to produce output distribution over possible answers.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The authors trained the Transformer LM on the Book Corpus dataset, and improved SOTA on 9 of the 12 tasks. While the results are indeed amazing, the analysis is not as extensive as that performed by Howard and Ruder, probably because the training required a month on 8 GPUs. This was even pointed out by &lt;a href=&#34;https://www.cs.bgu.ac.il/~yoavg/uni/&#34; target=&#34;_blank&#34;&gt;Yoav Goldberg&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;blockquote class=&#34;twitter-tweet&#34; data-lang=&#34;en&#34;&gt;&lt;p lang=&#34;en&#34; dir=&#34;ltr&#34;&gt;Strong empirical results, but I wish there was more focus on a proper comparison / controlled experiments. &lt;br&gt;&lt;br&gt;Is the improvement due to LSTM -&amp;gt; Transformer or due to Wiki-1B (single sents) -&amp;gt; BooksCorpus (longer context)? &lt;a href=&#34;https://t.co/L3WrJW3z12&#34;&gt;https://t.co/L3WrJW3z12&lt;/a&gt;&lt;/p&gt;&amp;mdash; (((λ()(λ() &amp;#39;yoav)))) (@yoavgo) &lt;a href=&#34;https://twitter.com/yoavgo/status/1006410113547108354?ref_src=twsrc%5Etfw&#34;&gt;June 12, 2018&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async src=&#34;https://platform.twitter.com/widgets.js&#34; charset=&#34;utf-8&#34;&gt;&lt;/script&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;deep-contextualized-word-representations-https-arxiv-org-pdf-1802-05365-pdf&#34;&gt;&lt;a href=&#34;https://arxiv.org/pdf/1802.05365.pdf&#34; target=&#34;_blank&#34;&gt;Deep Contextualized Word Representations&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;The motivation for this paper, which won the Best Paper award at NAACL’18, is that word embeddings should incorporate both word-level characteristics as well as contextual semantics.&lt;/p&gt;
+
+&lt;p&gt;The solution is very simple: instead of taking just the final layer of a deep bi-LSTM language model as the word representation, &lt;strong&gt;obtain the vectors of each of the internal functional states of every layer, and combine them in a weighted fashion&lt;/strong&gt; to get the final embeddings.&lt;/p&gt;
+
+&lt;p&gt;The intuition is that the higher level states of the bi-LSTM capture context, while the lower level captures syntax well. This is also shown empirically by comparing the performance of 1st layer and 2nd layer embeddings. While the 1st layer performs better on POS tagging, the 2nd layer achieves better accuracy for a word-sense disambiguation task.&lt;/p&gt;
+
+&lt;p&gt;For the initial representation, the authors chose to initialize with the embeddings obtained from a character CNN, so as to have character level morphological information incorporated in the embeddings. Finally for an $L$-layer bi-LSTM, $2L+1$ such vectors need to be combined to get the final representation, after performing some layer normalization.&lt;/p&gt;
+
+&lt;p&gt;In the empirical evalutation, the use of ELMo resulted in up to 25% relative increase in performance across several NLP tasks. Moreover, it improves sample efficiency considerably.&lt;/p&gt;
+
+&lt;p&gt;(Interestingly, a Google search revealed that this paper was first submitted at ICLR’18 but later withdrawn. I wonder why.)&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;As Jeremy Howard says, transfer learning is indeed the Next Big Thing in NLP, and these trend-setting papers demonstrate why. I am sure we will see a lot of development in this area in the days to come.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Evaluation Methods for Dialog Systems</title>
+      <link>https://desh2608.github.io/post/evaluation-methods-dialog-systems/</link>
+      <pubDate>Wed, 06 Jun 2018 13:42:04 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/evaluation-methods-dialog-systems/</guid>
+      <description>
+
+&lt;p&gt;Spoken Dialog Systems (SDS) have become very popular recently, especially for goal completion tasks on mobile devices. Also, with the increasing use of IoT devices and their associated assistants like Alexa, Google Home, etc., systems that can converse with users in natural language are set to be the primary mode of human-computer interaction in the coming years.&lt;/p&gt;
+
+&lt;p&gt;Early SDSs used to be extremely modular, with components such as automatic speech recognition, natural language understanding, dialog management, response generation, and speech synthesis, each trained separately and then combined. For the last few years, especially after neural models gained popularity in language models and machine translation, researchers are slowly but surely moving towards more end-to-end approaches. Very recently, most of the dialog systems proposed in conferences all seem to be built around reinforcement learning frameworks.&lt;/p&gt;
+
+&lt;p&gt;Although they are critical in industry, SDSs have traditionally been notoriously difficult to evaluate. This is because any evaluation strategy associated with them needs to have at least the following features.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;It should provide an estimate of how well the goal is met.&lt;/li&gt;
+&lt;li&gt;It should allow for comparative judgement of different systems.&lt;/li&gt;
+&lt;li&gt;It should (ideally) identify factors that can be improved.&lt;/li&gt;
+&lt;li&gt;It should discover trade-offs or correlations between factors.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For a long time, the most prominent evaluation scheme for SDSs was &lt;strong&gt;PARADISE&lt;/strong&gt; (&lt;a href=&#34;http://www.aclweb.org/anthology/P97-1035&#34; target=&#34;_blank&#34;&gt;Walker’97&lt;/a&gt;), developed at AT&amp;amp;T labs.&lt;/p&gt;
+
+&lt;h3 id=&#34;paradise-paradigm-for-dialog-system-evalutation&#34;&gt;PARADISE: PARAdigm for DIalog System Evalutation&lt;/h3&gt;
+
+&lt;p&gt;The Paradise scheme comprises of 2 objectives:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;What does the agent accomplish?&lt;/strong&gt; i.e., task completion&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;How is it accomplished?&lt;/strong&gt; i.e., agent behavior&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/19/paradise.png&#34; alt=&#34;Paradise’s structure of objectives&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For quantifying these objectives, the task is represented in the form of an &lt;strong&gt;Attribute Value Matrix (AVM)&lt;/strong&gt;, which consists of the information that must be exchanged between the agent and the user during the dialogue, represented as a set of ordered pairs of attributes and their possible values. Essentially, this is a confusion matrix between attributes in the actual dialogue and attributes in the expected dialogue.&lt;/p&gt;
+
+&lt;p&gt;Once the AVM is available, the task completion success is computed by a metric $\kappa$ defined as&lt;/p&gt;
+
+&lt;p&gt;$$ \kappa = \frac{P(A)-P(E)}{1-P(E)} $$&lt;/p&gt;
+
+&lt;p&gt;where $P(A)$ is the proportion of times that the actual dialogue agrees with the scenario keys, and $P(E)$ is the expected proportion of times for the same. If $M$ is the matrix, then&lt;/p&gt;
+
+&lt;p&gt;$$ P(E) = \sum_{i=1}^n \left( \frac{t_i}{T} \right)^2 $$&lt;/p&gt;
+
+&lt;p&gt;where $t_i$ is the sum of frequencies in column $i$, and $T$ is the sum of frequencies in $M$. $P(A)$ is given as&lt;/p&gt;
+
+&lt;p&gt;$$ P(A) = \sum_{i=1}^n \frac{M(i,i)}{T} $$&lt;/p&gt;
+
+&lt;p&gt;Since $\kappa$ includes $P(E)$, it inherently includes the task complexity as well, thereby making it a better metric for task completion than, say, transaction success, concept accuracy, or percent agreement.&lt;/p&gt;
+
+&lt;p&gt;For measuring the second objective, i.e., agent behavior, all the AVM attributes are tagged with respective costs. Some examples of cost attributes are: number of user initiatives, mean word per turn, mean response time, number of missing/inappropriate responses, number of errors, etc. Thereafter, the final performance is defined as&lt;/p&gt;
+
+&lt;p&gt;$$ P = (\alpha \mathcal{N}(\kappa)) - \sum_{i=1}^n (w_i \mathcal{N}(c_i)) $$&lt;/p&gt;
+
+&lt;p&gt;Here, $\mathcal{N}$ is some Z-score normalization factor, such as simple normalization based on mean and standard deviation.&lt;/p&gt;
+
+&lt;p&gt;Although PARADISE was an important evaluation scheme for evaluating older statistical SDS models, I haven’t seen it used in any of the recent papers on the subject. A major factor for this is probably the choice of the regression coefficients (costs and coefficient for Kappa), which would greatly affect the performance statistic.&lt;/p&gt;
+
+&lt;h3 id=&#34;schemes-in-recent-papers&#34;&gt;Schemes in Recent Papers&lt;/h3&gt;
+
+&lt;p&gt;For the last couple years, most papers on SDSs propose end-to-end neural architectures. As such, they prefer an evaluation scheme based on a corpus of dialogues divided into training, validation, and development sets.&lt;/p&gt;
+
+&lt;h4 id=&#34;data-collection&#34;&gt;Data collection&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.mturk.com/&#34; target=&#34;_blank&#34;&gt;Amazon Mechanical Turk (MT)&lt;/a&gt;, which is a crowdsourcing website, is the most popular method for collecting data. &lt;a href=&#34;https://arxiv.org/pdf/1710.11277.pdf&#34; target=&#34;_blank&#34;&gt;Peng’17&lt;/a&gt;, &lt;a href=&#34;https://arxiv.org/pdf/1703.01008.pdf&#34; target=&#34;_blank&#34;&gt;Li’17&lt;/a&gt;, and &lt;a href=&#34;https://arxiv.org/pdf/1604.04562.pdf&#34; target=&#34;_blank&#34;&gt;Wen’16&lt;/a&gt; all use Amazon MT to source their training dialogue sets. Furthermore, the protocol used for this is usually the Wizard-of-Oz scheme.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;The Wizard-of-Oz protocol:&lt;/strong&gt; In this scheme, a user converses with an agent, which he believes is autonomous. However, there is actually a human in the loop (called a &amp;ldquo;wizard&amp;rdquo;) which controls some key features of the agent which require tuning. The protocol is implemented as follows.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A metric (e.g., task completion rate) is selected to serve as the objective function.&lt;/li&gt;
+&lt;li&gt;Some particular features, called the “repair strategy,” are varied to best match the desired performance claim for the metric.&lt;/li&gt;
+&lt;li&gt;All other input, output are kept constant through the interface.&lt;/li&gt;
+&lt;li&gt;The process is repeated using different wizards.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In &lt;a href=&#34;https://arxiv.org/pdf/1604.04562.pdf&#34; target=&#34;_blank&#34;&gt;Wen’16,&lt;/a&gt; the authors further expediated this protocol by parallelizing it on Amazon MT, such that there are multiple users and wizards working simultaneously on single-turn dialogues.&lt;/p&gt;
+
+&lt;p&gt;Task completion usually involved slot filling as an intermediate objective. As such, several &amp;ldquo;informable slots&amp;rdquo; (e.g., food, price range, area, for a restaurant search system) and &amp;ldquo;requestable slots&amp;rdquo;(e.g., address, phone, postal code) are identified. Users are provided with the keys for the informable slots and wizards are provided with keys for the requestable slots.&lt;/p&gt;
+
+&lt;p&gt;In some cases, like &lt;a href=&#34;https://arxiv.org/pdf/1805.11762.pdf&#34; target=&#34;_blank&#34;&gt;Liu’18&lt;/a&gt; and &lt;a href=&#34;https://arxiv.org/pdf/1710.11277.pdf&#34; target=&#34;_blank&#34;&gt;Peng’17,&lt;/a&gt; user simulators are also used to create such a corpus of dialogues. An implementation of such a system can be found &lt;a href=&#34;https://github.com/MiuLab/TC-Bot&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. For &lt;a href=&#34;https://arxiv.org/pdf/1805.11762.pdf&#34; target=&#34;_blank&#34;&gt;Liu’18,&lt;/a&gt; the authors further used a public dataset (&lt;a href=&#34;https://github.com/perezjln/dstc6-goal-oriented-end-to-end&#34; target=&#34;_blank&#34;&gt;DSTC&lt;/a&gt;) for corpus-based training.&lt;/p&gt;
+
+&lt;h4 id=&#34;automatic-evaluation&#34;&gt;Automatic evaluation&lt;/h4&gt;
+
+&lt;p&gt;Automatic evaluation metrices may be unsupervised or supervised in nature. &lt;a href=&#34;https://arxiv.org/pdf/1603.08023.pdf&#34; target=&#34;_blank&#34;&gt;Liu’17&lt;/a&gt; summarizes several unsupervised schemes for evaluation, and I list them here.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Word overlap based metrics&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;These include BLEU, ROUGE, and METEOR, and are inspired from machine translation tasks. I have previously described all of these metrics in &lt;a href=&#34;https://medium.com/explorations-in-language-and-learning/metrics-for-nlg-evaluation-c89b6a781054&#34; target=&#34;_blank&#34;&gt;another blog post&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Embedding based metrics&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;These are based on the word embeddings (skip-gram, GloVe, etc.) of the actual response and the expected response. Some of them are:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Greedy matching&lt;/li&gt;
+&lt;li&gt;Embedding average&lt;/li&gt;
+&lt;li&gt;Vector extrema&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Please refer to the linked paper for details of these metrics. They are conceptually very simple so I won’t describe them here.&lt;/p&gt;
+
+&lt;p&gt;A problem with both of these techniques is that they may only be suitable for task completion dialog systems, where there are only a few expected responses. Any open-world dialog will necessarily beat the metric, e.g.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;User: Do you want to watch a movie today?&lt;/p&gt;
+
+&lt;p&gt;Gold-standard: Yeah, let’s catch the new Bond film.&lt;/p&gt;
+
+&lt;p&gt;Actual: No, I am busy with something.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;For this reason, several other metrics are employed, such as task success rate, average reward (+1 for each slot filled correctly), average number of turns, entity matching rate, prediction accuracy, etc.&lt;/p&gt;
+
+&lt;h4 id=&#34;human-evaluation&#34;&gt;Human evaluation&lt;/h4&gt;
+
+&lt;p&gt;Most importantly though, all researchers agree that human evaluation can never be replaced by automatic evaluation metrics. Usually, several human users are asked to test a trained system with goal-oriented dialogues, and at the end of the dialogue, they are asked to rate it on several criteria such as:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Task completion success&lt;/li&gt;
+&lt;li&gt;Comprehension&lt;/li&gt;
+&lt;li&gt;Naturalness&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To avoid extreme scores (due to bias etc.), inter-user agreement is calculated using the Kappa value, and only those users with $\kappa &amp;gt; 0.2$ are retained in the final measure. Their scores are then matched against scores from the automatic evaluations by computing correlation coefficients such as Spearman’s or Pearson’s (like in &lt;a href=&#34;https://arxiv.org/pdf/1603.08023.pdf&#34; target=&#34;_blank&#34;&gt;Liu’16&lt;/a&gt;).&lt;/p&gt;
+
+&lt;h3 id=&#34;key-takeaways&#34;&gt;Key Takeaways&lt;/h3&gt;
+
+&lt;p&gt;From this entire literature survey, I have extracted the following key points to note if you are working to build a task-oriented dialog system and want to evaluate it:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Choose one specific domain, e.g., restaurant search.&lt;/li&gt;
+&lt;li&gt;Use either &lt;a href=&#34;https://github.com/perezjln/dstc6-goal-oriented-end-to-end&#34; target=&#34;_blank&#34;&gt;DSTC&lt;/a&gt; (or an equivalent large corpus of dialogues), or use Amazon MT to create one for your task.&lt;/li&gt;
+&lt;li&gt;Train your model on the dataset created above.&lt;/li&gt;
+&lt;li&gt;Use a word overlap based and a few task completion based metrics for automatic evaluation statistics. Compare with at least a few popular neural baselines. RL frameworks with LSTMs are in vogue these days, I suppose.&lt;/li&gt;
+&lt;li&gt;Definitely do human evaluation for your method.&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>The 8 Commandments for Coding Your Research</title>
+      <link>https://desh2608.github.io/post/8-commandments-for-coding-research/</link>
+      <pubDate>Wed, 23 May 2018 13:41:50 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/8-commandments-for-coding-research/</guid>
+      <description>
+
+&lt;p&gt;This article is in a different flavor from the other posts in this publication. This is because I have been reading Roman Vershynin’s &amp;ldquo;High Dimensional Probability&amp;rdquo; for the last few days, and between that and visa formalities, I didn’t get a chance to check out new papers. I do plan to write an article on new methods for object detection (such as RCNN, Faster RCNN, and YOLO) sometime next month.&lt;/p&gt;
+
+&lt;p&gt;I have only been a researcher for a couple of years now but during this period I have gained valuable insights on how to structure a research project. When I started out with research back in 2016, I was too eager to obtain results, a mistake that most beginner researchers make. In my eagerness, I used to cut corners with my code structure and take several liberties, especially because there was no review process. I made several mistakes during the project (on relation classification: &lt;a href=&#34;https://github.com/desh2608/crnn-relation-classification&#34; target=&#34;_blank&#34;&gt;link to Github repo&lt;/a&gt;), some of which I list here:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Lack of planning:&lt;/strong&gt; I did not have a research plan to begin with, which showed in my code. It is true that in applied machine learning, much of the progress is dictated by experimental results, but a broad outline still helps. At the beginning, I just read papers, cloned their repositories, and ran them on my GPU. Sometimes this used to eat up a lot of precious time since some repositories had several dependencies.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Haphazard code format:&lt;/strong&gt; This stemmed from the first issue. Since I had not planned in advance, I would work with every dataset differently, depending upon how it was available. Some of the code would be in IPython notebooks, while some would be Shell scripts. I would use plain Tensorflow for some training and a Keras wrapper for others.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Not caring about reproducibility:&lt;/strong&gt; This is perhaps the biggest crime an ML researcher can commit. Although my code is legitimate and publicly available, I highly doubt that anyone could reproduce it (not easily, in any case). This is because at that time, all I cared about was getting a publication (which I did, in the end). I did not have a good README file, nor instructions on how to reproduce the results.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Based on these and several other mistakes, I have come up with some guidelines on how to write good code for a research project. I ascribe much of my learning to working on &lt;a href=&#34;https://github.com/waldo-seg/waldo&#34; target=&#34;_blank&#34;&gt;this project&lt;/a&gt; (which is only in its beginning phase) for the last few months. Here are the 8 commandments, along with examples in Python.&lt;/p&gt;
+
+&lt;h4 id=&#34;1-define-and-validate-data-types-at-the-outset&#34;&gt;1. Define and validate data types at the outset&lt;/h4&gt;
+
+&lt;p&gt;Define data structures which will hold your input and output data. Since Python allows using data structures without declaring them implicitly, this can be done by having validation functions which are invoked whenever the data structure is used. This would ensure that the structure is consistent throughout the project. An example of a data structure validation for an “object” type (which is a dict with just one key) is below.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;def validate_object(x):
+    &amp;quot;&amp;quot;&amp;quot;This function validates an object x that is supposed to represent an object inside an image, and throws an exception on failure. Specifically it is checking that:
+      x[&#39;polygon&#39;] is a list of &amp;gt;= 3 integer (x,y) pairs representing the corners of the polygon in clockwise or anticlockwise order.
+    &amp;quot;&amp;quot;&amp;quot;
+    if type(x) != dict:
+        raise ValueError(&#39;dict type input required.&#39;)
+
+    if &#39;polygon&#39; not in x:
+        raise ValueError(&#39;polygon object required.&#39;)
+
+    if not isinstance(x[&#39;polygon&#39;], (list,)):
+        raise ValueError(&#39;list type polygon object required.&#39;)
+
+    points_list = x[&#39;polygon&#39;]
+    if len(points_list) &amp;lt; 3:
+        raise ValueError(&#39;More than two points required.&#39;)
+
+    for x, y in points_list:
+        if type(x) != int or type(y) != int:
+            raise ValueError(&#39;integer (x,y) pairs required.&#39;)
+
+    return
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;2-write-data-loader-scripts-for-all-your-datasets&#34;&gt;2. Write data loader scripts for all your datasets&lt;/h4&gt;
+
+&lt;p&gt;Now that wehave common data structures to use with our model(s), we need to convert all our datasets to that format. There are 2 ways to achieve this:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Preprocess the dataset to the required structure and save in a serialized file (e.g. Pickle in Python).&lt;/li&gt;
+&lt;li&gt;Have a data loader class to read the dataset from source at the time of running and return in the desired format.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;em&gt;When should you use the second method?&lt;/em&gt; When the dataset itself is large, or we need to have several additional elements in the structure, such as mask data (for an image), or associate word vectors (for text data).&lt;/p&gt;
+
+&lt;p&gt;Additionally, if you have a decent processor and parallelizable script, the compute time in method 2 should be low enough such that the total runtime in 1 becomes larger due to greater I/O time.&lt;/p&gt;
+
+&lt;h4 id=&#34;3-put-common-methods-in-a-shared-library&#34;&gt;3. Put common methods in a shared library&lt;/h4&gt;
+
+&lt;p&gt;Since all the datasets are in a common structure, several transformation methods may be applicable to many of them. So it would make sense to have these methods in a global shared library and link to this library inside each of the local dataset directories. This achieves 2 things:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Reduces clutter and reduplication in the directory.&lt;/li&gt;
+&lt;li&gt;Allows for ease in making modifications to the shared functions.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;4-write-unit-tests-for-utility-functions&#34;&gt;4. Write unit tests for utility functions&lt;/h4&gt;
+
+&lt;p&gt;Instead of writing a test file and modifying it for testing the utility functions, it would be better to use the &lt;strong&gt;&lt;a href=&#34;https://docs.python.org/3/library/unittest.html&#34; target=&#34;_blank&#34;&gt;unittest&lt;/a&gt;&lt;/strong&gt; package in Python, or analogous packages in other languages. For example, in an object detection project, there may be utilities to visualize the object with a mask, or to compress the image. The unit test file may then look like this.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import unittest
+
+
+class ImageUtilsTest(unittest.TestCase):
+    &amp;quot;&amp;quot;&amp;quot;Testing image utilities: visualization and compression
+    &amp;quot;&amp;quot;&amp;quot;
+    def setUp(self):
+        &amp;quot;&amp;quot;&amp;quot;This method sets up objects for all the test cases.
+        &amp;quot;&amp;quot;&amp;quot;
+        &amp;lt;code for loading data&amp;gt;
+
+
+    def test_visualize_object(self):
+        &amp;quot;&amp;quot;&amp;quot;Given a dictionary object as follows
+        x[&#39;img&#39;]: numpy array of shape (height,width,colors)
+        x[&#39;mask&#39;]: numpy array of shape (height,width), with every element categorizing it into one of the object ids
+        The method generates an image overlaying a translucent mask on the image.
+        &amp;quot;&amp;quot;&amp;quot;
+        visualize_mask(self.test_object)
+
+
+    def test_compress_object(self):
+        &amp;quot;&amp;quot;&amp;quot;Given a dictionary object x, the method compresses the object and prints the original and compressed sizes.
+        It also asserts that the original size should be greater than the compressed size.
+        &amp;quot;&amp;quot;&amp;quot;
+        y = compress_image_with_mask(self.test_object,self.c)
+        x_mem = sys.getsizeof(self.test_object)
+        y_mem = sys.getsizeof(y)
+        self.assertTrue(y_mem &amp;lt;= x_mem)
+
+
+if __name__ == &#39;__main__&#39;:
+    unittest.main()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;5-prepare-installation-and-run-scripts&#34;&gt;5. Prepare installation and run scripts&lt;/h4&gt;
+
+&lt;p&gt;This is key for reproducibility. It is very arrogant to assume that readers would clone your repository, install several dependencies one by one, then download the datasets, preprocess the data using some script in your repo, and only then be able to start training. All of these steps can and should be automated using simple Bash shell scripts, so that the users can just run an &lt;strong&gt;install.sh&lt;/strong&gt; or a &lt;strong&gt;run.sh&lt;/strong&gt; file with certain parameters to get things done.&lt;/p&gt;
+
+&lt;p&gt;If you have built a small library providing some functionality, say a text classification library, it would be best if you package it and make it available for download via a manager such as &lt;strong&gt;pip&lt;/strong&gt; so that the package can be used directly in other projects.&lt;/p&gt;
+
+&lt;p&gt;In any case, installation and run instructions should be documented elaborately in a README file.&lt;/p&gt;
+
+&lt;h4 id=&#34;6-put-parameter-tuning-options-as-command-line-arguments&#34;&gt;6. Put parameter tuning options as command line arguments&lt;/h4&gt;
+
+&lt;p&gt;In continuation with #5, the user should never be expected to open your training script to tune hyperparameters, or provide path to data directories, or other similar stuff. Python has the &lt;strong&gt;argparse&lt;/strong&gt; library which facilitates parsing command line arguments, and it is insanely simple to use. Bash has the parser available by default and the arguments can be accessed using the numbered variables $0, $1, and so on. Similar functionalities are available for almost every programming language.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import argparse
+
+parser = argparse.ArgumentParser(description=&#39;Process some integers.&#39;)
+parser.add_argument(&#39;integers&#39;, metavar=&#39;N&#39;, type=int, nargs=&#39;+&#39;,
+                    help=&#39;an integer for the accumulator&#39;)
+parser.add_argument(&#39;--sum&#39;, dest=&#39;accumulate&#39;, action=&#39;store_const&#39;,
+                    const=sum, default=max,
+                    help=&#39;sum the integers (default: find the max)&#39;)
+
+args = parser.parse_args()
+print(args.accumulate(args.integers))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h4 id=&#34;7-have-a-defined-naming-convention-for-saved-models-and-result-files&#34;&gt;7. Have a defined naming convention for saved models and result files&lt;/h4&gt;
+
+&lt;p&gt;Your saved model and result file names should indicate the important hyperparameters that were used in that instance of training. This simplifies testing with several available models later during analysis.&lt;/p&gt;
+
+&lt;h4 id=&#34;8-get-your-code-reviewed-before-merging&#34;&gt;8. Get your code reviewed before merging&lt;/h4&gt;
+
+&lt;p&gt;I can’t stress this enough. Regardless of how sincere you have been in your coding, your commits would still be flawed in some way. Having a reviewer always helps, even if it is to point out some pep8 naming convention.&lt;/p&gt;
+
+&lt;p&gt;In my undergrad thesis project, I was the sole contributor, and so there used to be several weeks in which I didn’t push any code, arguing that it was all there in my local system anyway. I would think of Git as an additional time-consuming formality, instead of the immensely useful tool it is. Don’t make that mistake!&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;em&gt;I hope these guidelines are useful to some researcher who is just starting out on her first project. Yes, it would take some time to get used to following all these rules, but trust me, your research would only be the better for it in the long run!&lt;/em&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>An Introduction to Speech Recognition using WFSTs</title>
       <link>https://desh2608.github.io/post/intro-speech-recognition-wfst/</link>
       <pubDate>Mon, 23 Apr 2018 13:41:31 +0530</pubDate>
@@ -1028,403 +1452,6 @@ predict the original sentence $x$ using the encoder and decoder for L1. This tec
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;li id=&#34;fn:2&#34;&gt;Lample, Guillaume, Ludovic Denoyer, and Marc’Aurelio Ranzato. “&lt;a href=&#34;https://arxiv.org/abs/1711.00043&#34; target=&#34;_blank&#34;&gt;Unsupervised Machine Translation Using Monolingual Corpora Only&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1711.00043&lt;/em&gt;(2017).
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Beyond Euclidean Embeddings</title>
-      <link>https://desh2608.github.io/post/beyond-euclidean-embeddings/</link>
-      <pubDate>Wed, 06 Dec 2017 13:39:15 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/beyond-euclidean-embeddings/</guid>
-      <description>
-
-&lt;p&gt;Representation learning, as the name suggests, seeks to learn representations for structures such as images, videos, words, sentencences, graphs, etc., which may then be used for several objectives. Arguably the most important representations used nowadays are word embeddings, usually learnt using the distributional semantics methods such as skip-gram or GloVe. I have previously written about these methods &lt;a href=&#34;https://desh2608.github.io/post/understanding-word-vectors/&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Two assumptions are inherent while using these methods to learn word vectors:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;That words are best visualized as points in the $n$-dimensional space.&lt;/li&gt;
-&lt;li&gt;That the Euclidean distance or the Euclidean dot product are the best measures of similarity between words (or other structures for which the embeddings have been learnt).&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Over the last couple years, researchers have sought to challenge both of these assumptions by proposing several new non-Euclidean representations for words and graphs. Especially in the case of learning relational embeddings, the model should be able to learn all combinations of properties, namely reflexivity/irreflexivity, symmetry/anti-symmetry, and transitivity. Euclidean dot products are limited in that they cannot handle anti-symmetry, since dot products are commutative.&lt;/p&gt;
-
-&lt;p&gt;In this post, I will discuss 4 non-Euclidean embeddings: Gaussian, Holographic, Complex, and Poincare.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;word-representations-via-gaussian-embeddings&#34;&gt;Word representations via Gaussian embeddings&lt;/h4&gt;
-
-&lt;p&gt;The key idea in this ICLR ’15 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; is to map words to a density instead of a point. Density here is represented by a “potential function,” such as a Gaussian. The authors provide a nice recap of energy functions as a tool for learning word representations.&lt;/p&gt;
-
-&lt;p&gt;Essentially, any representation learning involves an energy function $E(x,y)$ which scores pairs of inputs and outputs. A loss function is then uses this energy function to quantify the difference between actual output and predicted output. In the case of skip-gram models, the energy function used is a dot product, and the loss function is a logistic regression. In this paper, the authors propose 2 kinds of energy functions (for symmetric and asymmetric similarity), and the loss function used is max margin as follows.&lt;/p&gt;
-
-&lt;p&gt;$$ L_m(w,c_p,c_n) = \max(0,m-E(w,c_p)+E(w,c_n)) $$&lt;/p&gt;
-
-&lt;p&gt;For a Gaussian distribution to model any word, a baseline approach may involve using the distribution around the word to compute and mean and variance. If a word $w$ occurs $N$ times in the corpus, the covariance of the distribution around $w$ is given as&lt;/p&gt;
-
-&lt;p&gt;$$ \sum_w = \frac{1}{NW}\sum_i^N \sum_j^W (c(w)_{ij})(c(w)_{ij}-w)^T $$&lt;/p&gt;
-
-&lt;p&gt;where W is the window size, and $w$ is the assumed mean. However, the distributions learned using this empirical approach do not possess some desired properties such as unsupervised entailment represented as inclusion between ellipsoids. To solve this, 2 energy functions are proposed.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Method 1: Symmetric similarity&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;This method just computes the inner product between the two distributions. It has been shown that the inner product of two normal distributions is again a normal distribution. Furthermore, we take the log of this value for two reasons. First, since we are dealing with ranking loss, taking the logarithm converts absolute values into relative values, which is easier to interpret. Second, it is numerically easier to deal with.&lt;/p&gt;
-
-&lt;p&gt;Furthermore, the energy function is shown to be of the form &lt;strong&gt;log det A + const&lt;/strong&gt;. We can interpret the constant term as a regularizer that prevents us from decreasing the distance by only increasing joint variance. This combination pushes the means together while encouraging them to have more concentrated, sharply peaked distributions in order to have high energy.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Method 2: Asymmetric similarity&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;This method computes the energy function as the negative of the KL-divergence between the 2 distributions (negative because the KL-divergence returns a distance value and hence needs to be minimized to increase similarity). A low KL divergence from $x$ to $y$ indicates that we can encode $y$ easily as $x$, implying that $y$ entails (logically follows from) $x$.&lt;/p&gt;
-
-&lt;p&gt;The authors have further computed the gradients for each of the two energy functions, and they are easily expressible in terms of existing means and covariances.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;poincare-embeddings-for-hierarchical-representations&#34;&gt;Poincare embeddings for hierarchical representations&lt;/h4&gt;
-
-&lt;p&gt;This paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; proposes embeddings in hyperbolic spaces, such as the Poincare sphere. Before we get into the method itself, I think it would be best to give a brief overview of hyperbolic geometry itself.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Hyperbolic geometry&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;In his book &lt;em&gt;Elements&lt;/em&gt;, Euclid provided a rigourous framework for axioms, theorems and postulates for all geometrical knowledge at the time. He stated 5 axioms which were to be assumed true. The first 4 were quite self-evident, and were:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Any two points can be connected by a line.&lt;/li&gt;
-&lt;li&gt;Any line segment can be extended indefinitely.&lt;/li&gt;
-&lt;li&gt;Given a line segment, a circle can be drawn with center at one of the endpoints and radius equal to the length of the segment.&lt;/li&gt;
-&lt;li&gt;Any two right angles are congruent.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;However, the fifth axiom, also known as Playfair’s axiom, is much less obvious.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;Playfair’s axiom&lt;/em&gt;: Given a line L and a point P, there exists at most one line through P that is parallel to L.&lt;/p&gt;
-
-&lt;p&gt;Euclid himself wasn’t very fond of this axiom and his first 28 postulates depended only on the first 4 axioms, which are the “core” of Euclidean geometry. Even 2000 years after his death, mathematicians tried to derive the fifth axiom from the first 4. While using “proof by contradiction” for this purpose, they assumed the negation of the fifth axiom (Given a line L and a point P not on L, there are at least two distinct lines that can be drawn through P that are parallel to L) and tried to arrive at a contradiction. However, while the derived results were strange and very different from those in Euclidean geometry, they were consistent within themselves. This was a turning point in mathematics as such a bifurcation in geometry had never been expected before. The geometry that arose from these explorations is known as &lt;em&gt;hyperbolic geometry&lt;/em&gt;.&lt;/p&gt;
-
-&lt;p&gt;With this knowledge, let us now look at how embeddings may be computed in this new model.&lt;/p&gt;
-
-&lt;p&gt;The Poincare sphere model of hyperbolic space is particularly suitable for representing hierarchies. Consider a knowledge base which can be visualized as a tree. For any branching factor &lt;em&gt;b&lt;/em&gt;, the number of leaf nodes increases exponentially as the number of levels increases. If we try to replicate this construction in a Euclidean disk(sphere), it would not be possible since the area(volume) of a disk(sphere) increases only quadratically(cubically) with increase in radius. This requires that we increase the number of dimensions exponentially.&lt;/p&gt;
-
-&lt;p&gt;However, the Poincare sphere embeds such hierarchies easily: nodes that are exactly $l$ levels below the root are placed on a sphere in hyperbolic space with radius $r \propto l$ and nodes that are less than $l$ levels below the root are located within this sphere. This type of construction is possible as hyperbolic disc area and circle length grow exponentially with their radius. In the paper, the authors used a sphere instead of disk since more degrees of freedom implies better representation of latent hierarchies.&lt;/p&gt;
-
-&lt;p&gt;Distances in the hyperbolic space are given as&lt;/p&gt;
-
-&lt;p&gt;$$ d(u,v) = arcosh\left( 1 + 2\frac{\lVert u-v \rVert^2}{(1-\lVert u \rVert)^2(1-\lVert v \rVert)^2} \right) $$&lt;/p&gt;
-
-&lt;p&gt;Here, hierarchy is represented using the norm of the embedding, while similarity is mirrored in the norm of vector difference. Furthermore, the function is differentiable, which is good for gradient descent.&lt;/p&gt;
-
-&lt;p&gt;For optimization, the update term is the learning rate times the Riemannian gradient of the parameter. The Riemannian gradient itself is computed by taking the product of the Poincare ball matrix inverse (which is trivial to compute) with the Euclidean gradient (which depends on the gradients of the distance function). The loss function used in the paper is a softmax with negative sampling.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;holographic-embeddings-for-knowledge-graphs&#34;&gt;Holographic embeddings for knowledge graphs&lt;/h4&gt;
-
-&lt;p&gt;This and the next method seek to learn embeddings for relations within knowledge graphs, and the motivation for both is to have embeddings that allow asymmetric relations to be sufficiently represented. To achieve said objective, this AAAI ’16 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; employs circular correlations, while the next paper from ICML ’16&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34;&gt;4&lt;/a&gt;&lt;/sup&gt; uses complex embeddings.&lt;/p&gt;
-
-&lt;p&gt;Before describing the method, I will first describe the task. Given a set $E$ of entities and a set $P$ of relation types, the objective is to learn a characteristic function for each relation type that determines whether that relation exists between any two elements in $E$. The entities are referred to as the &lt;em&gt;subject&lt;/em&gt; and the &lt;em&gt;object&lt;/em&gt;.&lt;/p&gt;
-
-&lt;p&gt;The general approach is to approximate the characteristic function using a function that takes as input the relation vector, and the vectors corresponding to the subject and the object. Using a loss function such as log likelihood minimization with negative sampling, we can tune the parameters that describe the entity vectors and the relation type vector. This is similar to our earlier discussion on energy function optimization.&lt;/p&gt;
-
-&lt;p&gt;The catch here is that the characteristic function is supposed to output a scalar score (the probability of the relation), but the inputs to it are vectors. To convert the input to a scalar, the entity vectors are combined using a composition operator &lt;strong&gt;o&lt;/strong&gt;(more on this later), and its dot product is taken with the relation type vector.&lt;/p&gt;
-
-&lt;p&gt;So the problem boils down to the choice of a good compositional operator. In the past, three different approaches have been taken for this problem.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;em&gt;Tensor product&lt;/em&gt;: Take the outer product of the entity vectors. However, the resulting vector contains the square of the initial number of parameters, which may cause problems such as overfitting down the line.&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;Concatenation, projection, and non-linearity&lt;/em&gt;: The projection matrix is learned during training. However, due to the absence of interaction between features, the representation learnt is not rich enough, even though non-linearity is added.&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;Non-compositional methods&lt;/em&gt;: In these approaches, the score is computed as the distance of the difference vector with the relation vector (e.g., TransE).&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Essentially, we want an operator which has cross-feature interactions without having the number of parameters explode. To this end, the authors propose the circular correlation operator, which is given as&lt;/p&gt;
-
-&lt;p&gt;$$ [a\cdot b]_k = \sum_{i=1}^{d-1}a_i b_{(k+i)\text{mod}d}. $$&lt;/p&gt;
-
-&lt;p&gt;The output contains as many parameters as the input vectors, while also capturing the interaction between the features. The function measures the covariance between embeddings at different dimension shifts, and the asymmetry stems from this circular correlation.&lt;/p&gt;
-
-&lt;p&gt;At this point, you may be wondering why a simple convolutional operator would not suffice. The answer is that convolution is a commutative function, while correlation is not. Again, the key lies in symmetry (or the lack of it)!&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;complex-embeddings-for-link-prediction&#34;&gt;Complex embeddings for link prediction&lt;/h4&gt;
-
-&lt;p&gt;In the objective of predicting relations described earlier, we can think of the characteristic function as a function which takes as input a latent matrix &lt;strong&gt;X&lt;/strong&gt; of scores and outputs the corresponding probability. This latent matrix is an $E \times E$ matrix since it contains the scores for every possible pair of entities. However, since the number of entitites may be very large, the problem we want to solve is that of matrix factorization.&lt;/p&gt;
-
-&lt;p&gt;This is similar to the singular value decomposition method for learning word vectors that I discussed in an earlier blog post. If we assume that an entity has only one unique representation, regardless of whether it occurs as subject or object, the matrix X can be factorized as&lt;/p&gt;
-
-&lt;p&gt;$$ X = EWE^{-1} $$&lt;/p&gt;
-
-&lt;p&gt;Since the entity vectors are complex in nature ($u$ = Re($u$) + $i$Im($u$)), the matrix factorization of $X$ may be either real or complex. But since the characteristic function returns a real output, we define $X$ as the Real part of the factorization. Now, our original objective is to learn $P(Y=1)$ for every $s-o$ pair, and we are trying to approximate this using the latent matrix $X$. In the case of binary relations (yes/no), $Y$ is essentially a sign matrix, and hence it is safe to assume that its “sign-rank” is low.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;But what is a “sign-rank”?&lt;/em&gt; It refers to the smallest rank of a real matrix having the same sign pattern as $Y$. The authors showed in an earlier paper that if the sign rank of $Y$ is low, the rank of Re($EWE^T$) is at most twice that of $Y$. While this is a good upper bound, the actual rank is often much lower than the rank of $Y$.&lt;/p&gt;
-
-&lt;p&gt;In the case of multi-relational data, each relation has a representation $w$ associated with it. The characteristic function then takes as input the relation type along with the subject and object, and computes the score based on a novel scoring function. This function has the following property: if $w$ is real, the characteristic function is symmetric, and if $w$ is imaginary, then it is anti-symmetric.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;While Euclidean embeddings are popular, they are in no way sufficient to represent all the complexities and hierarchies in language. These methods suggest that looking at non-Euclidean spaces for representation learning may be the way to go.&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:1&#34;&gt;Vilnis, Luke, and Andrew McCallum. “&lt;a href=&#34;https://arxiv.org/pdf/1412.6623.pdf&#34; target=&#34;_blank&#34;&gt;Word representations via gaussian embedding&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1412.6623&lt;/em&gt;(2014).
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:2&#34;&gt;Nickel, Maximilian, and Douwe Kiela. “&lt;a href=&#34;https://arxiv.org/pdf/1705.08039.pdf&#34; target=&#34;_blank&#34;&gt;Poincare Embeddings for Learning Hierarchical Representations&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1705.08039&lt;/em&gt; (2017).
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:3&#34;&gt;Nickel, Maximilian, Lorenzo Rosasco, and Tomaso A. Poggio. “&lt;a href=&#34;https://arxiv.org/pdf/1510.04935.pdf&#34; target=&#34;_blank&#34;&gt;Holographic Embeddings of Knowledge Graphs&lt;/a&gt;.” &lt;em&gt;AAAI&lt;/em&gt;. 2016.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:4&#34;&gt;Trouillon, Théo, et al. “&lt;a href=&#34;http://proceedings.mlr.press/v48/trouillon16.pdf&#34; target=&#34;_blank&#34;&gt;Complex embeddings for simple link prediction&lt;/a&gt;.” &lt;em&gt;International Conference on Machine Learning&lt;/em&gt;. 2016.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:4&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Deep Learning for Multimodal Systems</title>
-      <link>https://desh2608.github.io/post/deep-learning-multimodal-systems/</link>
-      <pubDate>Thu, 09 Nov 2017 13:38:58 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/deep-learning-multimodal-systems/</guid>
-      <description>
-
-&lt;p&gt;When I was browsing through research groups for my grad school applications, I came across some interesting applications of new deep learning methods in a multimodal setting. ‘Multimodal,’ as the name suggests, refers to any system involving two or more modes of input or output. For example, an image captioning system provides images as input and expects a textual output. Similarly, speech-to-text, descriptive art, video summarization, etc., are all examples of multimodal objectives. In this article, I will discuss 3 recent papers from &lt;a href=&#34;http://www.cs.unc.edu/~mbansal/&#34; target=&#34;_blank&#34;&gt;Mohit Bansal&lt;/a&gt; (who joined UNC last year), based on album summarization, video
-captioning, and image captioning (with a twist).&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;creating-a-story-from-an-album&#34;&gt;Creating a story from an album&lt;/h4&gt;
-
-&lt;p&gt;Given an album containing several images (which may or may not be similar), the task of Visual Storytelling is to generate a natural language story describing the album. In this EMNLP ’17 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;, the task is decomposed into 3 steps:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;em&gt;Album encoder&lt;/em&gt;: Encode the individual photos in the album to form photo vectors&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;Photo selector&lt;/em&gt;: Select a small number of representative photos.&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;Story generator&lt;/em&gt;: Compose a coherent story from the selected photo vectors.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/7/storytelling.png&#34; alt=&#34;Architecture of the Visual Storytelling system. Image taken from original paper&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;For each of these three components, the paper uses a hierarchically-attentive RNN. The first component is similar to an embedding layer in a text classification setting, wherein a lookup table assigns some pretrained vectors to each word and then an RNN is applied to add sentence-level information to each word vector. In a similar fashion in this paper, the initial embeddings for each image are obtained using a pretrained ResNet101 layer, and then a bidirectional RNN with GRU cells is used to add information pertaining to the entire album in every image embedding.&lt;/p&gt;
-
-&lt;p&gt;In the Photo Selector stage, the selection is treated as a latent variable since we only have end-to-end ground truth labels. As such, we use soft attention to output $t$ probability distributions over all the images in the album, where $t$ is the number of summary images required, i.e., each image has $t$ probabilities associated with it. For this purpose, a GRU takes the previous $p$ and the previous hidden state &lt;em&gt;h&lt;/em&gt; as input and outputs the next hidden state. We use a multilayer perceptron with sigmoid activation to fuse the hidden state with the photo vector and obtain the soft attention for the particular image.&lt;/p&gt;
-
-&lt;p&gt;$$ h_t = GRU_{select}(p_{t-1},h_{t-1}) \\\ p(y_{a_i}(t)=1) = \sigma(MLP([h_t,v_i])) $$&lt;/p&gt;
-
-&lt;p&gt;Finally, we can obtain $t$ weighted album representations by taking the weighted sum of the photo vectors with the corresponding probability distributions. Each of these vectors is then used to decode a single sentence. For this purpose, a GRU takes the joint input of the album vector at step $t$, the previous word embedding, and the previous hidden state, and outputs the next hidden state. We repeat this for $t$ steps, thus obtaining the required album summary.&lt;/p&gt;
-
-&lt;p&gt;How do we define loss in such a setting? First, since we already know the correct summary sentences, we can define a &lt;em&gt;generation loss&lt;/em&gt; which is simply the sum of negative log likelihoods of the correct words. However, in addition to the words being similar, the story should be temporally coherent, i.e., the sentences themselves should be in a specific order. For this purpose, we apply a max-margin ranking loss as:&lt;/p&gt;
-
-&lt;p&gt;$$ h_t = GRU_{select}(p_{t-1},h_{t-1}) \\\ p(y_{a_i}(t)=1) = \sigma(MLP([h_t,v_i])) $$&lt;/p&gt;
-
-&lt;p&gt;The total loss is just a linear combination of these two losses. This provides a framework for end-to-end training for the system.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;captioning-videos-using-multi-task-learning&#34;&gt;Captioning videos using multi-task learning&lt;/h4&gt;
-
-&lt;p&gt;It seems multitask learning was under the spotlight in ACL ’17. Two semantic parsing papers I discussed in &lt;a href=&#34;https://desh2608.github.io/post/trends-in-semantic-parsing-2/&#34; target=&#34;_blank&#34;&gt;yesterday’s blog&lt;/a&gt; were both based on this paradigm, and so is this one.&lt;/p&gt;
-
-&lt;p&gt;At this point, I would like to clarify the difference between transfer learning and multitask learning by quoting directly from &lt;a href=&#34;https://www.researchgate.net/post/What_is_the_difference_between_Multi-task_Learning_and_Transfer_Learning&#34; target=&#34;_blank&#34;&gt;this answer&lt;/a&gt; on ResearchGate:&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;Multi-task learning can be seen as one type of transfer learning, where the information to transfer is some inner representation/substructure of the models under consideration, or the relevant features for a prediction, and where all
-the target tasks use the same data samples, but predict different target
-features for these (e.g. Part Of Speech tagging and Named Entity Recognition for
-natural language processing tasks).&lt;/p&gt;
-
-&lt;p&gt;Transfer Learning, on the other hand, would be the very general problem setting, where the “what” to transfer (representation, model substructures, data samples, parameter priors, …), the concurrency of learning (one or multiple target tasks using one or multiple source tasks, or learning several tasks jointly), the differences in domain (same data or different samples, samples from same or different/related distribution, same or partially different input features) and prediction problem (same target feature or different target features/tasks, same conditional or different/related conditional) are characteristics identifying the subclass of transfer learning problem, and maybe the approach taken to address this problem.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;A more formal definition can be found &lt;a href=&#34;https://stats.stackexchange.com/questions/255025/difference-between-multitask-learning-and-transfer-learning&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. Essentially in multitask learning, all the tasks are learnt simultaneously, whereas in transfer learning, the knowledge from one task is used in another. Now that the terminology is clear, let us look at the tasks and the model used.&lt;/p&gt;
-
-&lt;p&gt;The objective in this paper is video captioning, and the co-learnt tasks are video prediction and language entailment generation. It is arguably difficult to obtain large amounts of annotated data for a video prediction task, and hence learning from other tasks is especially relevant in this context.&lt;/p&gt;
-
-&lt;p&gt;Video prediction refers to the task of predicting the next frame in a video given a sequence of frames. Recognizing textual entailment (RTE), means identifying the logical relationship between two sentences, i.e., whether a premise and hypothesis follow entailment, contradiction, or independence. Knowledge transfer from a video prediction setting helps the model learn the temporal flow of information in a video, while learning from an RTE setting helps it in logically infering a caption from the video. This is the rationale behind using these tasks for the multi-task learning framework.&lt;/p&gt;
-
-&lt;p&gt;The overall architecture of the system is given below.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/7/captioning.png&#34; alt=&#34;Architecture of video captioning system. Image taken from paper&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;For each subsystem, the paper uses a simple attention-based bidirectional LSTM for the encoding and decoding purposes. This is a fine example of how a simple sequence-to-sequence block can be leveraged in different settings to perform interesting tasks.&lt;/p&gt;
-
-&lt;h4 id=&#34;puns-in-image-captions&#34;&gt;Puns in image captions&lt;/h4&gt;
-
-&lt;p&gt;Humor is difficult to capture or create in general. Heterographic homophones (words with different spelling but similar sound) are often used by cartoonists to add subtext to illustrations.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/7/puns.jpg&#34; alt=&#34;Heterographic homophone used for humor in a comic. Taken from http://cartoonsbyjim.com&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;In this paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;, the authors have proposed 2 different methods to generate “punny” captions for images, namely a Generation model, and a Retrieval model.&lt;/p&gt;
-
-&lt;p&gt;The Generation model works as follows:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;The first step is &lt;em&gt;tagging&lt;/em&gt;. We identify the top 5 objects in the given image using an Inception-ResNet-v2 model trained on ImageNet. We also get the words from a simple caption generated for the image using a Show-and-Tell architecture. The objects and the words together are considered as tags for pun generation.&lt;/li&gt;
-&lt;li&gt;We then generate a vocabulary of puns by mining the web and selecting all pairs of words with an edit distance of 0 based on articulatory features.&lt;/li&gt;
-&lt;li&gt;From this pun vocabulary, we filter those puns where at least one of the homophones is related to the image in question.&lt;/li&gt;
-&lt;li&gt;During the caption generation, at specific time steps, the model is forced to produce a phonological counterpart of a pun word associated with the image. The decoder generates next words based on all previously generated words.&lt;/li&gt;
-&lt;li&gt;To solve the issue of non-grammatical sentences due to puns later in the sentence, two models are trained to decode the image in both forward and reverse directions.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/7/generation.png&#34; alt=&#34;Architecture of the Generation model. Image taken from paper&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The Retrieval model, on the other hand, tries to find relevant captions from a prebuilt corpus of captions. This is an entirely deterministic model which requires two conditions to be satisfied:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;The caption must contain the counterpart of the pun word present in the image so that incongruity is attained.&lt;/li&gt;
-&lt;li&gt;The caption must be contextually relevant to the image, i.e., it must contain at least one of the &amp;ldquo;tagged&amp;rdquo; words that we found earlier.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Finally, the captions obtained from both models are pooled together and ranked by taking their log-probability score with respect to the original caption generated from the simple image captioning model. Non-maximal suppression is applied to remove captions which are similar to a higher-ranked caption, and the top 3 such obtained are retained.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;From these examples of multimodal systems, we see that simple sequence-to-sequence models work satsifactorily if used in conjuction with intelligent frameworks such as multitask learning or transfer learning, as is the trend in recent days. A cool thing is that reading about the various transfer learning approaches for this and the previous post has helped me come up with a new solution for a project that I have been working on. More on that later!&lt;/p&gt;
-
-&lt;p&gt;Conference on Empirical Methods in Natural Language Processing*. 2017.&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:1&#34;&gt;Yu, Licheng, Mohit Bansal, and Tamara Berg. “&lt;a href=&#34;https://arxiv.org/pdf/1708.02977.pdf&#34; target=&#34;_blank&#34;&gt;Hierarchically-Attentive RNN for Album Summarization and Storytelling&lt;/a&gt;.” *Proceedings of the 2017
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:3&#34;&gt;Chandrasekaran, Arjun, Devi Parikh, and Mohit Bansal. “&lt;a href=&#34;https://arxiv.org/pdf/1704.08224.pdf&#34; target=&#34;_blank&#34;&gt;Punny Captions: Witty Wordplay in Image Descriptions&lt;/a&gt;.”  &lt;em&gt;arXiv preprint arXiv:1704.08224&lt;/em&gt; (2017).
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Trends in Semantic Parsing - Part 2</title>
-      <link>https://desh2608.github.io/post/trends-in-semantic-parsing-2/</link>
-      <pubDate>Wed, 08 Nov 2017 13:38:39 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/trends-in-semantic-parsing-2/</guid>
-      <description>
-
-&lt;p&gt;In &lt;em&gt;&lt;a href=&#34;https://desh2608.github.io/post/trends-in-semantic-parsing-1/&#34; target=&#34;_blank&#34;&gt;Part 1&lt;/a&gt;&lt;/em&gt; of this two-part series, I discussed some supervised approaches for the objective. In this part, we will look at some unsupervised or semi-supervised approaches, namely a Bayesian model, and transfer learning.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;an-unsupervised-bayesian-model&#34;&gt;An unsupervised Bayesian model&lt;/h4&gt;
-
-&lt;p&gt;This paper was published in ACL 2011&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;, back when statistical methods were still being used for NLP tasks. But with the recent forays into generative models, I feel it has again become relevant to understand how such methods worked. The task of frame semantic parsing can be broken down into 3 independent steps:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Decompose the sentence into lexical items.&lt;/li&gt;
-&lt;li&gt;Divide these items into clusters and assign a label to each cluster.&lt;/li&gt;
-&lt;li&gt;Predict argument-predicate relations between clusters.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Frames essentially refer to a semantic representation of predicates (such as verbs), and their arguments are represented as clusters. For sake of convenience, we refer both of these structures as semantic classes. For example, in the sentences:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;[India] &lt;strong&gt;defeated&lt;/strong&gt; [England].&lt;/li&gt;
-&lt;li&gt;[The Indian team] &lt;strong&gt;secured a victory&lt;/strong&gt; over the [English cricket team].&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Here, ‘defeated’ and ‘secured a victory’ both belong to the frame WINNING, while ‘India’ and ‘Indian team’ are grouped into the cluster labeled WINNER.&lt;/p&gt;
-
-&lt;p&gt;The authors proposed a generative algorithm which makes use of statistical processes to model semantic parsing. We can summarize the model as follows, for a particular sentence:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;The distribution of semantic classes is given by a hierarchical Pitman-Yor process, i.e.,&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;$$ \theta_{root} = PY(\alpha_{root},\beta_{root},\gamma). $$&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;We start with obtaining the semantic class for the root of the tree from the probability distribution which is a sample drawn from the above Pitman-Yor process.&lt;/li&gt;
-&lt;li&gt;Once the root is obtained, we call the function GenSemClass on this root.&lt;/li&gt;
-&lt;li&gt;Since the current root only has a semantic class, we obtain its syntactic realization from a distribution over all possible syntactic realizations, which is given as a Dirichlet Process with the arguments as the base word and a prior.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;$$ \phi_c = DP(w^{&amp;copy;},H^{&amp;copy;}) $$&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Essentially, the base word $w$ is obtained from a geometric distribution, and the subsequent words are obtained by computing the conditional probability of dependency relation $r$ given $w$, and the next word $p$ given $r$.&lt;/li&gt;
-&lt;li&gt;For each argument type $t$, if the probability of having at least 1 argument of type $t$ is non-zero, we generate an argument of that type using function GenArgument, until that probability becomes 0.&lt;/li&gt;
-&lt;li&gt;The GenArgument function again computes the base argument from the distribution of syntactic realizations, and then obtains the next semantic class again from the hierarchical PY process.&lt;/li&gt;
-&lt;li&gt;We then recursively call the GenSemClass function on this new class.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;This is the essence of the algorithm. Basically we get a semantic frame from the PY process, and then generate the corresponding syntax from a Dirichlet process. This is done recursively, hence the need for a hierarchical PY process. For the details of the stochastic processes, you can look at their Wikipedia pages. For the root level parameters, a stick-breaking construction is used, but I am yet to look into the details of this method. However, I suppose this is similar to the broken-stick technique used to estimate the number of eigenvalues to retain in a principal component analysis.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;transfer-learning&#34;&gt;Transfer learning&lt;/h4&gt;
-
-&lt;p&gt;There were two recent papers in ACL 2017&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;,&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; which used some kind of multi-task or transfer learning approach in a neural framework for semantic parsing.&lt;/p&gt;
-
-&lt;p&gt;The first of these papers from Markus Dreyer at Amazon uses the popular sequence-to-sequence model developed for machine translation at Google. The sentence is first encoded into an intermediate vector representation using and encoder, and then decoded into an embedding representation for the parse tree. Popular encoders and decoders are stacked bidirectional LSTM layers, usually with some attention mechanism.&lt;/p&gt;
-
-&lt;p&gt;Once the parse tree embedding has been obtained, the task remains to generate the actual parse tree. For this, the authors have described a COPY-WRITE mechanism. While reading the output embedding at each step, the model has 2 options:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;COPY: This copies 1 symbol from the input to the output.&lt;/li&gt;
-&lt;li&gt;WRITE: This selects one symbol from the vocabulary of all possible outputs.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;A final softmax layer generates a probability distribution over both of these choices, such that the probability of choosing WRITE at any step is proportional to an exponential over the output vector at that step, and that for choosing COPY is proportional to an exponential over a non-linear function of the intermediate representation and the output vector (i.e., the encoded and decoded vectors). The authors further describe 3 ways to extend this method in a multi-task setting:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;One-to-many&lt;/em&gt;: In this, the encoder is shared but each task has its own decoder and attention parameters.&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;One-to-one&lt;/em&gt;: The entire sequence is shared, with an added token at the beginning to identify the task.&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;One-to-shareMany&lt;/em&gt;: This also has a shared encoder and decoder, but the final layer is independent for each task. In this way, a large number of parameters can be shared among tasks while still keeping them sufficiently distinct. Empirically, this model was found to perform best among the three.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;The second paper is from &lt;a href=&#34;https://homes.cs.washington.edu/~nasmith/&#34; target=&#34;_blank&#34;&gt;Noah Smith&lt;/a&gt;’s group at Washington. As with the previous paper, I will first describe the basic model and then explain how it is extended in a multi-task setting.&lt;/p&gt;
-
-&lt;p&gt;Given a sentence $x$, and a set of all possible semantic graphs for that sentence $Y(x)$, we want to compute&lt;/p&gt;
-
-&lt;p&gt;$$ \hat{y} = \text{arg}\min_{y \in Y(x)} S(x,y),~~~~ \text{where } S(x,y) = \sum_{p\in y}s(p),$$&lt;/p&gt;
-
-&lt;p&gt;i.e., the scoring function $S$ is a sum of local scores, each of which is itself a parametrized function of some local feature. In this paper, these features are taken to be the following 3 constructs (first order logic):&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Predicate&lt;/li&gt;
-&lt;li&gt;Unlabeled arc&lt;/li&gt;
-&lt;li&gt;Labeled arc&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;The model is given in the following diagram taken from the paper.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/6/multitask.png&#34; alt=&#34;Basic architecture. Figure taken from the original paper&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;For the 2 input words, we first obtain vectors using a bi-LSTM layer, and these are then fed into multilayer perceptrons (MLPs) corresponding to each of the three local feature constructs mentioned above. Each first-order structure is itself associated with a vector (shown in red). The scoring function $s(p)$ is simply the dot product of the MLPs output and the first-order vector.&lt;/p&gt;
-
-&lt;p&gt;The cost function is a max-margin objective with a regularization parameter and a sum over individual losses given as&lt;/p&gt;
-
-&lt;p&gt;$$ L(x_i,y_i,\theta) = \max_{y\in Y(x_i)} S(x_i,y) + c(y,y_i) - S(x_i,y_i). $$&lt;/p&gt;
-
-&lt;p&gt;Here, $y_i$ is the gold label output and $y$ is the obtained output, while $c$ is the weighted Hamming distance between the two outputs.&lt;/p&gt;
-
-&lt;p&gt;Once this basic architecture is in place, the authors describe 2 method to extend it with transfer learning. The tasks here are 3 different formalisms in semantic dependency parsing (Delph-in MRS, Predicate-Argument Structure, and Prague Semantic Dependencies), so that each of these require a different variation of the output form. In the first method, the representation is shared among all tasks but the scoring is done separately. This further has variants wherein we can either have a single common bi-LSTM for all tasks, or a concatenation of independent and common layers.&lt;/p&gt;
-
-&lt;p&gt;The second method describes a joint technique to perform representation and inference learning across all the tasks simultaneously. The description is mathematically involved but intuitively simple, since we are just expressing the inner product in the scoring function in a higher dimension. You can look at the original paper for details and notation.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;With this, we come to the end of this series on semantic parsing. Since a lot of models are common between different objectives, these methods are highly relevant across any NLP task, especially with a shift from supervised to unsupervised techniques. While writing this article, I have been thinking of ways of adapting the generative model from the Bayesian paper to a neural architecture, and I might read up more about this in the coming weeks. Till then, keep “learning”!&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:1&#34;&gt;Titov, Ivan, and Alexandre Klementiev. “&lt;a href=&#34;http://klementiev.org/publications/acl11.pdf&#34; target=&#34;_blank&#34;&gt;A Bayesian model for unsupervised semantic parsing&lt;/a&gt;.” &lt;em&gt;Proceedings of the 49th Annual Meeting of the Association for Computational Linguistics: Human Language Technologies-Volume 1&lt;/em&gt;. Association for Computational Linguistics, 2011.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:2&#34;&gt;Fan, Xing, et al. “&lt;a href=&#34;https://arxiv.org/pdf/1706.04326.pdf&#34; target=&#34;_blank&#34;&gt;Transfer Learning for Neural Semantic Parsing&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1706.04326&lt;/em&gt; (2017).
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:3&#34;&gt;Peng, Hao, Sam Thomson, and Noah A. Smith. “&lt;a href=&#34;https://arxiv.org/pdf/1704.06855.pdf&#34; target=&#34;_blank&#34;&gt;Deep Multitask Learning for Semantic Dependency Parsing&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1704.06855&lt;/em&gt; (2017).
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
 </description>

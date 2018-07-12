@@ -14,6 +14,33 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/post/transfer-learning-nlp/</loc>
+      <lastmod>2018-06-15T13:42:18+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/post/evaluation-methods-dialog-systems/</loc>
+      <lastmod>2018-06-06T13:42:04+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/post/8-commandments-for-coding-research/</loc>
+      <lastmod>2018-05-23T13:41:50+05:30</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/post/intro-speech-recognition-wfst/</loc>
       <lastmod>2018-04-23T13:41:31+05:30</lastmod>
     </url>
@@ -389,6 +416,16 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/tags/dialog-system/</loc>
+      <lastmod>2018-06-06T13:42:04+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/tags/fuzzy/</loc>
       <lastmod>2018-01-15T15:02:35+05:30</lastmod>
       <priority>0</priority>
@@ -499,6 +536,16 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/tags/research/</loc>
+      <lastmod>2018-05-23T13:41:50+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/tags/semantic-parsing/</loc>
       <lastmod>2017-11-08T13:38:39+05:30</lastmod>
       <priority>0</priority>
@@ -531,6 +578,16 @@
     
       <loc>https://desh2608.github.io/tags/text-classification/</loc>
       <lastmod>2017-10-02T12:49:14+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/tags/transfer-learning/</loc>
+      <lastmod>2018-06-15T13:42:18+05:30</lastmod>
       <priority>0</priority>
     </url>
     

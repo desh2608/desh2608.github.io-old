@@ -23,6 +23,15 @@
     </item>
     
     <item>
+      <title>Transfer Learning in NLP</title>
+      <link>https://desh2608.github.io/post/transfer-learning-nlp/</link>
+      <pubDate>Fri, 15 Jun 2018 13:42:18 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/transfer-learning-nlp/</guid>
+      <description>Transfer learning is undoubtedly the new (well, relatively anyway) hot thing in deep learning right now. In vision, it has been in practice for some time now, with people using models trained to learn features from the huge ImageNet dataset, and then training it further on smaller data for different tasks. In NLP, though, transfer learning was mostly limited to the use of pretrained word embeddings (which, to be fair, improved baselines significantly).</description>
+    </item>
+    
+    <item>
       <title>Irony detection in tweets</title>
       <link>https://desh2608.github.io/project/irony-tweet/</link>
       <pubDate>Tue, 20 Mar 2018 17:00:16 +0530</pubDate>

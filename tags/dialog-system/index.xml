@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Dialog system on Desh Raj</title>
+    <link>https://desh2608.github.io/tags/dialog-system/</link>
+    <description>Recent content in Dialog system on Desh Raj</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&amp;copy; 2018</copyright>
+    <lastBuildDate>Wed, 06 Jun 2018 13:42:04 +0530</lastBuildDate>
+    
+	<atom:link href="https://desh2608.github.io/tags/dialog-system/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Evaluation Methods for Dialog Systems</title>
+      <link>https://desh2608.github.io/post/evaluation-methods-dialog-systems/</link>
+      <pubDate>Wed, 06 Jun 2018 13:42:04 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/evaluation-methods-dialog-systems/</guid>
+      <description>Spoken Dialog Systems (SDS) have become very popular recently, especially for goal completion tasks on mobile devices. Also, with the increasing use of IoT devices and their associated assistants like Alexa, Google Home, etc., systems that can converse with users in natural language are set to be the primary mode of human-computer interaction in the coming years.
+Early SDSs used to be extremely modular, with components such as automatic speech recognition, natural language understanding, dialog management, response generation, and speech synthesis, each trained separately and then combined.</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -13,6 +13,34 @@
     
     
     <item>
+      <title>Transfer Learning in NLP</title>
+      <link>https://desh2608.github.io/post/transfer-learning-nlp/</link>
+      <pubDate>Fri, 15 Jun 2018 13:42:18 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/transfer-learning-nlp/</guid>
+      <description>Transfer learning is undoubtedly the new (well, relatively anyway) hot thing in deep learning right now. In vision, it has been in practice for some time now, with people using models trained to learn features from the huge ImageNet dataset, and then training it further on smaller data for different tasks. In NLP, though, transfer learning was mostly limited to the use of pretrained word embeddings (which, to be fair, improved baselines significantly).</description>
+    </item>
+    
+    <item>
+      <title>Evaluation Methods for Dialog Systems</title>
+      <link>https://desh2608.github.io/post/evaluation-methods-dialog-systems/</link>
+      <pubDate>Wed, 06 Jun 2018 13:42:04 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/evaluation-methods-dialog-systems/</guid>
+      <description>Spoken Dialog Systems (SDS) have become very popular recently, especially for goal completion tasks on mobile devices. Also, with the increasing use of IoT devices and their associated assistants like Alexa, Google Home, etc., systems that can converse with users in natural language are set to be the primary mode of human-computer interaction in the coming years.
+Early SDSs used to be extremely modular, with components such as automatic speech recognition, natural language understanding, dialog management, response generation, and speech synthesis, each trained separately and then combined.</description>
+    </item>
+    
+    <item>
+      <title>The 8 Commandments for Coding Your Research</title>
+      <link>https://desh2608.github.io/post/8-commandments-for-coding-research/</link>
+      <pubDate>Wed, 23 May 2018 13:41:50 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/8-commandments-for-coding-research/</guid>
+      <description>This article is in a different flavor from the other posts in this publication. This is because I have been reading Roman Vershynin’s &amp;ldquo;High Dimensional Probability&amp;rdquo; for the last few days, and between that and visa formalities, I didn’t get a chance to check out new papers. I do plan to write an article on new methods for object detection (such as RCNN, Faster RCNN, and YOLO) sometime next month.</description>
+    </item>
+    
+    <item>
       <title>An Introduction to Speech Recognition using WFSTs</title>
       <link>https://desh2608.github.io/post/intro-speech-recognition-wfst/</link>
       <pubDate>Mon, 23 Apr 2018 13:41:31 +0530</pubDate>
