@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.42.2" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="I only just got around to watching the ICML 2018 tutorial on &ldquo;Toward a Theory for Deep Learning&rdquo; by Prof. Sanjeev Arora. In this and the next few posts, I will discuss the subject in some detail, including the referenced papers and blogs. Very conveniently, the talk itself was divided into 5 parts, and I will structure this series accordingly.
+At the outset, we should understand that a number of important concepts in deep learning are already shaped by optimization theory.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/deep-learning-theory-1/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/deep-learning-theory-1/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/deep-learning-theory-1/">
+  <meta property="og:title" content="Theory of Deep Learning: Optimization | Desh Raj">
+  <meta property="og:description" content="I only just got around to watching the ICML 2018 tutorial on &ldquo;Toward a Theory for Deep Learning&rdquo; by Prof. Sanjeev Arora. In this and the next few posts, I will discuss the subject in some detail, including the referenced papers and blogs. Very conveniently, the talk itself was divided into 5 parts, and I will structure this series accordingly.
+At the outset, we should understand that a number of important concepts in deep learning are already shaped by optimization theory.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2018-07-26T11:15:18&#43;05:30">
+  
+  <meta property="article:modified_time" content="2018-07-26T11:15:18&#43;05:30">
+  
+
+  
+  
+
+  <title>Theory of Deep Learning: Optimization | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Theory of Deep Learning: Optimization</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2018-07-26 11:15:18 &#43;0530 IST" itemprop="datePublished dateModified">
+      Jul 26, 2018
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    11 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/deep-learning-theory-1/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Theory%20of%20Deep%20Learning%3a%20Optimization&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-1%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-1%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-1%2f&amp;title=Theory%20of%20Deep%20Learning%3a%20Optimization"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-1%2f&amp;title=Theory%20of%20Deep%20Learning%3a%20Optimization"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Theory%20of%20Deep%20Learning%3a%20Optimization&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-1%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p>I only just got around to watching the ICML 2018 tutorial on &ldquo;<a href="http://unsupervised.cs.princeton.edu/deeplearningtutorial.html" target="_blank">Toward a Theory for Deep Learning</a>&rdquo; by <a href="https://www.cs.princeton.edu/~arora/" target="_blank">Prof. Sanjeev Arora</a>. In this and the next few posts, I will discuss the subject in some detail, including the referenced papers and blogs. Very conveniently, the talk itself was divided into 5 parts, and I will structure this series accordingly.</p>
+
+<p>At the outset, we should understand that a number of important concepts in deep learning are already shaped by optimization theory. Backpropagation, for instance, is basically just a linear time dynamic programming algorithm to compute gradient. Recent methods for gradient descent, such as momentum, Adagrad, etc. (see <a href="https://desh2608.github.io/post/short-note-sgd-algorithms/" target="_blank">this post</a> for a quick overview) are obtained from convex optimization techniques. However, over the last decade, the deep learning community has come up with several models based on intuition mostly, that do not have any theoretical support yet.</p>
+
+<blockquote>
+<p>The goal, then, is to find theorems that support these intuitions, leading to new insights and concepts.</p>
+</blockquote>
+
+<p>In this first part of the series, we will try to understand why (and how) deep learning almost always finds decent solutions to problems that are highly nonconvex.</p>
+
+<h3 id="possible-goals-for-optimization">Possible goals for optimization</h3>
+
+<p>Any neural network essentially tries to minimize a loss function. However, in almost all cases, this loss function is highly nonconvex (and sometimes NP-hard), which means that no provably polytime algorithm exists for its optimization. Even so, deep networks are quite adept at finding an approximately good solution.</p>
+
+<p>Whenever the gradient $\nabla$ is non-zero, there exists a descent direction. As such, a possible goal for the network may be any of the following (in increasing order of difficulty):</p>
+
+<ol>
+<li>Finding a critical point, i.e. $\nabla = 0$.</li>
+<li>Finding a local optimum, i.e. $\nabla = 0$ and $\nabla^2$ is positive semi-definite.</li>
+<li>Finding a global optimum.</li>
+</ol>
+
+<p>Furthermore, this descent may be from several possible initializations, namely all points, random points, or specially-chosen points. Now, if there are $d$ parameters (weights) to be optimized, we say that the problem is in $\mathbb{R}^d$ space. It is usually visualized by the following sea-urchin figure (or a $d$-urchin figure, according to Prof. Arora).</p>
+
+<p><img src="/img/21/high-dim-space.png" alt="" /></p>
+
+<p>In $\mathbb{R}^d$ space, there exit exp($d$) directions which can be explored to find the optimal solution, which makes the naive approach infeasible. Also, we cannot use non black box approaches to prune the number of explorations, since there is no clean mathematical formulation for the problem.</p>
+
+<p><em>But what does this mean?</em> This means that problems in deep learning are usually of the kind where, given pixels of an image, you have to label it as a cat or a dog. Such an $(x_i,y_i)$ has no mathematical meaning. This means that we do not understand the inherent landscape of the problem we are trying to solve, and so no special pruning can be done.</p>
+
+<p>This, combined with the nonconvex nature of the loss function, also means that it becomes infeasible to find a global optimum for the optimization problem. As such, we have to settle for goals 1 and 2, i.e. a critical point or a local optimum.</p>
+
+<hr />
+
+<h3 id="finding-critical-points">Finding critical points</h3>
+
+<p>The update function for a parameter $\theta$ is given as</p>
+
+<p>$$ \theta_{t+1} = \theta_t - \eta \nabla f(\theta_t) $$</p>
+
+<p>If the second derivative $\nabla^2$ is high, $\nabla f(\theta_t)$ will vary a lot, and we may miss the actual critical point. To prevent this, it is advisable to take <em>small</em> steps.</p>
+
+<p>But how do we quantify small? In other words, <em>how do we determine a good learning rate for the optimization problem</em>? For this, we again look at $\nabla^2$, which will determine the smoothness of the function. Suppose there exists a $\beta$ such that the Hessian $-\beta I \leq \nabla^2 f(\theta) \leq \beta I$, where $I$ is the identity matrix. Essentially, a higher $\beta$ means that $\nabla^2$ varies more, and so the learning rate should be lower. From this understanding, we can prove the following claim.</p>
+
+<blockquote>
+<p><strong>Claim (<a href="https://rd.springer.com/book/10.1007%2F978-1-4419-8853-9" target="_blank">Nesterov 1998</a>):</strong> If we choose $\eta = \frac{1}{2\beta}$, we can achieve $|\nabla f|&lt;\epsilon$ in number of steps proportional to $\frac{\beta}{\epsilon^2}$.</p>
+</blockquote>
+
+<p><strong>Proof:</strong> First, let us define <em>smoothness</em> as given <a href="https://ee227c.github.io/notes/ee227c-notes.pdf" target="_blank">here</a> (see Definition 2.7). A continuously differentiable (i.e. first and second derivatives exist) is $\beta$-smooth if the gradient is $\beta$-Lipschitz, i.e.</p>
+
+<p>$$ \lVert \nabla f(x) - \nabla f(y) \rVert \leq \beta \lVert x - y \rVert. $$</p>
+
+<p>Now, taking $z = y - \frac{1}{2\beta}(\nabla f(y) - \nabla f(x))$, we can write</p>
+
+<p>$$ \begin{align} f(x) - f(y) &amp;= f(x) - f(z) + f(z) - f(y) \\\ &amp;\leq \nabla f(x)^T (x-z) + \nabla f(y)^T (y-z) \\\ &amp;= \nabla f(x)^T (x-y) + (\nabla f(x) - \nabla f(y))^T(y-z) \\\ &amp;= \nabla f(x)^T (x-y) + (\nabla f(x) - \nabla f(y))^T (\frac{1}{2\beta}(\nabla f(y) - \nabla f(x))) \\\ &amp;=  \nabla f(x)^T (x-y) - \frac{1}{2\beta}\lVert \nabla f(x) - \nabla f(y) \rVert^2 \\\ &amp;\leq \nabla f(x)^T (x-y) - \frac{\beta}{2}\lVert x-y \rVert^2 \end{align} $$</p>
+
+<p>Here, the inequality in the second step comes from the property of convex functions, in the fourth step we have substituted $z$, and in the final step we have used the definition of $\beta$-Lipschitz. Reversing the sign of the inequality, we get</p>
+
+<p>$$ f(x) - f(y) \geq -\nabla f(x)^T (y-x) - \frac{\beta}{2}\lVert x-y \rVert^2. $$</p>
+
+<p>Now, take $x = \theta_t$ and $y = \theta_{t+1}$ to get</p>
+
+<p>$$ \begin{align} f(\theta_t) - f(\theta_{t+1}) &amp;\geq -\nabla f(\theta_t)(\theta_{t+1} - \theta_t) - \frac{\beta}{2}\lVert \theta_t - \theta_{t+1} \rVert^2 \\\ &amp;= \eta |\nabla_t|^2 - \frac{1}{2}\beta\eta^2 |\nabla_t|^2 = \frac{1}{2\beta}|\nabla_t|^2. \end{align} $$</p>
+
+<p>So a single update reduces the function value by at least $\frac{\epsilon^2}{2\beta}$. Therefore, it would take $\mathcal{O}(\frac{\beta}{\epsilon^2})$ steps to arrive at a critical point.</p>
+
+<h4 id="evading-saddle-points">Evading saddle points</h4>
+
+<p>While we have a theoretical upper limit for the time taken for convergence at a critical point, this is still problematic since it may be a saddle point, i.e., the function value is minimum in $d-1$ directions but maximum in one direction. Such a surface literally looks like a saddle as follows.</p>
+
+<p><img src="/img/21/saddle-point.png" alt="Saddle point" /></p>
+
+<p>An important question, then, is how to evade saddle points while looking for critical points. This question is explored in a series of papers and corresponding blog posts on <a href="www.offconvex.org" target="_blank">Prof. Arora&rsquo;s blog</a>.</p>
+
+<ol>
+<li><a href="http://www.offconvex.org/2016/03/22/saddlepoints/" target="_blank">Polynomial time guarantee for GD to escape saddle points</a> (based on <a href="http://proceedings.mlr.press/v40/Ge15.pdf" target="_blank">this paper</a>)</li>
+<li><a href="http://www.offconvex.org/2016/03/24/saddles-again/" target="_blank">Random initialization for asymptotically avoiding saddle points</a> (based on <a href="https://arxiv.org/pdf/1602.04915.pdf" target="_blank">this paper</a>)</li>
+<li><a href="http://www.offconvex.org/2017/07/19/saddle-efficiency/" target="_blank">Perturbing gradient descent</a> (based on <a href="https://arxiv.org/pdf/1703.00887.pdf" target="_blank">this paper</a>)</li>
+</ol>
+
+<p>Here I will try to summarize these discussions in several bullet points.</p>
+
+<ul>
+<li><p><em>Most learning problems have exponentially many saddle points.</em> Learning problems usually involve searching for $k$ components, for example clustering, $k$-node hidden layer in a neural network, etc. Suppose $(x_1,x_2,\ldots,x_k)$ is an optimal solution. Then, $(x_2,x_1,\ldots,x_k)$ is also an optimal solution, but the mean of these is not an optimal solution. This suffices to show that the learning problem is nonconvex, since for a convex function, the average of optimal solutions is also optimal. Furthermore, we can keep swapping the $k$ components to obtain exponential optimal solutions. Saddle points lie on the paths joining these isolated solutions, and hence, are exponential in number themselves.</p></li>
+
+<li><p><em>Hessians can be used to evade saddle points.</em> Consider the second order Taylor expansion given below. If there exists a direction where $\frac{1}{2}(y-x)^T \nabla^2 f(x)(y-x)$ is significantly less than 0, then using this update rule can avoid saddle points. Such saddle points are called &ldquo;strict,&rdquo; and for these, methods such as trust region algorithms and cubic regularization can find the local optimum.</p></li>
+</ul>
+
+<p>$$ f(y) = f(x) + &lt;\nabla f(x), y-x&gt; + \frac{1}{2}(y-x)^T \nabla^2 f(x)(y-x) $$</p>
+
+<ul>
+<li><p><em>Noisy gradient descent converges to local optimum in polynomial number of steps.</em> Although the Hessian method provides a theoretical way to escape saddle points, the computation of $\nabla^2$ is still expensive. Suppose we put a ball on a saddle point. Then, giving it only a slight push will move it away from the saddle. This intuition leads to the notion of &ldquo;noisy&rdquo; GD, i.e., $y = x - \eta \nabla f(x) + \epsilon$, where $\epsilon$ is a zero-mean error, which is often cheaper to compute than the true gradient. The authors in also prove the theorem in <a href="http://proceedings.mlr.press/v40/Ge15.pdf" target="_blank">the paper</a>, but it is very non-trivial.</p></li>
+
+<li><p><em>It is hard to converge to a saddle point.</em> Furthermore, a random initialization of GD will asymptotically converge to a local minimum, rather than other stationary points. In (2), <a href="http://people.eecs.berkeley.edu/~brecht/" target="_blank">Ben Recht</a> emphasized that &ldquo;even simple algorithms like gradient descent with constant step sizes can’t converge to saddle points unless you try really hard.&rdquo; To prove this, they use the Stable Manifold Theorem, taking $x^{\ast}$ to be an arbitrary saddle point and showing that this measure was <em>always</em> zero.</p></li>
+</ul>
+
+<blockquote>
+<p>The Stable Manifold theorem is concerned with fixed point operations of the form $x^{(k+1)}=\psi(x^{(k)})$. It quantifies that the set of points that locally converge to a fixed point $x^{\ast}$ of such an iteration have measure zero whenever the Jacobian of $\psi$ at $x^{\ast}$ has eigenvalues bigger than 1.</p>
+</blockquote>
+
+<p>In fact, it has been <a href="https://www.math.upenn.edu/~pemantle/papers/nonconvergence.pdf" target="_blank">shown long back</a> that additive Gaussian noise is sufficient to prevent convergence to saddles, without even assuming the &ldquo;strictness&rdquo; criteria of (1).</p>
+
+<p>Now that it is clear that GD can avoid saddle points almost certainly, it remains to be seen whether it is <em>efficient</em> in doing so. The paper (1), although it did show a poly-time convergence for the noisy GD, was still inefficient because its polynomial dependency on the dimension $n$ and the smallest eigenvalue of the Hessian are impractical. The paper (3) further improves this aspect of the problem.</p>
+
+<ul>
+<li><p><em>A perturbed form of GD, under an additional Hessian-Lipschitz condition, converges to a second-order stationary point in almost the same time required for GD to converge to a first-order stationary point.</em> Furthermore, the dimensional dependence is only polynomial in $\log(d)$.</p></li>
+
+<li><p>Finally, recent work definitely shows that <em>PGD is much better than GD with random initialization</em>, since the latter can be slowed down by saddle points, taking exponential time to escape. This is because if there are a sequence of closely-spaced saddle points, GD gets closer to the later ones, and takes $e^i$ iterations to escape the $i^{th}$ saddle point. PGD, on the other hand, escapes each saddle point in a small number of steps regardless of history.</p></li>
+</ul>
+
+<p><strong>Summary:</strong> Although most learning problems have exponentially many saddle points, they are hard to converge to, and even random initializations can escape them. They take a long time for this escape though, which is why using perturbations is more efficient, and actually as efficient as GD for first-order stationary points. Therefore, using information from Hessians is not necessary to escape saddle points efficiently.</p>
+
+<hr />
+
+<h3 id="second-order-methods-for-local-optimum">Second-order methods for local optimum</h3>
+
+<p>Although we have established that Hessians are unnecessary for finding the local optimum, it would still be enlightening to look at some approaches for the same.</p>
+
+<p><a href="https://arxiv.org/pdf/1602.03943.pdf" target="_blank">Agarwal et. al &lsquo;17</a> proposed LiSSA, or Linear (time) Stochastic Second-order Algorithm. The basic update rule is</p>
+
+<p>$$ x_{t+1} = x_t - \eta [\nabla^2 f(x)]^{-1}\nabla f(x), $$</p>
+
+<p>i.e. the gradient is scaled by the inverse of the Hessian, which intuitively makes sense as discussed earlier. Although backpropagation can compute the Hessian itself in linear time, we require the inverse. In this paper, the LiSSA algorithm uses the idea that $(\nabla^2)^{-1} = \sum_{i=1}^{\infty}(I - \nabla^2)^i$, but with finite truncation.</p>
+
+<p><a href="https://arxiv.org/pdf/1611.00756.pdf" target="_blank">Carmon et al. &lsquo;17</a> further improved upon the $\mathcal{O}(\frac{1}{\epsilon^2})$ guarantee provided by gradient descent for $\epsilon$-first-order convergence, without any need for Hessian computation. They use two competing techniques for this purpose. The first has already been discussed above:</p>
+
+<blockquote>
+<p>If the problem is locally non-convex, the Hessian must have a negative eigenvalue. In this case, under the assumption that the Hessian is Lipschitz continuous, moving in the direction of the corresponding eigenvector must make progress on the objective.</p>
+</blockquote>
+
+<p>The second technique is more novel. They show that if the Hessian&rsquo;s smallest eigenvalue is at least $-\gamma$, we can apply <a href="https://web.stanford.edu/~boyd/papers/pdf/prox_algs.pdf" target="_blank">proximal point techniques</a> and accelerated gradient descent to a carefully constructed regularized problem to obtain a faster running time.</p>
+
+<p>While their approach is asymptotically faster than first-order methods, it is still empirically slower. Furthermore, it doesn&rsquo;t seem to find better quality neural networks in practice.</p>
+
+<hr />
+
+<h3 id="understanding-the-landscape-matrix-completion">Understanding the landscape: Matrix completion</h3>
+
+<p>Very early on in this post, we established that in deep learning problems, the landscape is unknown, i.e. the problem does not have a meaningful mathematical formulation. In this vein, we now look at a <a href="https://arxiv.org/pdf/1704.00708.pdf" target="_blank">paper</a> that develops a new framework to capture the landscape. In particular, we will approach this problem in the context of matrix completion. (Interestingly, this paper is again from <a href="https://users.cs.duke.edu/~rongge/index.html" target="_blank">Rong Ge</a>, who first showed polytime convergence to local minimum for noisy GD.)</p>
+
+<p>But first, what is matrix completion. Matrix completion is a learning problem wherein the objective is to recover a low-rank matrix from partially observed entries. The mathematical formulation of the problem is:</p>
+
+<p>$$ \min_{X} \text(rank)(X) \quad \text{subject to} \quad X_{ij} = M_{ij} ~~ \forall i,j \in E $$</p>
+
+<p>where $E$ is the set of observed entries. Most approaches to solve this problem represent it in the form of the following nonconvex objective.</p>
+
+<p>$$ f(X) = \frac{1}{2}\sum_{i,j\in E}[M_{i,j}-(XX^T)_{i,j}]^2 +R(X) $$</p>
+
+<p>Here, $R(X)$ is a regularization term which ensures that no single row of $X$ becomes too large, otherwise most observed entries will be 0.</p>
+
+<p>Ge showed in <a href="https://arxiv.org/pdf/1605.07272.pdf" target="_blank">an earlier paper</a> that in case of matrix completion (others have shown the same result for other problems like tensor decomposition and dictionary learning), all local minima are also global minima.</p>
+
+<blockquote>
+<p>For matrix completion, all local minima are also global minima.</p>
+</blockquote>
+
+<p>In the present paper, the authors proposed the new insight that for the case of the matrix completion objective as defined above, the function $f$ is quadratic in $X$, which means that its Hessian w.r.t $X$ is constant. Furthermore, any saddle point has at least one strictly negative eigenvalue in its Hessian. Together, these ensure that simple local search algorithms can find the desired low rank matrix from an arbitrary starting point in polynomial time with high probability.</p>
+
+<p>These advances, while mathematically involved, show that characterizing the various stationary points of the learning objective can be helpful in providing theoretical guarantees for learning algorithms. While I have avoided proof details for the several important theorems here, I will try to understand and explain them lucidly in some later post.</p>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/deep-learning/">deep learning</a>
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/learning-theory/">learning theory</a>
+  
+</div>
+
+
+
+
+    
+    
+    <div class="article-widget">
+      <div class="hr-light"></div>
+      <h3>Related</h3>
+      <ul>
+        
+        <li><a href="/project/waldo-ocr/">Waldo: A system for optical character recognition</a></li>
+        
+        <li><a href="/project/irony-tweet/">Irony detection in tweets</a></li>
+        
+        <li><a href="/post/intro-learning-theory-2/">Introduction to Learning Theory - Part 2</a></li>
+        
+        <li><a href="/post/intro-learning-theory-1/">Introduction to Learning Theory - Part 1</a></li>
+        
+        <li><a href="/post/unsupervised-approaches-for-nmt/">Unsupervised Approaches for NMT</a></li>
+        
+      </ul>
+    </div>
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "desh2608-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//desh2608-github-io.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+

@@ -11,6 +11,176 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Theory of Deep Learning: Optimization</title>
+      <link>https://desh2608.github.io/post/deep-learning-theory-1/</link>
+      <pubDate>Thu, 26 Jul 2018 11:15:18 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/deep-learning-theory-1/</guid>
+      <description>
+
+&lt;p&gt;I only just got around to watching the ICML 2018 tutorial on &amp;ldquo;&lt;a href=&#34;http://unsupervised.cs.princeton.edu/deeplearningtutorial.html&#34; target=&#34;_blank&#34;&gt;Toward a Theory for Deep Learning&lt;/a&gt;&amp;rdquo; by &lt;a href=&#34;https://www.cs.princeton.edu/~arora/&#34; target=&#34;_blank&#34;&gt;Prof. Sanjeev Arora&lt;/a&gt;. In this and the next few posts, I will discuss the subject in some detail, including the referenced papers and blogs. Very conveniently, the talk itself was divided into 5 parts, and I will structure this series accordingly.&lt;/p&gt;
+
+&lt;p&gt;At the outset, we should understand that a number of important concepts in deep learning are already shaped by optimization theory. Backpropagation, for instance, is basically just a linear time dynamic programming algorithm to compute gradient. Recent methods for gradient descent, such as momentum, Adagrad, etc. (see &lt;a href=&#34;https://desh2608.github.io/post/short-note-sgd-algorithms/&#34; target=&#34;_blank&#34;&gt;this post&lt;/a&gt; for a quick overview) are obtained from convex optimization techniques. However, over the last decade, the deep learning community has come up with several models based on intuition mostly, that do not have any theoretical support yet.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;The goal, then, is to find theorems that support these intuitions, leading to new insights and concepts.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In this first part of the series, we will try to understand why (and how) deep learning almost always finds decent solutions to problems that are highly nonconvex.&lt;/p&gt;
+
+&lt;h3 id=&#34;possible-goals-for-optimization&#34;&gt;Possible goals for optimization&lt;/h3&gt;
+
+&lt;p&gt;Any neural network essentially tries to minimize a loss function. However, in almost all cases, this loss function is highly nonconvex (and sometimes NP-hard), which means that no provably polytime algorithm exists for its optimization. Even so, deep networks are quite adept at finding an approximately good solution.&lt;/p&gt;
+
+&lt;p&gt;Whenever the gradient $\nabla$ is non-zero, there exists a descent direction. As such, a possible goal for the network may be any of the following (in increasing order of difficulty):&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Finding a critical point, i.e. $\nabla = 0$.&lt;/li&gt;
+&lt;li&gt;Finding a local optimum, i.e. $\nabla = 0$ and $\nabla^2$ is positive semi-definite.&lt;/li&gt;
+&lt;li&gt;Finding a global optimum.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Furthermore, this descent may be from several possible initializations, namely all points, random points, or specially-chosen points. Now, if there are $d$ parameters (weights) to be optimized, we say that the problem is in $\mathbb{R}^d$ space. It is usually visualized by the following sea-urchin figure (or a $d$-urchin figure, according to Prof. Arora).&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/21/high-dim-space.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In $\mathbb{R}^d$ space, there exit exp($d$) directions which can be explored to find the optimal solution, which makes the naive approach infeasible. Also, we cannot use non black box approaches to prune the number of explorations, since there is no clean mathematical formulation for the problem.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;But what does this mean?&lt;/em&gt; This means that problems in deep learning are usually of the kind where, given pixels of an image, you have to label it as a cat or a dog. Such an $(x_i,y_i)$ has no mathematical meaning. This means that we do not understand the inherent landscape of the problem we are trying to solve, and so no special pruning can be done.&lt;/p&gt;
+
+&lt;p&gt;This, combined with the nonconvex nature of the loss function, also means that it becomes infeasible to find a global optimum for the optimization problem. As such, we have to settle for goals 1 and 2, i.e. a critical point or a local optimum.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;finding-critical-points&#34;&gt;Finding critical points&lt;/h3&gt;
+
+&lt;p&gt;The update function for a parameter $\theta$ is given as&lt;/p&gt;
+
+&lt;p&gt;$$ \theta_{t+1} = \theta_t - \eta \nabla f(\theta_t) $$&lt;/p&gt;
+
+&lt;p&gt;If the second derivative $\nabla^2$ is high, $\nabla f(\theta_t)$ will vary a lot, and we may miss the actual critical point. To prevent this, it is advisable to take &lt;em&gt;small&lt;/em&gt; steps.&lt;/p&gt;
+
+&lt;p&gt;But how do we quantify small? In other words, &lt;em&gt;how do we determine a good learning rate for the optimization problem&lt;/em&gt;? For this, we again look at $\nabla^2$, which will determine the smoothness of the function. Suppose there exists a $\beta$ such that the Hessian $-\beta I \leq \nabla^2 f(\theta) \leq \beta I$, where $I$ is the identity matrix. Essentially, a higher $\beta$ means that $\nabla^2$ varies more, and so the learning rate should be lower. From this understanding, we can prove the following claim.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Claim (&lt;a href=&#34;https://rd.springer.com/book/10.1007%2F978-1-4419-8853-9&#34; target=&#34;_blank&#34;&gt;Nesterov 1998&lt;/a&gt;):&lt;/strong&gt; If we choose $\eta = \frac{1}{2\beta}$, we can achieve $|\nabla f|&amp;lt;\epsilon$ in number of steps proportional to $\frac{\beta}{\epsilon^2}$.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;strong&gt;Proof:&lt;/strong&gt; First, let us define &lt;em&gt;smoothness&lt;/em&gt; as given &lt;a href=&#34;https://ee227c.github.io/notes/ee227c-notes.pdf&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; (see Definition 2.7). A continuously differentiable (i.e. first and second derivatives exist) is $\beta$-smooth if the gradient is $\beta$-Lipschitz, i.e.&lt;/p&gt;
+
+&lt;p&gt;$$ \lVert \nabla f(x) - \nabla f(y) \rVert \leq \beta \lVert x - y \rVert. $$&lt;/p&gt;
+
+&lt;p&gt;Now, taking $z = y - \frac{1}{2\beta}(\nabla f(y) - \nabla f(x))$, we can write&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} f(x) - f(y) &amp;amp;= f(x) - f(z) + f(z) - f(y) \\\ &amp;amp;\leq \nabla f(x)^T (x-z) + \nabla f(y)^T (y-z) \\\ &amp;amp;= \nabla f(x)^T (x-y) + (\nabla f(x) - \nabla f(y))^T(y-z) \\\ &amp;amp;= \nabla f(x)^T (x-y) + (\nabla f(x) - \nabla f(y))^T (\frac{1}{2\beta}(\nabla f(y) - \nabla f(x))) \\\ &amp;amp;=  \nabla f(x)^T (x-y) - \frac{1}{2\beta}\lVert \nabla f(x) - \nabla f(y) \rVert^2 \\\ &amp;amp;\leq \nabla f(x)^T (x-y) - \frac{\beta}{2}\lVert x-y \rVert^2 \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;Here, the inequality in the second step comes from the property of convex functions, in the fourth step we have substituted $z$, and in the final step we have used the definition of $\beta$-Lipschitz. Reversing the sign of the inequality, we get&lt;/p&gt;
+
+&lt;p&gt;$$ f(x) - f(y) \geq -\nabla f(x)^T (y-x) - \frac{\beta}{2}\lVert x-y \rVert^2. $$&lt;/p&gt;
+
+&lt;p&gt;Now, take $x = \theta_t$ and $y = \theta_{t+1}$ to get&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} f(\theta_t) - f(\theta_{t+1}) &amp;amp;\geq -\nabla f(\theta_t)(\theta_{t+1} - \theta_t) - \frac{\beta}{2}\lVert \theta_t - \theta_{t+1} \rVert^2 \\\ &amp;amp;= \eta |\nabla_t|^2 - \frac{1}{2}\beta\eta^2 |\nabla_t|^2 = \frac{1}{2\beta}|\nabla_t|^2. \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;So a single update reduces the function value by at least $\frac{\epsilon^2}{2\beta}$. Therefore, it would take $\mathcal{O}(\frac{\beta}{\epsilon^2})$ steps to arrive at a critical point.&lt;/p&gt;
+
+&lt;h4 id=&#34;evading-saddle-points&#34;&gt;Evading saddle points&lt;/h4&gt;
+
+&lt;p&gt;While we have a theoretical upper limit for the time taken for convergence at a critical point, this is still problematic since it may be a saddle point, i.e., the function value is minimum in $d-1$ directions but maximum in one direction. Such a surface literally looks like a saddle as follows.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/21/saddle-point.png&#34; alt=&#34;Saddle point&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;An important question, then, is how to evade saddle points while looking for critical points. This question is explored in a series of papers and corresponding blog posts on &lt;a href=&#34;www.offconvex.org&#34; target=&#34;_blank&#34;&gt;Prof. Arora&amp;rsquo;s blog&lt;/a&gt;.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.offconvex.org/2016/03/22/saddlepoints/&#34; target=&#34;_blank&#34;&gt;Polynomial time guarantee for GD to escape saddle points&lt;/a&gt; (based on &lt;a href=&#34;http://proceedings.mlr.press/v40/Ge15.pdf&#34; target=&#34;_blank&#34;&gt;this paper&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.offconvex.org/2016/03/24/saddles-again/&#34; target=&#34;_blank&#34;&gt;Random initialization for asymptotically avoiding saddle points&lt;/a&gt; (based on &lt;a href=&#34;https://arxiv.org/pdf/1602.04915.pdf&#34; target=&#34;_blank&#34;&gt;this paper&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.offconvex.org/2017/07/19/saddle-efficiency/&#34; target=&#34;_blank&#34;&gt;Perturbing gradient descent&lt;/a&gt; (based on &lt;a href=&#34;https://arxiv.org/pdf/1703.00887.pdf&#34; target=&#34;_blank&#34;&gt;this paper&lt;/a&gt;)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Here I will try to summarize these discussions in several bullet points.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;em&gt;Most learning problems have exponentially many saddle points.&lt;/em&gt; Learning problems usually involve searching for $k$ components, for example clustering, $k$-node hidden layer in a neural network, etc. Suppose $(x_1,x_2,\ldots,x_k)$ is an optimal solution. Then, $(x_2,x_1,\ldots,x_k)$ is also an optimal solution, but the mean of these is not an optimal solution. This suffices to show that the learning problem is nonconvex, since for a convex function, the average of optimal solutions is also optimal. Furthermore, we can keep swapping the $k$ components to obtain exponential optimal solutions. Saddle points lie on the paths joining these isolated solutions, and hence, are exponential in number themselves.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;Hessians can be used to evade saddle points.&lt;/em&gt; Consider the second order Taylor expansion given below. If there exists a direction where $\frac{1}{2}(y-x)^T \nabla^2 f(x)(y-x)$ is significantly less than 0, then using this update rule can avoid saddle points. Such saddle points are called &amp;ldquo;strict,&amp;rdquo; and for these, methods such as trust region algorithms and cubic regularization can find the local optimum.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;$$ f(y) = f(x) + &amp;lt;\nabla f(x), y-x&amp;gt; + \frac{1}{2}(y-x)^T \nabla^2 f(x)(y-x) $$&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;em&gt;Noisy gradient descent converges to local optimum in polynomial number of steps.&lt;/em&gt; Although the Hessian method provides a theoretical way to escape saddle points, the computation of $\nabla^2$ is still expensive. Suppose we put a ball on a saddle point. Then, giving it only a slight push will move it away from the saddle. This intuition leads to the notion of &amp;ldquo;noisy&amp;rdquo; GD, i.e., $y = x - \eta \nabla f(x) + \epsilon$, where $\epsilon$ is a zero-mean error, which is often cheaper to compute than the true gradient. The authors in also prove the theorem in &lt;a href=&#34;http://proceedings.mlr.press/v40/Ge15.pdf&#34; target=&#34;_blank&#34;&gt;the paper&lt;/a&gt;, but it is very non-trivial.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;em&gt;It is hard to converge to a saddle point.&lt;/em&gt; Furthermore, a random initialization of GD will asymptotically converge to a local minimum, rather than other stationary points. In (2), &lt;a href=&#34;http://people.eecs.berkeley.edu/~brecht/&#34; target=&#34;_blank&#34;&gt;Ben Recht&lt;/a&gt; emphasized that &amp;ldquo;even simple algorithms like gradient descent with constant step sizes can’t converge to saddle points unless you try really hard.&amp;rdquo; To prove this, they use the Stable Manifold Theorem, taking $x^{\ast}$ to be an arbitrary saddle point and showing that this measure was &lt;em&gt;always&lt;/em&gt; zero.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;The Stable Manifold theorem is concerned with fixed point operations of the form $x^{(k+1)}=\psi(x^{(k)})$. It quantifies that the set of points that locally converge to a fixed point $x^{\ast}$ of such an iteration have measure zero whenever the Jacobian of $\psi$ at $x^{\ast}$ has eigenvalues bigger than 1.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In fact, it has been &lt;a href=&#34;https://www.math.upenn.edu/~pemantle/papers/nonconvergence.pdf&#34; target=&#34;_blank&#34;&gt;shown long back&lt;/a&gt; that additive Gaussian noise is sufficient to prevent convergence to saddles, without even assuming the &amp;ldquo;strictness&amp;rdquo; criteria of (1).&lt;/p&gt;
+
+&lt;p&gt;Now that it is clear that GD can avoid saddle points almost certainly, it remains to be seen whether it is &lt;em&gt;efficient&lt;/em&gt; in doing so. The paper (1), although it did show a poly-time convergence for the noisy GD, was still inefficient because its polynomial dependency on the dimension $n$ and the smallest eigenvalue of the Hessian are impractical. The paper (3) further improves this aspect of the problem.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;em&gt;A perturbed form of GD, under an additional Hessian-Lipschitz condition, converges to a second-order stationary point in almost the same time required for GD to converge to a first-order stationary point.&lt;/em&gt; Furthermore, the dimensional dependence is only polynomial in $\log(d)$.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Finally, recent work definitely shows that &lt;em&gt;PGD is much better than GD with random initialization&lt;/em&gt;, since the latter can be slowed down by saddle points, taking exponential time to escape. This is because if there are a sequence of closely-spaced saddle points, GD gets closer to the later ones, and takes $e^i$ iterations to escape the $i^{th}$ saddle point. PGD, on the other hand, escapes each saddle point in a small number of steps regardless of history.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Summary:&lt;/strong&gt; Although most learning problems have exponentially many saddle points, they are hard to converge to, and even random initializations can escape them. They take a long time for this escape though, which is why using perturbations is more efficient, and actually as efficient as GD for first-order stationary points. Therefore, using information from Hessians is not necessary to escape saddle points efficiently.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;second-order-methods-for-local-optimum&#34;&gt;Second-order methods for local optimum&lt;/h3&gt;
+
+&lt;p&gt;Although we have established that Hessians are unnecessary for finding the local optimum, it would still be enlightening to look at some approaches for the same.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1602.03943.pdf&#34; target=&#34;_blank&#34;&gt;Agarwal et. al &amp;lsquo;17&lt;/a&gt; proposed LiSSA, or Linear (time) Stochastic Second-order Algorithm. The basic update rule is&lt;/p&gt;
+
+&lt;p&gt;$$ x_{t+1} = x_t - \eta [\nabla^2 f(x)]^{-1}\nabla f(x), $$&lt;/p&gt;
+
+&lt;p&gt;i.e. the gradient is scaled by the inverse of the Hessian, which intuitively makes sense as discussed earlier. Although backpropagation can compute the Hessian itself in linear time, we require the inverse. In this paper, the LiSSA algorithm uses the idea that $(\nabla^2)^{-1} = \sum_{i=1}^{\infty}(I - \nabla^2)^i$, but with finite truncation.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1611.00756.pdf&#34; target=&#34;_blank&#34;&gt;Carmon et al. &amp;lsquo;17&lt;/a&gt; further improved upon the $\mathcal{O}(\frac{1}{\epsilon^2})$ guarantee provided by gradient descent for $\epsilon$-first-order convergence, without any need for Hessian computation. They use two competing techniques for this purpose. The first has already been discussed above:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;If the problem is locally non-convex, the Hessian must have a negative eigenvalue. In this case, under the assumption that the Hessian is Lipschitz continuous, moving in the direction of the corresponding eigenvector must make progress on the objective.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The second technique is more novel. They show that if the Hessian&amp;rsquo;s smallest eigenvalue is at least $-\gamma$, we can apply &lt;a href=&#34;https://web.stanford.edu/~boyd/papers/pdf/prox_algs.pdf&#34; target=&#34;_blank&#34;&gt;proximal point techniques&lt;/a&gt; and accelerated gradient descent to a carefully constructed regularized problem to obtain a faster running time.&lt;/p&gt;
+
+&lt;p&gt;While their approach is asymptotically faster than first-order methods, it is still empirically slower. Furthermore, it doesn&amp;rsquo;t seem to find better quality neural networks in practice.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;understanding-the-landscape-matrix-completion&#34;&gt;Understanding the landscape: Matrix completion&lt;/h3&gt;
+
+&lt;p&gt;Very early on in this post, we established that in deep learning problems, the landscape is unknown, i.e. the problem does not have a meaningful mathematical formulation. In this vein, we now look at a &lt;a href=&#34;https://arxiv.org/pdf/1704.00708.pdf&#34; target=&#34;_blank&#34;&gt;paper&lt;/a&gt; that develops a new framework to capture the landscape. In particular, we will approach this problem in the context of matrix completion. (Interestingly, this paper is again from &lt;a href=&#34;https://users.cs.duke.edu/~rongge/index.html&#34; target=&#34;_blank&#34;&gt;Rong Ge&lt;/a&gt;, who first showed polytime convergence to local minimum for noisy GD.)&lt;/p&gt;
+
+&lt;p&gt;But first, what is matrix completion. Matrix completion is a learning problem wherein the objective is to recover a low-rank matrix from partially observed entries. The mathematical formulation of the problem is:&lt;/p&gt;
+
+&lt;p&gt;$$ \min_{X} \text(rank)(X) \quad \text{subject to} \quad X_{ij} = M_{ij} ~~ \forall i,j \in E $$&lt;/p&gt;
+
+&lt;p&gt;where $E$ is the set of observed entries. Most approaches to solve this problem represent it in the form of the following nonconvex objective.&lt;/p&gt;
+
+&lt;p&gt;$$ f(X) = \frac{1}{2}\sum_{i,j\in E}[M_{i,j}-(XX^T)_{i,j}]^2 +R(X) $$&lt;/p&gt;
+
+&lt;p&gt;Here, $R(X)$ is a regularization term which ensures that no single row of $X$ becomes too large, otherwise most observed entries will be 0.&lt;/p&gt;
+
+&lt;p&gt;Ge showed in &lt;a href=&#34;https://arxiv.org/pdf/1605.07272.pdf&#34; target=&#34;_blank&#34;&gt;an earlier paper&lt;/a&gt; that in case of matrix completion (others have shown the same result for other problems like tensor decomposition and dictionary learning), all local minima are also global minima.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;For matrix completion, all local minima are also global minima.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In the present paper, the authors proposed the new insight that for the case of the matrix completion objective as defined above, the function $f$ is quadratic in $X$, which means that its Hessian w.r.t $X$ is constant. Furthermore, any saddle point has at least one strictly negative eigenvalue in its Hessian. Together, these ensure that simple local search algorithms can find the desired low rank matrix from an arbitrary starting point in polynomial time with high probability.&lt;/p&gt;
+
+&lt;p&gt;These advances, while mathematically involved, show that characterizing the various stationary points of the learning objective can be helpful in providing theoretical guarantees for learning algorithms. While I have avoided proof details for the several important theorems here, I will try to understand and explain them lucidly in some later post.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Waldo: A system for optical character recognition</title>
       <link>https://desh2608.github.io/project/waldo-ocr/</link>
       <pubDate>Tue, 03 Jul 2018 16:56:46 +0530</pubDate>
@@ -1385,75 +1555,6 @@ probability will be less than the sum of the individual probabilities i.e.,&lt;/
 &lt;p&gt;In this article, we looked at some generalization bounds in case of a finite hypothesis, using the PAC learning framework. In the next part, I will discuss some measures for infinite hypotheses, namely the Rademacher complexity, growth function, and the VC dimension.&lt;/p&gt;
 
 &lt;p&gt;This blog post is loosely based on notes made from Chapter 2 &amp;ldquo;The PAC Learning Framework&amp;rdquo; of &lt;em&gt;Foundations of Machine Learning&lt;/em&gt;.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Unsupervised Approaches for NMT</title>
-      <link>https://desh2608.github.io/post/unsupervised-approaches-for-nmt/</link>
-      <pubDate>Thu, 14 Dec 2017 13:39:30 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/unsupervised-approaches-for-nmt/</guid>
-      <description>
-
-&lt;p&gt;Translation is one of those tasks in language where the arrival of deep learning systems, and in particular sequence-to-sequence, has been something like a boon. In less than 4 years since the first paper on Neural Machine Translation, software giants such as Google and Microsoft have already announced that their translation systems have almost completely shifted from statistical to neural. Gone are the days when researchers mulled over complex word and phrase alignment techniques, and yet fell short on several language combinations. With the latest framework, all you need are a million parallel sentences, and your system can then translate between this pair sufficiently well.&lt;/p&gt;
-
-&lt;p&gt;A million parallel sentences — that’s a little constraining, though! It is often difficult and sometimes even impossible to obtain a bilingual parallel corpus for many pairs of languages. In such cases, using a pivot language for triangulation has been found to be helpful. However, even in such supervised systems, the performance is still constrained by the size of the training corpus.&lt;/p&gt;
-
-&lt;p&gt;Monolingual data, on the other hand, is available in abundance, and a number of semi-supervised systems do use these, but mostly for the language modeling part of translation. For example, a naive system may perform word-by-word substitution and use a language model trained on the target language to obtain the most probable word order.&lt;/p&gt;
-
-&lt;p&gt;Recently, there have been 2 very similar papers (both currently under review at ICLR ’18) which propose to perform completely unsupervised machine translation. In this article, I will discuss both of these papers. A similar blog is available &lt;a href=&#34;http://ankitg.me/blog/2017/11/05/unsupervised-machine-translation.html&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;, but I didn’t know of its existence until I was already halfway through this post.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;unsupervised-neural-machine-translation&#34;&gt;Unsupervised Neural Machine Translation&lt;/h4&gt;
-
-&lt;p&gt;This paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; is from Prof. &lt;a href=&#34;http://www.kyunghyuncho.me/&#34; target=&#34;_blank&#34;&gt;Kyunghyu Cho&lt;/a&gt; (NYU), and the authors have used the traditional seq2seq model with a twist. The encoder is shared across all languages, but each language has its own decoder. The intuition is that a shared encoder will transform a sentence to a shared space representation, from where the language-specific decoder will be able to decode it to its own language.&lt;/p&gt;
-
-&lt;p&gt;Both the encoder and decoder are 2 layer bidirectional RNNs with GRU units. Furthermore, the embeddings used in the feature layer are fixed, and are obtained from pre-trained cross-lingual dictionary. This ensures that the shared space representation obtained using the encoder is language-independent.&lt;/p&gt;
-
-&lt;p&gt;The paper uses 2 interesting techniques for the unsupervised training.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Denoising:&lt;/strong&gt; The autoencoder (or seq2seq) is used to reconstruct a sentence in a language, since we only have a monolingual corpus on which to train the system. Due to such a setting, an optimal system would essentially learn to copy the input to the output, and the system would reduce to a word-by-word substitution system. To prevent this, “denoising” is used, which introduces random noise in the input sentence so that copying cannot give the best output. This is dones by making $\frac{N}{2}$ random swaps for any sequence of $N$ tokens. There are 2 advantages to this technique:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Since copying is out of the picture, the system needs to learn the internal structure of language to perform well.&lt;/li&gt;
-&lt;li&gt;By swapping words randomly, we also account for word order divergence across languages. For instance, &lt;em&gt;Los Angeles International Airport&lt;/em&gt; in English becomes &lt;em&gt;Aéroport international de Los Angeles&lt;/em&gt; in French.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;strong&gt;Backtranslation:&lt;/strong&gt; Even with denoising added, the system is still monolingual. To integrate some element of cross-lingual training, the authors use the method of backtranslation. Given a sentence $x$ in language L1, the shared encoder is used to get the latent representation, and the decoder for the other language L2 is used to obtain a noisy translation $y$. This translation $y$ is then used to
-predict the original sentence $x$ using the encoder and decoder for L1. This technique creates a pseudo-parallel corpus so that the system can learn cross-lingual translation.&lt;/p&gt;
-
-&lt;p&gt;Denoising forces the system to capture broad word-level equivalences, while backtranslation helps it to learn more subtle relations between the language pairs. Furthermore, using pretrained cross-lingual embeddings ensures that the shared latent space representations for sentences in both the languages are near each other when the sentences have the same sense (or meaning).&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;unsupervised-machine-translation-using-monolingual-corpora-only&#34;&gt;Unsupervised Machine Translation using Monolingual Corpora Only&lt;/h4&gt;
-
-&lt;p&gt;A very similar paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; from researchers at Facebook employs almost the same techniques, but differs slightly in the encoding mechanism. I personally enjoyed reading this paper more than the first one, although they haven’t gone into details of the components they use in their model. The explanation of the loss function for end-to-end training is very lucid, and the overall structuring itself is appealing to a novice researcher like myself.&lt;/p&gt;
-
-&lt;p&gt;Anyway, the model used in this paper consists of a single encoder and a single decoder (bidirectional LSTM with attention in the decoder, similar to the NMT model used in Google Translate) which is shared by both the languages. For the unsupervised training, 3 techniques are employed.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;strong&gt;Denoising&lt;/strong&gt;: Similar to the above paper, the autoencoder is denoised so that it does not learn a word-by-word substitution. The noise model in this case consists of: (i) dropping every word with some random probability, and (ii) shuffling the sentence by applying a random permutation.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Cross-domain training&lt;/strong&gt;: This is the same as the “backtranslation” technique used in the above paper. However, the authors have explicitly mentioned that to obtain the translation $x$ from the sentence $y$, the model of the previous iteration is used. This requires that the model be initialized with a naive translation strategy, which in this case, is simple word-by-word substitution.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Adversarial training&lt;/strong&gt;: In the above paper, due to the use of cross-lingual fixed embeddings in the shared encoder, the latent space representations were arguably similar for similar sentences in different languages. This method does not use cross-lingual embeddings, and hence, the representations will be similar only “as long as the two monolingual corpora exhibit strong structure in feature space.” (Full disclosure: This statement is written as a hand-waving argument without a justification, and one of the reviewers has even pointed this out.) In order to overcome this constraint, the authors employ a discriminator whose task is to predict the language of the encoded sentence. In turn, the encoder has an added term in its loss function which ensures that the representation of similar sentences in different languages are nearby in the latent space.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/9/mono.png&#34; alt=&#34;Training objectives for the system. Figure taken from the paper&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Since the training is done iteratively and BLEU scores are computed at every step, we can simply select the hyperparameters corresponding to the best performing iteration. Empirically, the authors found that this selection has good correlation with test-time performance of the system. Furthermore, this unsupervised model was found to perform as good as a comparable supervised model trained on 100,000 parallel sentences, which is definitely an encouraging achievement for further research in unsupervised NMT.&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:1&#34;&gt;Artetxe, Mikel, et al. “&lt;a href=&#34;https://arxiv.org/abs/1710.11041&#34; target=&#34;_blank&#34;&gt;Unsupervised Neural Machine Translation&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1710.11041&lt;/em&gt; (2017).
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:2&#34;&gt;Lample, Guillaume, Ludovic Denoyer, and Marc’Aurelio Ranzato. “&lt;a href=&#34;https://arxiv.org/abs/1711.00043&#34; target=&#34;_blank&#34;&gt;Unsupervised Machine Translation Using Monolingual Corpora Only&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1711.00043&lt;/em&gt;(2017).
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
 </description>
     </item>
     

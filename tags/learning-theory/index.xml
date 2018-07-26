@@ -7,10 +7,20 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2018</copyright>
-    <lastBuildDate>Mon, 15 Jan 2018 13:39:45 +0530</lastBuildDate>
+    <lastBuildDate>Thu, 26 Jul 2018 11:15:18 +0530</lastBuildDate>
     
 	<atom:link href="https://desh2608.github.io/tags/learning-theory/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Theory of Deep Learning: Optimization</title>
+      <link>https://desh2608.github.io/post/deep-learning-theory-1/</link>
+      <pubDate>Thu, 26 Jul 2018 11:15:18 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/deep-learning-theory-1/</guid>
+      <description>I only just got around to watching the ICML 2018 tutorial on &amp;ldquo;Toward a Theory for Deep Learning&amp;rdquo; by Prof. Sanjeev Arora. In this and the next few posts, I will discuss the subject in some detail, including the referenced papers and blogs. Very conveniently, the talk itself was divided into 5 parts, and I will structure this series accordingly.
+At the outset, we should understand that a number of important concepts in deep learning are already shaped by optimization theory.</description>
+    </item>
     
     <item>
       <title>Introduction to Learning Theory - Part 2</title>
