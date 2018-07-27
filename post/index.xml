@@ -15,7 +15,7 @@
     <item>
       <title>Theory of Deep Learning: Generalization</title>
       <link>https://desh2608.github.io/post/deep-learning-theory-2/</link>
-      <pubDate>Thu, 26 Jul 2018 12:08:11 +0530</pubDate>
+      <pubDate>Fri, 27 Jul 2018 13:45:11 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/deep-learning-theory-2/</guid>
       <description>In Part 1 of this series, based on the ICML 2018 tutorial on &amp;ldquo;Toward a Theory for Deep Learning&amp;rdquo; by Prof. Sanjeev Arora, we looked at several aspects of optimization of the nonconvex objective function that is a part of most deep learning models. In this article, we will turn our attention to another important aspect, namely generalization.
