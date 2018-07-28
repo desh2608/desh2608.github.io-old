@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.42.2" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="In the previous posts of this series, we have looked at how stochastic gradient descent is able to find a good solution despite the nonconvex objective, and why overparametrized neural networks generalize so well. In this post, we will look at the titular property of deep networks, namely depth, and what role they play in the learning ability of the model.
+An ideal result in this regard would be if we can show that there exists a class of natural learning problems (recall the idea of a &ldquo;natural&rdquo; problem from the first post) which cannot be solved with depth $d$ neural networks, but are solvable with at least one model of depth $d&#43;1$.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/deep-learning-theory-3/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/deep-learning-theory-3/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/deep-learning-theory-3/">
+  <meta property="og:title" content="Theory of Deep Learning: Role of Depth | Desh Raj">
+  <meta property="og:description" content="In the previous posts of this series, we have looked at how stochastic gradient descent is able to find a good solution despite the nonconvex objective, and why overparametrized neural networks generalize so well. In this post, we will look at the titular property of deep networks, namely depth, and what role they play in the learning ability of the model.
+An ideal result in this regard would be if we can show that there exists a class of natural learning problems (recall the idea of a &ldquo;natural&rdquo; problem from the first post) which cannot be solved with depth $d$ neural networks, but are solvable with at least one model of depth $d&#43;1$.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2018-07-27T15:19:20&#43;05:30">
+  
+  <meta property="article:modified_time" content="2018-07-27T15:19:20&#43;05:30">
+  
+
+  
+  
+
+  <title>Theory of Deep Learning: Role of Depth | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Theory of Deep Learning: Role of Depth</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2018-07-27 15:19:20 &#43;0530 IST" itemprop="datePublished dateModified">
+      Jul 27, 2018
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    17 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/deep-learning-theory-3/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Theory%20of%20Deep%20Learning%3a%20Role%20of%20Depth&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-3%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-3%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-3%2f&amp;title=Theory%20of%20Deep%20Learning%3a%20Role%20of%20Depth"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-3%2f&amp;title=Theory%20of%20Deep%20Learning%3a%20Role%20of%20Depth"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Theory%20of%20Deep%20Learning%3a%20Role%20of%20Depth&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-3%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p>In the previous posts of this series, we have looked at <a href="https://desh2608.github.io/post/deep-learning-theory-1/" target="_blank">how stochastic gradient descent is able to find a good solution</a> despite the nonconvex objective, and <a href="https://desh2608.github.io/post/deep-learning-theory-2/" target="_blank">why overparametrized neural networks generalize so well</a>. In this post, we will look at the titular property of deep networks, namely depth, and what role they play in the learning ability of the model.</p>
+
+<p>An ideal result in this regard would be if we can show that there exists a class of natural learning problems (recall the idea of a &ldquo;natural&rdquo; problem from the first post) which cannot be solved with depth $d$ neural networks, but are solvable with at least one model of depth $d+1$. However, such a result is elusive at present, since we have already established that there exists no mathematical formulation of a &ldquo;natural&rdquo; learning problem.</p>
+
+<p>However, there has been some advancement in establishing similar results in the case of less natural problems, and in this regard, the following papers are worth mentioning.</p>
+
+<ol>
+<li><a href="http://proceedings.mlr.press/v49/eldan16.pdf" target="_blank">The Power of Depth for Feedforward Neural Networks</a> by Eldan and Shamir</li>
+<li><a href="http://proceedings.mlr.press/v49/telgarsky16.pdf" target="_blank">Benefit of Depth in Neural Networks</a> by Telgarsky</li>
+</ol>
+
+<p>I will now discuss both of these in some detail.</p>
+
+<hr />
+
+<h3 id="role-of-depth-for-less-natural-problems">Role of depth for &ldquo;less natural&rdquo; problems</h3>
+
+<h4 id="1-approximating-radial-functions">1. Approximating radial functions</h4>
+
+<p>At the outset, note that if we allow the neural network to be unbounded, i.e., have exponential width, even a 2-layer network can approximate any continuous function. As such, for our study, we only use &ldquo;bounded&rdquo; networks where the number of hidden layer units cannot be exponential in the dimension of input. With this understanding, we will look at the simplest case: we try to find a function (or a family of functions) that are expressible by a 3-layer network but cannot be expressed by any 2-layer network. Before we get into the details, we first look at what a 2-layer and 3-layer networks represent.</p>
+
+<p>A 2-layer network represents the following function:</p>
+
+<p>$$ f_2(\mathbf{x}) = \sum_{i=1}^w v_i \sigma(&lt; \mathbf{w}_i,\mathbf{x} &gt;+b_i), $$</p>
+
+<p>and a 3-layer network represents the following:</p>
+
+<p>$$ f_3(\mathbf{x}) = \sum_{i=1}^w u_i \sigma\left( \sum_{j=1}^w v_{i,j} \sigma (&lt; \mathbf{w}_{i,j},\mathbf{x} &gt;+ b_{i,j}) + c_i \right). $$</p>
+
+<p>Here, $w$ is the size of the hidden layer and $\sigma$ is an activation function. The only constraint on $\sigma$ is that it should be &ldquo;universal&rdquo;, i.e., a 2-layer network should be able to approximate any Lipschitz function that is non-constant on a bounded domain for some $w$ (which need not be bounded). This constraint is satisfied by all the standard activation functions such as sigmoid and ReLU.</p>
+
+<p>Under this assumption, the main result in the paper is as follows:</p>
+
+<blockquote>
+<p>There exists a <strong>radial function $g$</strong> depending only on the norm of the input, which is expressible by a 3-layer network of width polynomial in the input dimension, but not by any 2-layer neural network.</p>
+</blockquote>
+
+<p>More importantly, apart from the universal assumption, this result does not depend on any characteristic of $\sigma$. Furthermore, there are no constraints on the size of the parameters $\mathbf{w}$. The only constraint worth noting is that $g$ must be a <em>radial function</em>.</p>
+
+<p>To prove this result, we need to show 2 things:</p>
+
+<ol>
+<li>$g$ can be approximated by a 3-layer neural network.</li>
+<li>$g$ cannot be approximated by any 2-layer network of bounded width.</li>
+</ol>
+
+<p><strong>Part 1:</strong> This is trivial to show, since any radial function can be approximated by a 3-layer network. To do this, we compute the Euclidean norm $\lVert \mathbf{x} \rVert^2$ from the input $\mathbf{x}$ in the first layer using a linear combination of neurons. This is possible because the squared norm is just the sum of squares of all the components, and each squared component can be approximated in a finite range, for example, using the step function.</p>
+
+<p>Once the norm is computed, the second layer can be used to approximate the required radial function using RBF nodes. This completes the construction.</p>
+
+<p><strong>Part 2:</strong> Let the input be taken from a probability distribution $\mu$, which has a density function $\phi^2(x)$, for some known function $\phi$. Suppose we are trying to approximate a function $f$ using a function $g$. Then, the distance between the functions can be given as</p>
+
+<p>$$ \begin{align} \mathbb{E}_{\mu}(f(x)-g(x))^2 &amp;= \int (f(x)-g(x))^2 \phi^2(x) dx \\\ &amp;= \int (f(x)\phi (x) - g(x)\phi (x))^2 dx \\\ &amp;= \lVert f\phi - g\phi \rVert_{L_2}^2 \end{align} $$</p>
+
+<p>Now, we can replace $f\phi$ and $g\phi$ with their respective Fourier transforms since the Fourier transform is an isometric mapping (i.e., distance remains same before and after the mapping). Therefore, we get</p>
+
+<p>$$ \mathbb{E}_{\mu}(f(x)-g(x))^2 = \lVert \hat{f\phi} - \hat{g\phi} \rVert_{L_2}^2 $$</p>
+
+<p>While this replacement may seem arbitrary at first, it has a very clear motivation. We have done this because the Fourier transform of functions expressible by a 2-layer network has a very particular form, which we will use here. Specifically, consider the function</p>
+
+<p>$$ f(x) = \sum_{i=1}^k f_i (&lt; \mathbf{v}_i,\mathbf{x} &gt;), $$</p>
+
+<p>which is expressible by any 2-layer network. The component function $f_i (&lt; \mathbf{v}_i,\mathbf{x} &gt;)$ is constant in any direction perpendicular to $\mathbf{v}_i$ and so its Fourier transform is non-zero only in the direction of $\mathbf{v}_i$, and so the whole distribution is supported on $\bigcup_i \text{span}(\mathbf{v}_i)$. Now we just need to compute the support of $\hat{\phi}$, and then we can directly use the convolution-multiplication principle.</p>
+
+<p>Since we haven&rsquo;t yet chosen a density function, we choose $\phi$ to make the computation of support easier. Specifically, we choose $\phi$ to be the inverse Fourier transform of $\mathbb{1}\{x\in B\}$, which is the indicator function of a unit Euclidean ball. Then, $\hat{\phi}$ becomes $\mathbb{1}\{x\in B\}$ itself, and its support is simply the ball $B$. Using these, we get</p>
+
+<p>$$ \text{Supp}(\hat{f\phi}) \subseteq T = \bigcup_{i=1}^k (\text{span}\{ \mathbf{v}_i \} + B ), $$</p>
+
+<p>which is basically the union of $k$ tubes passing through origin. This is because $\text{span}\{\mathbf{v}_i\}$ is just a straight line, and $B$ is a ball. Sum here means the direct sum, i.e., for every element $a \in A$ and $b \in B$, form a set of $a+b$. So we just put the Euclidean ball on every point on the line, which gives us a cylinder passing through the origin.</p>
+
+<p>Since we are looking for a $g$ which cannot be approximated by the neural network, we try to make $\lVert f\phi - g\phi \rVert_{L_2}^2$ as large as possible. We have already seen what the support of $\hat{f\phi}$ looks like. Now, we want a $g$ such that</p>
+
+<ol>
+<li>$g$ should have most of its mass away from the origin in all the directions, and</li>
+<li>the Fourier transform $\hat{g}$ should be outside $B$.</li>
+</ol>
+
+<p>If $g$ is chosen as a radial function, the first criteria will be satisfied if we just put large mass away from the origin in one direction. To satisfy the second criteria, $g$ should have a high-frequency component. To see why, see the following figure which shows the sine curve and its Fourier transform.</p>
+
+<p><img src="/img/23/fourier.gif" alt="" /></p>
+
+<p>The only thing that remains to be shown is that if $\hat{g}$ contains a significant mass away from the origin, then so does $\hat{g\phi}$. But this proof is somewhat technical in nature and I avoid it here for sake of simplicity.</p>
+
+<p>This completes our proof for the result given in the paper. While this result is an important step in quantifying the role of depth in a neural network, it is still limited in that it only holds for radial functions. This is what I meant earlier by &ldquo;less natural&rdquo; problems, since in most of the common learning problems, the $(x,y)$ pairs are not generated from a simple radial distribution, and are much more complex in nature.</p>
+
+<h4 id="2-exponential-separation-between-shallow-and-deep-nets">2. Exponential separation between shallow and deep nets</h4>
+
+<p>In the proof of the previous result, the key idea was to have a high-frequency component in the function required to be approximated. This means that the function was highly oscillatory. In this paper as well, a similar oscillation argument is used to prove another important result.</p>
+
+<blockquote>
+<p>For every positive integer $k$, there exists neural networks with $\theta(k^3)$ layers, $\theta(1)$ nodes per layer, and $\theta(1)$ distinct parameters, which cannot be approximated by networks with $\mathcal{O}(k)$ layers and $o(2^k)$ nodes.</p>
+</blockquote>
+
+<p>This result is proven using three steps.</p>
+
+<ol>
+<li>Functions with few oscillations poorly approximate functions with many oscillations.</li>
+<li>Functions computed by networks with few layers must have few oscillations.</li>
+<li>Functions computed by networks with many layers can have many oscillations.</li>
+</ol>
+
+<h5 id="approximation-via-oscillation-counting">Approximation via oscillation counting</h5>
+
+<p>We will first look at a metric to count oscillations of a function. For this, consider the following graph which shows functions $f$ and $g$ which are defined from $\mathbb{R}$ to $[0,1]$.</p>
+
+<p><img src="/img/23/oscillations.png" alt="" /></p>
+
+<p>Here, the horizontal line denotes $y = \frac{1}{2}$. The classifiers $\tilde{f}$ and $\tilde{g}$ obtained from $f$ and $g$ perform binary classification according to the rule $\tilde{f}(x) = \mathbb{1}[f(x)\geq \frac{1}{2}]$. Let $\mathcal{I}_f$ denote the set of partitions of $\mathbb{R}$ into intervals so that the classifier $\tilde{f}$ is constant in each interval. Then, the crossing number is defined as</p>
+
+<p>$$ \text{Cr}(f) = |\mathcal{I}_f|. $$</p>
+
+<p>From our definition of $\tilde{f}$, this clearly means that $\text{Cr}(f)$ counts the number of times that $f$ crosses the line $y = \frac{1}{2}$, and hence the name. In this way, we formalize the notion of counting the number of oscillations of a function.</p>
+
+<p>With this definition, if $\text{Cr}(f)$ is much larger than $\text{Cr}(g)$, then most piecewise constant regions of $\tilde{g}$ will exhibit many oscillations of $f$, and thus $g$ poorly approximates $f$.</p>
+
+<p>Now we will prove the following lemma, where the counting number $\text{Cr}(f)$ is denoted by $s_f$ for sake of convenience.</p>
+
+<blockquote>
+<p>$$ \frac{\text{No. of regions of }\mathcal{I}_f \text{ where} ~ \tilde{f}\neq \tilde{g}}{s_f} \geq \frac{1}{2} - \frac{s_g}{s_f} $$</p>
+</blockquote>
+
+<p>Now, if $s_f &gt;&gt; s_g$, then the RHS approximately becomes $\frac{1}{2}$, which implies that for more than half of all the regions of $f$, $\tilde{g}$ classifies $x$ incorrectly, and so $g$ is a poor approximation of $f$.</p>
+
+<p><strong>Proof:</strong> We choose a region $J$ where $\tilde{g}$ is constant but $\tilde{f}$ alternates, such as the region where $g$ is red in the above figure. We denote by $X_J$ all the partitions of $\mathcal{I}_f$ that are contained in $J$. Since $f$ oscillates within $g$, this means that $\tilde{g}$ disagrees with $\tilde{f}$ for half of all $X_J$, i.e., at least $\frac{|X_J|-1}{2}$ in general.</p>
+
+<p>In the LHS of the claim, we need to count all the regions of $\mathcal{I}_f$ where the classifiers disagree for all points in the region. From above, we have a lower bound on the number of such regions within one $J$. So now we just take sum over all $J \in \mathcal{I}_g$ to get</p>
+
+<p>$$ \frac{\text{No. of regions of }\mathcal{I}_f \text{ where} ~ \tilde{f}\neq \tilde{g}}{s_f} \geq \frac{1}{s_f}\sum_{J \in \mathcal{I}_g} \frac{|X_J|-1}{2}. $$</p>
+
+<p>Now we need to bound $s_f$. For this, see that the total number of oscillations of $f$ are at least its number of oscillations within a single partition of $\mathcal{I}_g$ summed over all such partitions. I say &ldquo;at least&rdquo; because this will not include those partitions of $\mathcal{I}_f$ whose interior intersects with the boundary of an interval in $\mathcal{I}_g$. At most, there would be $s_g$ such partitions, and so</p>
+
+<p>$$ s_f \leq s_g + \sum_{J\in \mathcal{I}_g}|X_J|. $$</p>
+
+<p>This means that $\sum_{J\in \mathcal{I}_g}|X_J| \geq s_f - s_g$. Using this bound in the previously obtained inequality, we get the desired result.</p>
+
+<h5 id="few-layers-few-oscillations">Few layers, few oscillations</h5>
+
+<p>Adding more nodes is similar to adding polynomials, while adding layers is like composition of polynomials. Adding polynomials yields a new polynomial with degree equal to the higher of the two and at most twice as many terms, but composing them (i.e. taking product) would yield a polynomial with higher degree and more than the product of terms. Clearly, composition would lead to more number of roots of the new polynomial. This suggests that adding layers should lead to a higher number of oscillations than adding nodes.</p>
+
+<p>Let $f$ be a function computed by the neural network $\mathcal{N}((m_i,t_i,\alpha_i,\beta_i)_{i=1}^l)$, i.e. a network of $l$ layers where the $i$th layer has $m_i$ nodes, such that the activation function at each node is $(t,\alpha)-poly$ (a piecewise function containing $t$ parts where each piece is a polynomial of degree at most $\alpha$). Then, we claim that</p>
+
+<p>$$ \text{Cr}(f) \leq \mathcal{O}\left( \left( \frac{tm\alpha}{l} \right)^l \beta^{l^2} \right). $$</p>
+
+<p><strong>Proof:</strong> We will prove this in two parts. First, we bound the counting number of a $(t,\alpha)-poly$ function, and then we will show that the function $f$ as computed by the above network is $(t,\alpha)-poly$.</p>
+
+<p>For the first part, see that each piece of the function $f$ is a polynomial of degree at most $\alpha$, which means that each piece oscillates at most $1 + \alpha$ times. Since there are $t$ such pieces</p>
+
+<p>$$ \text{Cr}(f) \leq t(1+\alpha). $$</p>
+
+<p>Now it remains to show that the function $f$ computed by the network is indeed $(t,\alpha)-poly$. To see this, consider the function computed by a single layer. Each node in the layer computes a $(t,\alpha)-poly$ function, say $g_i$, and we apply a composition function, say $f$, on these $g_i$&rsquo;s, which is a polynomial with degree at most $\gamma$. The final function computed by this layer is</p>
+
+<p>$$ h(x) = f(g_1(x),\ldots,g_k(x)). $$</p>
+
+<p>To visualize such a composition, consider the following figure.</p>
+
+<p><img src="/img/23/poly.png" alt="" /></p>
+
+<p>Here, each horizontal line denotes one node&rsquo;s partition function, i.e., $\tilde{g_i}$. There are $k$ such lines with at most $t$ intervals each. The composition takes the union of all the partitions of all these lines. As such, the maximum number of intervals after composition will be equal to $kt$. Within each such interval, since we are taking a composition of a degree $\gamma$ polynomial with one with degree at most $\alpha$, the resulting polynomial has degree at most $\alpha \gamma$. Hence, $h$ is $(tk,\alpha\gamma)-poly$.</p>
+
+<p>Since there are $l$ layers and the total number of nodes in the network is $m$, it implies there are $\frac{m}{l}$ nodes on average in each layer, and each node has at most $t$ intervals. So after every layer, the number of intervals gets multiplied by a factor of $\frac{mt}{l}$. Finally, the total number of intervals will be of the order $\left(\frac{mt}{l}\right)^l$.</p>
+
+<p>Similarly, the degree of resulting function gets multiplied by $\alpha$ after every layer, so the final degree is of the order $\alpha^l$. Using the result shown in the first part, the resulting function will have a counting number bounded by $\mathcal{O}\left(\frac{tm\alpha}{l} \right)^l$.</p>
+
+<p>The $\beta$ term comes due to technicalities associated with taking an activation function which is semi-algebraic rather than piecewise polynomial, but the proof technique remains the same.</p>
+
+<h5 id="many-layers-many-oscillations">Many layers, many oscillations</h5>
+
+<p>In the figure that I showed for explaining counting number, notice that oscillations usually (always?) mean repetitions of a triangle-like function (strictly increasing till some point and then strictly decreasing thereafter). Also, the usual functions computed by a single layer of most of the common neural networks are like these triangular functions.</p>
+
+<p>In the last result, we used the composition of $(t,\alpha)-poly$ functions across several layers to bound the counting number of a network. Similarly in this section, we will use the concept of a $(t,[a,b])$-triangle. It represents a function which is continuous in $[a,b]$ and consists of $t$ triangle-like pieces. Also, since this function oscillates $2t$ times, its counting number is $2t+1$.</p>
+
+<p>Now it remains to show that the composition of 2 such functions gives a similar function (which is a similar technique to what we used earlier). More formally, we will prove this claim.</p>
+
+<blockquote>
+<p><strong>Claim:</strong> If $f$ is a $(s,[0,1])$-triangle and $g$ is a $(t,[0,1])$-triangle, then $f \circ g$ is a $(2st,[0,1])$-triangle.</p>
+</blockquote>
+
+<p><strong>Proof:</strong> First, we note that $f \circ g$ is continuous in $[0,1]$ since a composition of continuous functions is continuous in the same domain.</p>
+
+<p>Now, consider any odd (i.e., strictly increasing) interval $g_j$ of $g$. Suppose $(a_1,\ldots,a_{2s+1})$ are the interval boundaries of $f$. Since the range of $g_j$ is $[0,1]$, $g_j^{-1}(a_i)$ exists for all $i$ and is unique, since $g_j$ is strictly increasing. Let $a_i^{\prime}=g_j^{-1}(a_i)$, i.e., $g_j(a_i^{\prime})=a_i$. If $i$ is odd, the composition $f \circ g_j(a_i^{\prime}) = f(a_i)=0$, and $f \circ g_j$ is strictly increasing in $[a_i^{\prime},a_{i+1}^{\prime}]$, since $g_j$ is strictly increasing everywhere and $f$ is strictly increasing in $[a_i,a_{i+1}]$. By a similar argument, if $i$ is even, $f \circ g_j$ is strictly decreasing along $[a_i^{\prime},a_{i+1}^{\prime}]$. In this way, we get $2s$ triangular pieces for a single $g_j$, and so the overall composition $f \circ g$ has $2st$ triangular pieces.</p>
+
+<p>Having shown this, it is easy to see that if there are $l$ layers and each layer computes a $(t,[0,1])$-triangle, the final layer will output a $((2t)^l,[0,1])$-triangle. In this way, the counting number of the overall function becomes $(2t)^l + 1$.</p>
+
+<hr />
+
+<h3 id="implicit-acceleration-by-overparametrization">Implicit acceleration by overparametrization</h3>
+
+<p>In the previous section, we have seen some results which show that depth plays a role in the expressive capacity of neural networks. Specifically, we saw that:</p>
+
+<ol>
+<li>Radial functions can be approximated by depth-3 networks but not with depth-2 networks.</li>
+<li>Functions expressible by $\theta(k^3)$-depth networks of constant width cannot be approximated by $\mathcal{O}(k)$-depth networks with polynomial width.</li>
+</ol>
+
+<p>In this section, we will look at a <a href="https://arxiv.org/pdf/1802.06509.pdf" target="_blank">new paper from Arora, Cohen, and Hazan</a> that suggests that, sometimes, increasing depth can speed up optimization (which is rather counterintuitive given the consensus on expressiveness vs. optimization trade-off), i.e., depth plays some role in convergence. Furthermore, this acceleration is more than what could be obtained by commonly used techniques, and is theoretically shown to be a combination of momentum and adaptive regularization (which we will discuss later).</p>
+
+<p>To isloate convergence from expressiveness, the authors focus solely on linear neural networks, where increasing depth has no impact on the expressiveness of the network. This is because in such networks, adding layers manifests itself only in the replacement of a matrix parameter by a product of matrices – an
+overparameterization.</p>
+
+<h4 id="equivalence-to-adaptive-learning-rate-and-momentum">Equivalence to adaptive learning rate and momentum</h4>
+
+<p>The first result that we prove is the following.</p>
+
+<blockquote>
+<p>Overparametrized gradient descent with small learning rate and near-zero initialization is equivalent to GD with adaptive learning rate and momentum terms.</p>
+</blockquote>
+
+<p><strong>Proof:</strong> This can be seen by simple analysis of gradients for an $l_p$-regression with parameter $\mathbf{w}\in \mathbb{R}^d$. The loss function can be given as</p>
+
+<p>$$ L(\mathbf{w}) = \mathbb{E}_{(\mathbf{x},y)\sim S}\left[ \frac{1}{p}(\mathbf{x}^T\mathbf{w} - y)^p \right]. $$</p>
+
+<p>Now, if we add a scalar parameter, the new parameters are $\mathbf{w}_1$ and $w_2 \in \mathbb{R}$, i.e., $\mathbf{w} = w_2 \mathbf{w}_1$, and we can write the new loss function as</p>
+
+<p>$$ L(\mathbf{w}_1,w_2) = \mathbb{E}_{(\mathbf{x},y)\sim S}\left[ \frac{1}{p}(\mathbf{x}^T\mathbf{w}_1 w_2 - y)^p \right]. $$</p>
+
+<p>We can now compute the gradients of the objective with respect to the parameters as</p>
+
+<p>$$ \nabla_{\mathbf{w}} = \mathbb{E}_{(\mathbf{x},y)\sim S}\left[ (\mathbf{x}^T\mathbf{w} - y)^{p-1}\mathbf{x} \right] $$</p>
+
+<p>$$ \nabla_{\mathbf{w}_1} = \mathbb{E}_{(\mathbf{x},y)\sim S}\left[ (\mathbf{x}^T\mathbf{w}_1 w_2 - y)^{p-1}w_2\mathbf{x} \right] = w_2 \nabla_{\mathbf{w}} $$</p>
+
+<p>$$ \nabla_{w_2} = \mathbb{E}_{(\mathbf{x},y)\sim S}\left[ (\mathbf{x}^T\mathbf{w} - y)^{p-1}\mathbf{w}_1^T \mathbf{x} \right] $$</p>
+
+<p>The update rules for $\mathbf{w}_1$ and $w_2$ can be given as</p>
+
+<p>$$ \mathbf{w}_1^{(t+1)} = \mathbf{w}_1^{(t)} - \eta \nabla_{\mathbf{w}_1}^{(t)} \quad \text{and} \quad w_2^{(t+1)} = w_2^{(t)} - \eta \nabla_{w_2}^{(t)}, $$</p>
+
+<p>and the updated parameter $\mathbf{w}$ is</p>
+
+<p>$$ \begin{align} \mathbf{w}^{(t+1)} &amp;= \mathbf{w}_1^{(t+1)} w_2^{(t)} \\\ &amp;= \left( \mathbf{w}_1^{(t)} - \eta \nabla_{\mathbf{w}_1}^{(t)} \right) \left( w_2^{(t)} - \eta \nabla_{w_2}^{(t)} \right) \\\ &amp;= \mathbf{w}_1^{(t)}w_2^{(t)} - \eta w_2^{(t)}\nabla_{\mathbf{w}_1^{(t)}} - \eta \nabla_{w_2^{(t)}}\mathbf{w}_1^{(t)} + \mathcal{O}(\eta^2) \\\ &amp;= \mathbf{w}^{(t)} - \eta \left( w_2^{(t)} \right)^2 \nabla_{\mathbf{w}^{(t)}} -\eta \left( w_2^{(t)} \right)^{-1} \nabla_{w_2^{(t)}} \mathbf{w}^{(t)} + \mathcal{O}(\eta^2). \end{align}$$</p>
+
+<p>We can ignore $\mathcal{O}(\eta^2)$ since the learning rate is assumed to be low. Also, we take $\rho^{(t)} = \eta(w_2^{(t)})^2$ and $\gamma^{(t)}=\eta(w_2^{(t)})^{-1}\nabla_{w_2^{(t)}}$, so the update becomes</p>
+
+<p>$$ \mathbf{w}^{(t+1)} = \mathbf{w}^{(t)} - \rho^{(t)}\nabla_{\mathbf{w}^{(t)}} - \gamma^{(t)}\mathbf{w}^{(t)}. $$</p>
+
+<p>Since $\mathbf{w}$ is initialized near $0$, it is essentially a weighted combination of the past gradients at any given time, i.e., $\gamma^{(t)}\mathbf{w}^{(t)} = \sum_{\tau=1}^{t-1}\mu^{(t,\tau)}\nabla_{\mathbf{w}^{(\tau)}}$.</p>
+
+<p>This is similar to the momentum term in the popular momentum algorithm for optimization (see <a href="https://desh2608.github.io/post/short-note-sgd-algorithms/" target="_blank">this earlier post</a> for an overview), and the learning rate term $\rho^{(t)}$ is time-varying and adaptive.</p>
+
+<h4 id="update-rule-for-end-to-end-matrix">Update rule for end-to-end matrix</h4>
+
+<p>The next derivation is a little more involved, and I defer the reader to the actual paper for the detailed proof. I will give a brief outline here.</p>
+
+<p>Suppose we have a depth-$N$ linear network such that the weight matrices are given by $W_1,\ldots,W_N$. Let $W_e$ denote the final end-to-end update matrix. The authors use differential techniques to compute an update rule for $W_e$. For this, the important assumption is that $\eta^2 \approx 0$. When step sizes are taken to be small, trajectories of discrete optimization algorithms converge to smooth curves modeled by continuous-time differential equations.</p>
+
+<p>After obtaining such a differential equation, integration over the $N$ layers gives the derivative of $W_e$, which is then transformed back to the discrete update rule given as</p>
+
+<p>$$ W_e^{(t+1)} = (1 - \eta\lambda N)W_e^{(t)} - \eta \sum_{i=1}^N \left[ W_e^{(t)} (W_e^{(t)})^T \right]^{\frac{j-1}{N}} \frac{\partial L^1}{\partial W}(W_e^{(t)}) \cdot \left[ (W_e^{(t)})^T W_e^{(t)} \right]^{\frac{N-j}{N}}. $$</p>
+
+<p>Let us break down this expression. The first part is similar to a weight-decay term for a 1-layer update. The second part also has the derivative w.r.t parameters, but it is multiplied by some preconditioning terms. On further inspection of these terms, it is found that their eigenvalues and eigenvectors depend on the singular value decomposition of $W_e$. Qualitatively, this means that these multipliers favor the gradient along those directions that correspond to singular values whose presence in $W_e$ is stronger. If we assume, as is usually the case in deep learning, that the initialization was near 0, this means that these multipliers act similar to acceleration and push the gradient along the direction already taken by the optimization.</p>
+
+<p>For further reading, check out the author&rsquo;s <a href="http://www.offconvex.org/2018/03/02/acceleration-overparameterization/" target="_blank">blog post</a> about the paper.</p>
+
+<hr />
+
+<p>To summarize, we looked at three recent papers which prove results on the role of depth in expressibility and optimization of neural networks. People often think that working on the mathematics of deep learning would require complex group theory formalisms and difficult techniques in high-dimensional probability, but as we saw in the proofs of some of these results (especially in Telgarsky&rsquo;s paper), a lot can be achieved using simple counting logic and concentration inequalities.</p>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/deep-learning/">deep learning</a>
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/learning-theory/">learning theory</a>
+  
+</div>
+
+
+
+
+    
+    
+    <div class="article-widget">
+      <div class="hr-light"></div>
+      <h3>Related</h3>
+      <ul>
+        
+        <li><a href="/post/deep-learning-theory-2/">Theory of Deep Learning: Generalization</a></li>
+        
+        <li><a href="/post/deep-learning-theory-1/">Theory of Deep Learning: Optimization</a></li>
+        
+        <li><a href="/project/waldo-ocr/">Waldo: A system for optical character recognition</a></li>
+        
+        <li><a href="/project/irony-tweet/">Irony detection in tweets</a></li>
+        
+        <li><a href="/post/intro-learning-theory-2/">Introduction to Learning Theory - Part 2</a></li>
+        
+      </ul>
+    </div>
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "desh2608-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//desh2608-github-io.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+
