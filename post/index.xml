@@ -13,6 +13,16 @@
     
     
     <item>
+      <title>Theory of Deep Learning: Role of Depth</title>
+      <link>https://desh2608.github.io/post/deep-learning-theory-3/</link>
+      <pubDate>Sat, 28 Jul 2018 23:00:20 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/deep-learning-theory-3/</guid>
+      <description>In the previous posts of this series, we have looked at how stochastic gradient descent is able to find a good solution despite the nonconvex objective, and why overparametrized neural networks generalize so well. In this post, we will look at the titular property of deep networks, namely depth, and what role they play in the learning ability of the model.
+An ideal result in this regard would be if we can show that there exists a class of natural learning problems (recall the idea of a &amp;ldquo;natural&amp;rdquo; problem from the first post) which cannot be solved with depth $d$ neural networks, but are solvable with at least one model of depth $d+1$.</description>
+    </item>
+    
+    <item>
       <title>Theory of Deep Learning: Generalization</title>
       <link>https://desh2608.github.io/post/deep-learning-theory-2/</link>
       <pubDate>Fri, 27 Jul 2018 13:45:11 +0530</pubDate>
