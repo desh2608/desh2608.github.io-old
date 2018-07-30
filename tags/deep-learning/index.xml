@@ -7,10 +7,19 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2018</copyright>
-    <lastBuildDate>Sat, 28 Jul 2018 23:00:20 +0530</lastBuildDate>
+    <lastBuildDate>Mon, 30 Jul 2018 23:39:37 +0530</lastBuildDate>
     
 	<atom:link href="https://desh2608.github.io/tags/deep-learning/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Theory of Deep Learning: Generative Models</title>
+      <link>https://desh2608.github.io/post/deep-learning-theory-4/</link>
+      <pubDate>Mon, 30 Jul 2018 23:39:37 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/deep-learning-theory-4/</guid>
+      <description>Till now, in this series based on the ICML 2018 tutorial on &amp;ldquo;Toward a Theory for Deep Learning&amp;rdquo; by Prof. Sanjeev Arora, we have limited our discussion to the theory of supervised discriminative neural models, i.e., those models which learn the conditional probability $P(y|x)$ from a set of given $(x_i,y_i)$ samples. In particular, we saw how deep networks find good solutions, why they generalize well despite being overparametrized, and what role depth plays in all of this.</description>
+    </item>
     
     <item>
       <title>Theory of Deep Learning: Role of Depth</title>
