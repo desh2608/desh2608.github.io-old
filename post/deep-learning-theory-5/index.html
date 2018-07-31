@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.42.2" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="We have discussed several aspects of deep learning theory, ranging from optimization and generalization guarantees to role of depth and generative models. In this final post of this series, I will illustrate how theory can motivate simple solutions to problems, which can then outperform complex techniques. For this, we will consider a field where deep learning has done exceptionally well, namely, word and sentence embeddings.
+If you need a refresher on word embeddings, I have previously explained them, along with the most popular methods, in this post.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/deep-learning-theory-5/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/deep-learning-theory-5/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/deep-learning-theory-5/">
+  <meta property="og:title" content="Theory of Deep Learning: An Illustration with Embeddings | Desh Raj">
+  <meta property="og:description" content="We have discussed several aspects of deep learning theory, ranging from optimization and generalization guarantees to role of depth and generative models. In this final post of this series, I will illustrate how theory can motivate simple solutions to problems, which can then outperform complex techniques. For this, we will consider a field where deep learning has done exceptionally well, namely, word and sentence embeddings.
+If you need a refresher on word embeddings, I have previously explained them, along with the most popular methods, in this post.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2018-07-31T18:45:15&#43;05:30">
+  
+  <meta property="article:modified_time" content="2018-07-31T18:45:15&#43;05:30">
+  
+
+  
+  
+
+  <title>Theory of Deep Learning: An Illustration with Embeddings | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Theory of Deep Learning: An Illustration with Embeddings</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2018-07-31 18:45:15 &#43;0530 IST" itemprop="datePublished dateModified">
+      Jul 31, 2018
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    9 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/deep-learning-theory-5/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Theory%20of%20Deep%20Learning%3a%20An%20Illustration%20with%20Embeddings&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-5%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-5%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-5%2f&amp;title=Theory%20of%20Deep%20Learning%3a%20An%20Illustration%20with%20Embeddings"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-5%2f&amp;title=Theory%20of%20Deep%20Learning%3a%20An%20Illustration%20with%20Embeddings"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Theory%20of%20Deep%20Learning%3a%20An%20Illustration%20with%20Embeddings&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fdeep-learning-theory-5%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p>We have discussed several aspects of deep learning theory, ranging from <a href="https://desh2608.github.io/post/deep-learning-theory-1/" target="_blank">optimization</a> and <a href="https://desh2608.github.io/post/deep-learning-theory-2/" target="_blank">generalization guarantees</a> to <a href="https://desh2608.github.io/post/deep-learning-theory-3/" target="_blank">role of depth</a> and <a href="https://desh2608.github.io/post/deep-learning-theory-4/" target="_blank">generative models</a>. In this final post of this series, I will illustrate how theory can motivate simple solutions to problems, which can then outperform complex techniques. For this, we will consider a field where deep learning has done exceptionally well, namely, word and sentence embeddings.</p>
+
+<p>If you need a refresher on word embeddings, I have previously explained them, along with the most popular methods, in <a href="https://desh2608.github.io/post/understanding-word-vectors/" target="_blank">this post</a>. The <em>distributional hypothesis</em> forms the basis for all word embedding techniques used at present. Instead of naively taking the co-occurence matrix, though, almost all techniques use some low-rank approximation for the same. This gives rise to low-dimensional ($\sim 300$) dense embeddings for text. An important question, then, is the following: How can low-dimensional embeddings represent the complex linguistic structure in text? We will first look at this question from a theoretical perspective, based on <a href="http://aclweb.org/anthology/Q16-1028" target="_blank">this ACL&rsquo;16 paper</a> from Arora et al.</p>
+
+<hr />
+
+<h3 id="how-do-low-dimensional-embeddings-approximate-co-occurence-matrices">How do low-dimensional embeddings approximate co-occurence matrices?</h3>
+
+<p>Formally, we want to see why, for some low-dimensional vector representations $v$, we have</p>
+
+<p>$$ \langle v_w,v_{w^{\prime}} \rangle \approx \text{PMI}(w,w^{\prime}), $$</p>
+
+<p>where $\text{PMI}(w,w^{\prime})$ is the pointwise mutual information between $w$ and $w^{\prime}$, defined as $\log \frac{P(w,w^{\prime})}{P(w)P(w^{\prime})}$, where the probabilities are computed empirically from the co-occurence matrix.</p>
+
+<p>For this, the authors propose a generative model of language, as opposed to the usual discriminative model that is based on predicting the context words given a target word (i.e., multiclass classification). This is based on the random walk of a discourse vector $c_t \in \mathcal{R}^d$, which generates $t$th word in step $t$. Every word has a time-invariant latent vector $v_w \in \mathcal{R}^d$, and the word production model is given as</p>
+
+<p>$$ \text{Pr}[w ~ \text{emitted at time} ~ t|c_t] \propto \exp(\langle c_t,v_w \rangle). $$</p>
+
+<p>Here, <em>random walk</em> means that $c_{t+1}$ is obtained by adding a small random displacement vector to $c_t$. For a theoretic analysis, we make an isotropy assumption about the word vectors.</p>
+
+<blockquote>
+<p><strong>Isotropy assumption</strong>: In the bulk, word vectors are distributed uniformly in the $\mathcal{R}^d$ space.</p>
+</blockquote>
+
+<p>To generate such a dsitribution, we can just sample i.i.d from $v = s \cdot v^{\prime}$, where $s$ is a scalar random variable ($s \leq \kappa$), and $v^{\prime}$ is obtained from a spherical Gaussian distribution. This is a simple Bayesian prior similar to the assumptions commonly used in statistics.</p>
+
+<p>Let us define $Z_c = \sum_{w}\exp(\langle v_w,c \rangle)$. This is like the normalization factor used with the above equation, but it is very difficult to compute. In the paper, the authors prove that this value is very close to some constant $Z$ for a fixed $c$. This allows us to remove this factor from consideration. Empirically, it has also been seen that some log-linear models have self-normalization properties, and this may be a reason for the observation. Let us now see how to prove this lemma.</p>
+
+<p>Since $Z_c$ is a sum of random variables, it may be tempting to use concentration inequalities to bound its value. However, we cannot do this since $Z_c$ is neither sub-Gaussian nor sub-exponential. We approach the problem it two parts. First we bound the mean and variance of $Z_c$, and then show that it is concentrated around its mean.</p>
+
+<p><strong>Part 1:</strong> Suppose there are $n$ vectors in our space. Since they are identically distributed, we have</p>
+
+<p>$$ \mathbb{E}[Z_c] = n\mathbb{E}[\exp(\langle v_w,c \rangle)] \geq n\mathbb{E}[1 + \langle v_w,c \rangle] = n. $$</p>
+
+<p>Here, we have used $\mathbb{E}[\langle v_w,c \rangle] = 0$, since $v_w$&rsquo;s are drawn from a scaled uniform spherical Gaussian. Now, suppose all the scalar variables $s_w$ are equal in distribution to $s$. Then, we can write</p>
+
+<p>$$ \mathbb{E}[Z_c] = n\mathbb{E}[\exp(\langle v_w,c \rangle)] = n\mathbb{E}\left[ \mathbb{E} [\exp(\langle v_w,c \rangle)|s]\right]. $$</p>
+
+<p>We can compute the conditional expectation as</p>
+
+<p>$$ \begin{align} \mathbb{E} [\exp(\langle v_w,c \rangle)|s] &amp;= \int_x \frac{1}{\sigma\sqrt{2\pi}}\exp\left( -\frac{x^2}{2\sigma^2} \right)\exp(x) dx \\\ &amp;= \frac{1}{\sigma\sqrt{2\pi}}\exp\left( -\frac{(x-\sigma^2)^2}{2\sigma^2} + \frac{\sigma^2}{2}\right) dx \\\ &amp;= \exp(\frac{\sigma^2}{2}). \end{align} $$</p>
+
+<p>Here, the standard deviation is equal to the scaling factor $s$, and so $\sigma^2 = s^2$. It follows that</p>
+
+<p>$$ \mathbb{E}(Z_c) = n\exp(\frac{s^2}{2}). $$</p>
+
+<p>Similarly, we can show that the variance</p>
+
+<p>$$ \mathbb{V}(Z_c) \leq n\mathbb{E}[\exp(2s^2)]. $$</p>
+
+<p>Since $\langle v_w,c \rangle|s$ has a Gaussian distribution with variance $s^2 \leq \kappa^2$, we have using Chernoff bounds that</p>
+
+<p>$$ \text{Pr}[|\langle v_w,c \rangle| \geq \eta \log n |s] \leq \exp \left( - \frac{\eta^2 \log^2 n}{2\kappa^2} \right) = \exp (-\Omega(\log^2 n)). $$</p>
+
+<p>Here we have removed $\eta$ and $\kappa$ since they are constants. We can now write the converse of this inequality, by taking expectation over all $s_w$, as</p>
+
+<p>$$ \text{Pr}[|\langle v_w,c \rangle| \leq \frac{1}{2}\log n] \geq 1 - \exp(-\Omega(\log^2 n)). $$</p>
+
+<p>This means that, with high probability, $|\langle v_w,c \rangle| \leq \frac{1}{2}\log n$, or equivalently, $\exp(\langle v_w,c \rangle) \leq \sqrt{n}$. Now, let the random variable $X_w$ have the same distribution as $\exp(\langle v_w,c \rangle)$ when the above holds.</p>
+
+<p>Let us take a minute to understand what we are doing here. We do not know how to bound the original $Z_c$, since $\exp(\langle v_w,c \rangle)$ has no known concentration bounds. So we approximate it by a new random variable with high probability, so that we can compute bounds on the sum. Now, let $Z_{c}^{\prime} = \sum_{w}X_w$. We will now try to bound the mean and variance for this random variable.</p>
+
+<p>Computing the lower bound for the mean is simple since the mean of $\exp(\langle v_w,c \rangle)$ is zero, and so $\mathbb{E}[Z_c^{\prime}] \leq n$. We can similarly bound the variance as $\mathbb{V}[Z_c^{\prime}] \leq 1.1 \Lambda n$, where $\Lambda$ is a constant. Now, using Bernstein&rsquo;s inequality, we get</p>
+
+<p>$$ \text{Pr}\left[ | Z_c^{\prime} - \mathbb{E}[Z_c^{\prime}] | \geq \epsilon n \right] \leq \exp(-\Omega(\log^2 n)). $$</p>
+
+<p>Since $Z_c$ has the same distribution as $Z_c^{\prime}$, the above inequality also holds for the former. This means that the probability of $Z_c$ deviating from its mean is very low, and so we can say with high probability that</p>
+
+<p>$$ (1-\epsilon_z)Z \leq Z_c \leq (1+\epsilon_z)Z. $$</p>
+
+<p>The above proof was just to remove the normalization factor as a constant from the original problem, so that analysis becomes easier. We now come to the main result itself. Suppose $c$ and $c^{\prime}$ are consecutive discourse vectors and $w$ and $w^{\prime}$ are words generated from them. We have</p>
+
+<p>$$ \begin{align} p(w,w^{\prime}) &amp;= \mathbb{E}_{c,c^{\prime}}[\text{Pr}[w,w^{\prime}|c,c^{\prime}]] \\\ &amp;= \mathbb{E}_{c,c^{\prime}}[p(w|c)p(w^{\prime}|c^{\prime})] \\\ &amp;= \mathbb{E}_{c,c^{\prime}}\left[ \frac{\exp(\langle v_w,c \rangle)}{Z_c}\right] \frac{\exp(\langle v_{w^{\prime}},c^{\prime} \rangle)}{Z_{c^{\prime}}}. \end{align} $$</p>
+
+<p>As proved above, we can approximate the denominators to $Z$ and take them out of the expectation. This gives</p>
+
+<p>$$ \begin{align} p(w,w^{\prime}) &amp;= \frac{1}{Z^2}\mathbb{E}_{c,c^{\prime}}[\exp(\langle v_w,c \rangle)\exp(\langle v_{w^{\prime}},c^{\prime} \rangle))] \\\ &amp;= \frac{1}{Z^2}\mathbb{E}_c [\exp(\langle v_w,c \rangle)\mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} \rangle)]]. \end{align}. $$</p>
+
+<p>We can compute the internal expectation term as</p>
+
+<p>$$ \begin{align} \mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} \rangle)] &amp;= \mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} - c + c \rangle)] \\\ &amp;= \mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} -c \rangle)]\exp(\langle v_{w^{\prime}},c \rangle) \\\ &amp;\approx \exp(\langle v_{w^{\prime}},c \rangle). \end{align}$$</p>
+
+<p>Here, the last approximation can be done because we have assumed that our random walk has small steps, i.e., $|c^{\prime} - c|$ is small. Using this in above, we get</p>
+
+<p>$$ p(w,w^{\prime}) = \frac{1}{Z^2}\mathbb{E}[\exp(\langle v_w + v_{w^{\prime}},c \rangle)]. $$</p>
+
+<p>Since $c$ has uniform distribution over the sphere, the above resembles a Gaussian centered at 0 and variance $\frac{\lVert  v_w + v_{w^{\prime}} \rVert^2}{d}$. Since $\mathbb{E}[\exp(X)] = \exp(\frac{\sigma^2}{2})$ for $X \sim \mathcal{N}(0,\sigma^2)$, we get the closed form expression as</p>
+
+<p>$$ p(w,w^{\prime}) = \frac{1}{Z^2}\exp\left( \frac{\lVert  v_w + v_{w^{\prime}} \rVert^2}{2d} \right), $$</p>
+
+<p>which is the desired result. Note that I have ignored some technicalities for error bounds in this proof. We have now shown the original result that we wanted, but how did dimensionality help?</p>
+
+<p>The answer lies in the <em>isotropy assumption</em> that we made at the very beginning. Having $n$ vectors be isotropic in $d$ dimensions requires $d &lt;&lt; n$, which is indeed what is observed empirically. Hence, theory justifies experimental findings.</p>
+
+<hr />
+
+<h3 id="an-algorithm-for-sentence-embeddings">An algorithm for sentence embeddings</h3>
+
+<p>In a previous part of this series, I echoed Prof. Arora&rsquo;s concern that theoretical analysis at present is like a postmortem analysis, where we try to find properties of the model that can explain certain empirical findings. The ideal scenario would be where we can use this understanding to guide future learning models. In this section, I will look at <a href="https://openreview.net/pdf?id=SyK00v5xx" target="_blank">this paper from ICLR&rsquo;17</a> which uses the understanding from the previous section to build simple but strong word embeddings.</p>
+
+<p>Suppose we want to obtain the vector for a piece of text, say, a sentence. From our generative model defined in the previous section, it would be reasonable to say that this can be approximated by a <em>max a priori</em> (MAP) estimate of the discourse vector that generated the sentence, i.e.,</p>
+
+<p>$$ \text{Pr}[w ~ \text{emitted in sentence} ~ s | c_s] = \frac{\exp(\langle c_s,v_w \rangle)}{Z_{c_s}}, $$</p>
+
+<p>where $c_s$ is the discourse vector that remains approximately constant for the sentence. However, we need to modify this slightly to account for two real situations.</p>
+
+<ol>
+<li>Some words often appear out of context, and some stop words appear regardless of discourse. To approximate this, we add a term $\alpha p(w)$ to the log-linear model, where $p(w)$ is the unigram probability of the word. This makes probability of appearance of some words high even if they have low correlation with the discourse vector.</li>
+<li>Generation of words depends not just on current sentence, but on entire history of discourse. To model this, we use discourse vector $\tilde{c}_s = \beta c_0 + (1-\beta)c_s$, where $c_0$ is the common discourse vector.</li>
+</ol>
+
+<p>Finally, the modified log-linear objective is as follows.</p>
+
+<p>$$ \text{Pr}[w ~ \text{emitted in sentence} ~ s | c_s] = \alpha p(w) + (1-\alpha) \frac{\exp(\langle \tilde{c}_s,v_w \rangle)}{Z_{\tilde{c}_s}} $$</p>
+
+<p>After the word embeddings have been trained using this objective, we can model the likelihood for obtaining sentence $s$ given discourse vector $c_s$ as</p>
+
+<p>$$ p[s|c_s] = \prod_{w\in s}p(w|c_s) = \prod_{w\in s}\left[ \alpha p(w) + (1-\alpha) \frac{\exp(\langle \tilde{c}_s,v_w \rangle)}{Z} \right]. $$</p>
+
+<p>Here, we have taken $Z_{\tilde{c}_s} = Z$, in accordance with the result we proved earlier. To maximize this expression, we just need to maximize the term inside the product. Taking $f_w(\tilde{c}_s)$ to denote the term inside the product, we can easily compute its derivative, and then use Taylor expansion, $f_w(\tilde{c}_s) = f_w(0) + \nabla f_w(\tilde{c}_s)^T \tilde{c}_s$, to get an expression for $f_w(\tilde{c}_s)$. Finally, we have</p>
+
+<p>$$ \text{arg}\max\sum_{w\in s}f_w(\tilde{c}_s) \propto \sum_{w\in s}\frac{a}{p(w)+a}v_w, $$</p>
+
+<p>where $a = \frac{1-\alpha}{\alpha Z}$. If we analyze this expression, this is simply a weighted sum of the word vectors in the sentence, which is one of the most common bag-of-words technique to obtain sentence embeddings. Furthermore, the weight is low if the unigram frequency of the word is high. This is similar to Tf-idf weighting of words. Now, this theory gives rise to the following algorithm, taken from the original paper.</p>
+
+<p><img src="/img/25/sif.png" alt="" /></p>
+
+<p>This is a striking illustration of how rigorously developed theoretical results can guide construction of simple algorithms in deep learning.</p>
+
+<hr />
+
+<p><strong>Final note:</strong> This series was based on the ICML 2018 tutorial on &ldquo;<a href="http://unsupervised.cs.princeton.edu/deeplearningtutorial.html" target="_blank">Toward a Theory for Deep Learning</a>&rdquo; by <a href="https://www.cs.princeton.edu/~arora/" target="_blank">Prof. Sanjeev Arora</a>, which is why the discussion revolved mostly around the work done by his group. The papers themselves are not very trivial to understand, but the <a href="www.offconvex.org" target="_blank">blog posts</a> are more beginner friendly, and highly recommended. Several people criticize deep learning for being purely intuition-based, but I believe that will change soon, given that so much good research is being done to develop a theory for it.</p>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/deep-learning/">deep learning</a>
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/learning-theory/">learning theory</a>
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/representation-learning/">representation learning</a>
+  
+</div>
+
+
+
+
+    
+    
+    <div class="article-widget">
+      <div class="hr-light"></div>
+      <h3>Related</h3>
+      <ul>
+        
+        <li><a href="/post/deep-learning-theory-4/">Theory of Deep Learning: Generative Models</a></li>
+        
+        <li><a href="/post/deep-learning-theory-3/">Theory of Deep Learning: Role of Depth</a></li>
+        
+        <li><a href="/post/deep-learning-theory-2/">Theory of Deep Learning: Generalization</a></li>
+        
+        <li><a href="/post/deep-learning-theory-1/">Theory of Deep Learning: Optimization</a></li>
+        
+        <li><a href="/post/understanding-word-vectors/">Understanding Word Vectors</a></li>
+        
+      </ul>
+    </div>
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "desh2608-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//desh2608-github-io.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+

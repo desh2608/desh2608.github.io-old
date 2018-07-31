@@ -7,10 +7,20 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2018</copyright>
-    <lastBuildDate>Thu, 12 Apr 2018 13:41:14 +0530</lastBuildDate>
+    <lastBuildDate>Tue, 31 Jul 2018 18:45:15 +0530</lastBuildDate>
     
 	<atom:link href="https://desh2608.github.io/tags/representation-learning/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Theory of Deep Learning: An Illustration with Embeddings</title>
+      <link>https://desh2608.github.io/post/deep-learning-theory-5/</link>
+      <pubDate>Tue, 31 Jul 2018 18:45:15 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/deep-learning-theory-5/</guid>
+      <description>We have discussed several aspects of deep learning theory, ranging from optimization and generalization guarantees to role of depth and generative models. In this final post of this series, I will illustrate how theory can motivate simple solutions to problems, which can then outperform complex techniques. For this, we will consider a field where deep learning has done exceptionally well, namely, word and sentence embeddings.
+If you need a refresher on word embeddings, I have previously explained them, along with the most popular methods, in this post.</description>
+    </item>
     
     <item>
       <title>How to Obtain Sentence Vectors</title>

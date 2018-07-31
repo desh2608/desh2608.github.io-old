@@ -11,6 +11,149 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Theory of Deep Learning: An Illustration with Embeddings</title>
+      <link>https://desh2608.github.io/post/deep-learning-theory-5/</link>
+      <pubDate>Tue, 31 Jul 2018 18:45:15 +0530</pubDate>
+      
+      <guid>https://desh2608.github.io/post/deep-learning-theory-5/</guid>
+      <description>
+
+&lt;p&gt;We have discussed several aspects of deep learning theory, ranging from &lt;a href=&#34;https://desh2608.github.io/post/deep-learning-theory-1/&#34; target=&#34;_blank&#34;&gt;optimization&lt;/a&gt; and &lt;a href=&#34;https://desh2608.github.io/post/deep-learning-theory-2/&#34; target=&#34;_blank&#34;&gt;generalization guarantees&lt;/a&gt; to &lt;a href=&#34;https://desh2608.github.io/post/deep-learning-theory-3/&#34; target=&#34;_blank&#34;&gt;role of depth&lt;/a&gt; and &lt;a href=&#34;https://desh2608.github.io/post/deep-learning-theory-4/&#34; target=&#34;_blank&#34;&gt;generative models&lt;/a&gt;. In this final post of this series, I will illustrate how theory can motivate simple solutions to problems, which can then outperform complex techniques. For this, we will consider a field where deep learning has done exceptionally well, namely, word and sentence embeddings.&lt;/p&gt;
+
+&lt;p&gt;If you need a refresher on word embeddings, I have previously explained them, along with the most popular methods, in &lt;a href=&#34;https://desh2608.github.io/post/understanding-word-vectors/&#34; target=&#34;_blank&#34;&gt;this post&lt;/a&gt;. The &lt;em&gt;distributional hypothesis&lt;/em&gt; forms the basis for all word embedding techniques used at present. Instead of naively taking the co-occurence matrix, though, almost all techniques use some low-rank approximation for the same. This gives rise to low-dimensional ($\sim 300$) dense embeddings for text. An important question, then, is the following: How can low-dimensional embeddings represent the complex linguistic structure in text? We will first look at this question from a theoretical perspective, based on &lt;a href=&#34;http://aclweb.org/anthology/Q16-1028&#34; target=&#34;_blank&#34;&gt;this ACL&amp;rsquo;16 paper&lt;/a&gt; from Arora et al.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;how-do-low-dimensional-embeddings-approximate-co-occurence-matrices&#34;&gt;How do low-dimensional embeddings approximate co-occurence matrices?&lt;/h3&gt;
+
+&lt;p&gt;Formally, we want to see why, for some low-dimensional vector representations $v$, we have&lt;/p&gt;
+
+&lt;p&gt;$$ \langle v_w,v_{w^{\prime}} \rangle \approx \text{PMI}(w,w^{\prime}), $$&lt;/p&gt;
+
+&lt;p&gt;where $\text{PMI}(w,w^{\prime})$ is the pointwise mutual information between $w$ and $w^{\prime}$, defined as $\log \frac{P(w,w^{\prime})}{P(w)P(w^{\prime})}$, where the probabilities are computed empirically from the co-occurence matrix.&lt;/p&gt;
+
+&lt;p&gt;For this, the authors propose a generative model of language, as opposed to the usual discriminative model that is based on predicting the context words given a target word (i.e., multiclass classification). This is based on the random walk of a discourse vector $c_t \in \mathcal{R}^d$, which generates $t$th word in step $t$. Every word has a time-invariant latent vector $v_w \in \mathcal{R}^d$, and the word production model is given as&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}[w ~ \text{emitted at time} ~ t|c_t] \propto \exp(\langle c_t,v_w \rangle). $$&lt;/p&gt;
+
+&lt;p&gt;Here, &lt;em&gt;random walk&lt;/em&gt; means that $c_{t+1}$ is obtained by adding a small random displacement vector to $c_t$. For a theoretic analysis, we make an isotropy assumption about the word vectors.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Isotropy assumption&lt;/strong&gt;: In the bulk, word vectors are distributed uniformly in the $\mathcal{R}^d$ space.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;To generate such a dsitribution, we can just sample i.i.d from $v = s \cdot v^{\prime}$, where $s$ is a scalar random variable ($s \leq \kappa$), and $v^{\prime}$ is obtained from a spherical Gaussian distribution. This is a simple Bayesian prior similar to the assumptions commonly used in statistics.&lt;/p&gt;
+
+&lt;p&gt;Let us define $Z_c = \sum_{w}\exp(\langle v_w,c \rangle)$. This is like the normalization factor used with the above equation, but it is very difficult to compute. In the paper, the authors prove that this value is very close to some constant $Z$ for a fixed $c$. This allows us to remove this factor from consideration. Empirically, it has also been seen that some log-linear models have self-normalization properties, and this may be a reason for the observation. Let us now see how to prove this lemma.&lt;/p&gt;
+
+&lt;p&gt;Since $Z_c$ is a sum of random variables, it may be tempting to use concentration inequalities to bound its value. However, we cannot do this since $Z_c$ is neither sub-Gaussian nor sub-exponential. We approach the problem it two parts. First we bound the mean and variance of $Z_c$, and then show that it is concentrated around its mean.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Part 1:&lt;/strong&gt; Suppose there are $n$ vectors in our space. Since they are identically distributed, we have&lt;/p&gt;
+
+&lt;p&gt;$$ \mathbb{E}[Z_c] = n\mathbb{E}[\exp(\langle v_w,c \rangle)] \geq n\mathbb{E}[1 + \langle v_w,c \rangle] = n. $$&lt;/p&gt;
+
+&lt;p&gt;Here, we have used $\mathbb{E}[\langle v_w,c \rangle] = 0$, since $v_w$&amp;rsquo;s are drawn from a scaled uniform spherical Gaussian. Now, suppose all the scalar variables $s_w$ are equal in distribution to $s$. Then, we can write&lt;/p&gt;
+
+&lt;p&gt;$$ \mathbb{E}[Z_c] = n\mathbb{E}[\exp(\langle v_w,c \rangle)] = n\mathbb{E}\left[ \mathbb{E} [\exp(\langle v_w,c \rangle)|s]\right]. $$&lt;/p&gt;
+
+&lt;p&gt;We can compute the conditional expectation as&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} \mathbb{E} [\exp(\langle v_w,c \rangle)|s] &amp;amp;= \int_x \frac{1}{\sigma\sqrt{2\pi}}\exp\left( -\frac{x^2}{2\sigma^2} \right)\exp(x) dx \\\ &amp;amp;= \frac{1}{\sigma\sqrt{2\pi}}\exp\left( -\frac{(x-\sigma^2)^2}{2\sigma^2} + \frac{\sigma^2}{2}\right) dx \\\ &amp;amp;= \exp(\frac{\sigma^2}{2}). \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;Here, the standard deviation is equal to the scaling factor $s$, and so $\sigma^2 = s^2$. It follows that&lt;/p&gt;
+
+&lt;p&gt;$$ \mathbb{E}(Z_c) = n\exp(\frac{s^2}{2}). $$&lt;/p&gt;
+
+&lt;p&gt;Similarly, we can show that the variance&lt;/p&gt;
+
+&lt;p&gt;$$ \mathbb{V}(Z_c) \leq n\mathbb{E}[\exp(2s^2)]. $$&lt;/p&gt;
+
+&lt;p&gt;Since $\langle v_w,c \rangle|s$ has a Gaussian distribution with variance $s^2 \leq \kappa^2$, we have using Chernoff bounds that&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}[|\langle v_w,c \rangle| \geq \eta \log n |s] \leq \exp \left( - \frac{\eta^2 \log^2 n}{2\kappa^2} \right) = \exp (-\Omega(\log^2 n)). $$&lt;/p&gt;
+
+&lt;p&gt;Here we have removed $\eta$ and $\kappa$ since they are constants. We can now write the converse of this inequality, by taking expectation over all $s_w$, as&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}[|\langle v_w,c \rangle| \leq \frac{1}{2}\log n] \geq 1 - \exp(-\Omega(\log^2 n)). $$&lt;/p&gt;
+
+&lt;p&gt;This means that, with high probability, $|\langle v_w,c \rangle| \leq \frac{1}{2}\log n$, or equivalently, $\exp(\langle v_w,c \rangle) \leq \sqrt{n}$. Now, let the random variable $X_w$ have the same distribution as $\exp(\langle v_w,c \rangle)$ when the above holds.&lt;/p&gt;
+
+&lt;p&gt;Let us take a minute to understand what we are doing here. We do not know how to bound the original $Z_c$, since $\exp(\langle v_w,c \rangle)$ has no known concentration bounds. So we approximate it by a new random variable with high probability, so that we can compute bounds on the sum. Now, let $Z_{c}^{\prime} = \sum_{w}X_w$. We will now try to bound the mean and variance for this random variable.&lt;/p&gt;
+
+&lt;p&gt;Computing the lower bound for the mean is simple since the mean of $\exp(\langle v_w,c \rangle)$ is zero, and so $\mathbb{E}[Z_c^{\prime}] \leq n$. We can similarly bound the variance as $\mathbb{V}[Z_c^{\prime}] \leq 1.1 \Lambda n$, where $\Lambda$ is a constant. Now, using Bernstein&amp;rsquo;s inequality, we get&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}\left[ | Z_c^{\prime} - \mathbb{E}[Z_c^{\prime}] | \geq \epsilon n \right] \leq \exp(-\Omega(\log^2 n)). $$&lt;/p&gt;
+
+&lt;p&gt;Since $Z_c$ has the same distribution as $Z_c^{\prime}$, the above inequality also holds for the former. This means that the probability of $Z_c$ deviating from its mean is very low, and so we can say with high probability that&lt;/p&gt;
+
+&lt;p&gt;$$ (1-\epsilon_z)Z \leq Z_c \leq (1+\epsilon_z)Z. $$&lt;/p&gt;
+
+&lt;p&gt;The above proof was just to remove the normalization factor as a constant from the original problem, so that analysis becomes easier. We now come to the main result itself. Suppose $c$ and $c^{\prime}$ are consecutive discourse vectors and $w$ and $w^{\prime}$ are words generated from them. We have&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} p(w,w^{\prime}) &amp;amp;= \mathbb{E}_{c,c^{\prime}}[\text{Pr}[w,w^{\prime}|c,c^{\prime}]] \\\ &amp;amp;= \mathbb{E}_{c,c^{\prime}}[p(w|c)p(w^{\prime}|c^{\prime})] \\\ &amp;amp;= \mathbb{E}_{c,c^{\prime}}\left[ \frac{\exp(\langle v_w,c \rangle)}{Z_c}\right] \frac{\exp(\langle v_{w^{\prime}},c^{\prime} \rangle)}{Z_{c^{\prime}}}. \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;As proved above, we can approximate the denominators to $Z$ and take them out of the expectation. This gives&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} p(w,w^{\prime}) &amp;amp;= \frac{1}{Z^2}\mathbb{E}_{c,c^{\prime}}[\exp(\langle v_w,c \rangle)\exp(\langle v_{w^{\prime}},c^{\prime} \rangle))] \\\ &amp;amp;= \frac{1}{Z^2}\mathbb{E}_c [\exp(\langle v_w,c \rangle)\mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} \rangle)]]. \end{align}. $$&lt;/p&gt;
+
+&lt;p&gt;We can compute the internal expectation term as&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} \mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} \rangle)] &amp;amp;= \mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} - c + c \rangle)] \\\ &amp;amp;= \mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} -c \rangle)]\exp(\langle v_{w^{\prime}},c \rangle) \\\ &amp;amp;\approx \exp(\langle v_{w^{\prime}},c \rangle). \end{align}$$&lt;/p&gt;
+
+&lt;p&gt;Here, the last approximation can be done because we have assumed that our random walk has small steps, i.e., $|c^{\prime} - c|$ is small. Using this in above, we get&lt;/p&gt;
+
+&lt;p&gt;$$ p(w,w^{\prime}) = \frac{1}{Z^2}\mathbb{E}[\exp(\langle v_w + v_{w^{\prime}},c \rangle)]. $$&lt;/p&gt;
+
+&lt;p&gt;Since $c$ has uniform distribution over the sphere, the above resembles a Gaussian centered at 0 and variance $\frac{\lVert  v_w + v_{w^{\prime}} \rVert^2}{d}$. Since $\mathbb{E}[\exp(X)] = \exp(\frac{\sigma^2}{2})$ for $X \sim \mathcal{N}(0,\sigma^2)$, we get the closed form expression as&lt;/p&gt;
+
+&lt;p&gt;$$ p(w,w^{\prime}) = \frac{1}{Z^2}\exp\left( \frac{\lVert  v_w + v_{w^{\prime}} \rVert^2}{2d} \right), $$&lt;/p&gt;
+
+&lt;p&gt;which is the desired result. Note that I have ignored some technicalities for error bounds in this proof. We have now shown the original result that we wanted, but how did dimensionality help?&lt;/p&gt;
+
+&lt;p&gt;The answer lies in the &lt;em&gt;isotropy assumption&lt;/em&gt; that we made at the very beginning. Having $n$ vectors be isotropic in $d$ dimensions requires $d &amp;lt;&amp;lt; n$, which is indeed what is observed empirically. Hence, theory justifies experimental findings.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;an-algorithm-for-sentence-embeddings&#34;&gt;An algorithm for sentence embeddings&lt;/h3&gt;
+
+&lt;p&gt;In a previous part of this series, I echoed Prof. Arora&amp;rsquo;s concern that theoretical analysis at present is like a postmortem analysis, where we try to find properties of the model that can explain certain empirical findings. The ideal scenario would be where we can use this understanding to guide future learning models. In this section, I will look at &lt;a href=&#34;https://openreview.net/pdf?id=SyK00v5xx&#34; target=&#34;_blank&#34;&gt;this paper from ICLR&amp;rsquo;17&lt;/a&gt; which uses the understanding from the previous section to build simple but strong word embeddings.&lt;/p&gt;
+
+&lt;p&gt;Suppose we want to obtain the vector for a piece of text, say, a sentence. From our generative model defined in the previous section, it would be reasonable to say that this can be approximated by a &lt;em&gt;max a priori&lt;/em&gt; (MAP) estimate of the discourse vector that generated the sentence, i.e.,&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}[w ~ \text{emitted in sentence} ~ s | c_s] = \frac{\exp(\langle c_s,v_w \rangle)}{Z_{c_s}}, $$&lt;/p&gt;
+
+&lt;p&gt;where $c_s$ is the discourse vector that remains approximately constant for the sentence. However, we need to modify this slightly to account for two real situations.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Some words often appear out of context, and some stop words appear regardless of discourse. To approximate this, we add a term $\alpha p(w)$ to the log-linear model, where $p(w)$ is the unigram probability of the word. This makes probability of appearance of some words high even if they have low correlation with the discourse vector.&lt;/li&gt;
+&lt;li&gt;Generation of words depends not just on current sentence, but on entire history of discourse. To model this, we use discourse vector $\tilde{c}_s = \beta c_0 + (1-\beta)c_s$, where $c_0$ is the common discourse vector.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Finally, the modified log-linear objective is as follows.&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}[w ~ \text{emitted in sentence} ~ s | c_s] = \alpha p(w) + (1-\alpha) \frac{\exp(\langle \tilde{c}_s,v_w \rangle)}{Z_{\tilde{c}_s}} $$&lt;/p&gt;
+
+&lt;p&gt;After the word embeddings have been trained using this objective, we can model the likelihood for obtaining sentence $s$ given discourse vector $c_s$ as&lt;/p&gt;
+
+&lt;p&gt;$$ p[s|c_s] = \prod_{w\in s}p(w|c_s) = \prod_{w\in s}\left[ \alpha p(w) + (1-\alpha) \frac{\exp(\langle \tilde{c}_s,v_w \rangle)}{Z} \right]. $$&lt;/p&gt;
+
+&lt;p&gt;Here, we have taken $Z_{\tilde{c}_s} = Z$, in accordance with the result we proved earlier. To maximize this expression, we just need to maximize the term inside the product. Taking $f_w(\tilde{c}_s)$ to denote the term inside the product, we can easily compute its derivative, and then use Taylor expansion, $f_w(\tilde{c}_s) = f_w(0) + \nabla f_w(\tilde{c}_s)^T \tilde{c}_s$, to get an expression for $f_w(\tilde{c}_s)$. Finally, we have&lt;/p&gt;
+
+&lt;p&gt;$$ \text{arg}\max\sum_{w\in s}f_w(\tilde{c}_s) \propto \sum_{w\in s}\frac{a}{p(w)+a}v_w, $$&lt;/p&gt;
+
+&lt;p&gt;where $a = \frac{1-\alpha}{\alpha Z}$. If we analyze this expression, this is simply a weighted sum of the word vectors in the sentence, which is one of the most common bag-of-words technique to obtain sentence embeddings. Furthermore, the weight is low if the unigram frequency of the word is high. This is similar to Tf-idf weighting of words. Now, this theory gives rise to the following algorithm, taken from the original paper.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/25/sif.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This is a striking illustration of how rigorously developed theoretical results can guide construction of simple algorithms in deep learning.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;strong&gt;Final note:&lt;/strong&gt; This series was based on the ICML 2018 tutorial on &amp;ldquo;&lt;a href=&#34;http://unsupervised.cs.princeton.edu/deeplearningtutorial.html&#34; target=&#34;_blank&#34;&gt;Toward a Theory for Deep Learning&lt;/a&gt;&amp;rdquo; by &lt;a href=&#34;https://www.cs.princeton.edu/~arora/&#34; target=&#34;_blank&#34;&gt;Prof. Sanjeev Arora&lt;/a&gt;, which is why the discussion revolved mostly around the work done by his group. The papers themselves are not very trivial to understand, but the &lt;a href=&#34;www.offconvex.org&#34; target=&#34;_blank&#34;&gt;blog posts&lt;/a&gt; are more beginner friendly, and highly recommended. Several people criticize deep learning for being purely intuition-based, but I believe that will change soon, given that so much good research is being done to develop a theory for it.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Theory of Deep Learning: Generative Models</title>
       <link>https://desh2608.github.io/post/deep-learning-theory-4/</link>
       <pubDate>Mon, 30 Jul 2018 23:39:37 +0530</pubDate>
@@ -2007,118 +2150,6 @@ non-decreasing sequence selected at the beginning of the algorithm. For the case
 &lt;/ol&gt;
 
 &lt;p&gt;&lt;em&gt;Note&lt;/em&gt;: I have skipped a discussion on AdaDelta in this post since it is very similar to RMSProp and the latter is more popular.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Irony Detection in Tweets</title>
-      <link>https://desh2608.github.io/post/irony-detection-in-tweets/</link>
-      <pubDate>Wed, 07 Feb 2018 13:40:06 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/irony-detection-in-tweets/</guid>
-      <description>
-
-&lt;p&gt;There was a &lt;a href=&#34;https://github.com/Cyvhee/SemEval2018-Task3&#34; target=&#34;_blank&#34;&gt;SemEval 2018 Shared Task&lt;/a&gt; on “irony detection in tweets” that ended recently. As a fun personal project, I thought of giving it a shot, just to implement some new ideas. In this post, I will describe my approach for the problem along with some code.&lt;/p&gt;
-
-&lt;h4 id=&#34;problem-description&#34;&gt;Problem description&lt;/h4&gt;
-
-&lt;p&gt;The task itself was divided into two subtasks:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;em&gt;Task A: Binary classification&lt;/em&gt;. Given a tweet, detect whether it has irony or not.&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;Task B: Multi-label classification&lt;/em&gt;. Given a tweet and a set of labels: i) verbal irony realized through a polarity contrast, ii) verbal irony without such a polarity contrast (i.e., other verbal irony), iii) descriptions of situational irony, iv) non-irony, find the correct irony type.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;While the task appears to be a simple text classification job, there are several nuances that make it challenging. Irony is often context-dependent or derived from world knowledge. In sentiment analysis, the semantics of the sentences are sufficient to judge whether the sentence has been spoken in a positive or negative manner. However, irony, by definition, almost always exists when the literal meaning of the sentence is dramatically different from what has been implied. Sample this:&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;Just great when you’re (sic) mobile bill arrives by text.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;From a sentiment analysis perspective, the presence of the phrase “just great” would adjudge this sentence strongly positive. However, from our world knowledge, we know the nuances of the interplay between a “mobile bill” and “text.” As a human, then, we can judge that the sentence is spoken in irony.&lt;/p&gt;
-
-&lt;p&gt;The problem is: how can we have an automated system understand this?&lt;/p&gt;
-
-&lt;h4 id=&#34;circular-correlation-between-text-and-hashtags&#34;&gt;Circular correlation between text and hashtags&lt;/h4&gt;
-
-&lt;p&gt;The first idea of a solution came from how the dataset was generated in the first place. To mine tweets containing irony, those tweets were selected which contained the hashtag &lt;strong&gt;#not&lt;/strong&gt;. The idea was that a lot of people explicitly declare their intent at irony through hashtags. For instance, consider the following tweet:&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;Physical therapy at 8 am is just what I want to be doing with my Friday #iwanttosleep&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;In this example, let us breakdown the tweet into 2 components:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;em&gt;Text&lt;/em&gt;: Physical therapy at 8 am is just what I want to be doing with my Friday.&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;Hashtag&lt;/em&gt;: I want to sleep&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;It is obvious from the semantics of the 2 components that they imply very different things. As such, it may help to model the interaction between the “text” and “hashtag” components of the tweet and then use the resulting embedding for classification. In this regard, we are essentially treating the problem as that of relation classification, where the entities are the 2 components and we need to identify whether there exists a relation between them (task A), and if yes, of which type (task B).&lt;/p&gt;
-
-&lt;p&gt;The problem, now, is reduced to the issue of how to model the two components and their interaction. This is where deep learning comes into the picture.&lt;/p&gt;
-
-&lt;h4 id=&#34;modeling-embeddings-and-interaction&#34;&gt;Modeling embeddings and interaction&lt;/h4&gt;
-
-&lt;p&gt;The embeddings to represent the components are obtained simply by passing their pretrained word vectors through a bidirectional LSTM layer. This is fairly simple for the text component.&lt;/p&gt;
-
-&lt;p&gt;However, in the hashtag component, a single hashtag almost always consists of multiple words concatenated into a single string. Therefore, we first perform word segmentation on the hashtag and use the resulting segments to obtain the embedding.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import wordsegment as ws
-ws.load()
-hashtag = “ “.join(ws.segment(temp))
-## Here, &#39;temp&#39; is the original hashtag
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Once the embeddings for the two components have been obtained, we use the circular cross-correlation technique (which I have earlier described in &lt;a href=&#34;https://desh2608.github.io/post/beyond-euclidean-embeddings/&#34; target=&#34;_blank&#34;&gt;this blog post&lt;/a&gt; to model their interaction.  Essentially, the operator is defined as&lt;/p&gt;
-
-&lt;p&gt;$$ [a\cdot b]_k = \sum_{i=1}^{d-1}a_i b_{(k+i)\text{mod}d}. $$&lt;/p&gt;
-
-&lt;p&gt;In Tensorflow, this is implemented as follows:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import tensorflow as tf
-
-def holographic_merge(inp):
-    [a, b] = inp
-    a_fft = tf.fft(tf.complex(a, 0.0))
-    b_fft = tf.fft(tf.complex(b, 0.0))
-    ifft = tf.ifft(tf.conj(a_fft) * b_fft)
-    return tf.cast(tf.real(ifft), &#39;float32&#39;)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;The output of this merge is then passed to an XGBoost classifier (whose implementation was used out-of-the-box from the corresponding Python package).&lt;/p&gt;
-
-&lt;p&gt;This model resulted in a validation accuracy of ~62%, compared to ~59% for a simple LSTM model. Time to analyze where it was failing!&lt;/p&gt;
-
-&lt;h4 id=&#34;world-knowledge-for-irony-detection&#34;&gt;World knowledge for irony detection&lt;/h4&gt;
-
-&lt;p&gt;The problem with this idea was that although it performed well for samples similar to the example given above, such samples constituted only about 20% of the dataset. For a majority of the tweets containing irony, there was no hashtag, and as such, modeling interactions was useless.&lt;/p&gt;
-
-&lt;p&gt;In such cases, we have to solely rely upon the text component to detect hashtag, for e.g.&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;The fun part about 4 am drives in the winter, is no one has cleaned the snow yet&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;If an automated system has to understand that the above sentence contains irony, it needs to know that there is nothing fun about driving on a road covered in snow. This knowledge cannot be gained from learning on a few thousand tweets. We now turn to &lt;strong&gt;transfer learning&lt;/strong&gt;!&lt;/p&gt;
-
-&lt;p&gt;MIT researchers recently built an unsupervised system called &lt;a href=&#34;https://deepmoji.mit.edu/&#34; target=&#34;_blank&#34;&gt;DeepMoji&lt;/a&gt; for emoji prediction in tweets. According to the website, &amp;ldquo;DeepMoji has learned to understand emotions and sarcasm based on millions of emojis. We hypothesize that if we use this pretrained model to extract features from the text component, it may then be used to predict whether the text contains irony. In a way, we are transfering world knowledge to our model (assuming that the million tweets on which DeepMoji was trained is our world!).&lt;/p&gt;
-
-&lt;p&gt;As expected, concatenating the DeepMoji features with the holographic embeddings resulted in a validation accuracy of $\sim69\%$, i.e., a jump of almost 7%. This reinforces our hypothesis that world knowledge is indeed an important ingredient in any kind of irony detection.&lt;/p&gt;
-
-&lt;h4 id=&#34;summary&#34;&gt;Summary&lt;/h4&gt;
-
-&lt;p&gt;In essence, we identified 2 aspects that were essential to identify irony in
-tweets:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Semantic interaction between text and hashtags, modeled using holographic embeddings&lt;/li&gt;
-&lt;li&gt;World knowledge about irony in text, obtained through transfer learning from DeepMoji&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;The code for the project is available &lt;a href=&#34;https://github.com/desh2608/tweet-irony-detection&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; In the final test phase, the results were disappointing (~50% for task A) especially given the high performance on validation set. This could likely have been due to some implementation error on the test set, and we are waiting for the gold labels to be released to analyze our mistake.&lt;/p&gt;
 </description>
     </item>
     
