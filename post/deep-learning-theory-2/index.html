@@ -444,7 +444,7 @@ A distinguishing feature of most modern deep learning architectures is that they
 <li><strong>Gaussian kernel:</strong> Its mathematical formulation is</li>
 </ul>
 
-<p>$$ K(x,y) = \exp \left( - \frac{\lVert x-y \rVert}{2\sigma^2} \right). $$</p>
+<p>$$ K(x,y) = \exp \left( - \frac{\lVert x-y \rVert^2}{2\sigma^2} \right). $$</p>
 
 <p>Both the Laplacian and Gaussian kernels are examples of the <a href="https://en.wikipedia.org/wiki/Radial_basis_function" target="_blank">radial basis function</a> kernels. The difference lies only in the parameter $\sigma$. Since the Gaussian depends on the square of this parameter, it is more sensitive to changes in $\sigma$ than the Laplacian.</p>
 

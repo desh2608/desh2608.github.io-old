@@ -265,7 +265,7 @@ At the outset, we should understand that a number of important concepts in deep 
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    11 min read
+    10 min read
   </span>
   
 
@@ -378,23 +378,7 @@ At the outset, we should understand that a number of important concepts in deep 
 <p><strong>Claim (<a href="https://rd.springer.com/book/10.1007%2F978-1-4419-8853-9" target="_blank">Nesterov 1998</a>):</strong> If we choose $\eta = \frac{1}{2\beta}$, we can achieve $|\nabla f|&lt;\epsilon$ in number of steps proportional to $\frac{\beta}{\epsilon^2}$.</p>
 </blockquote>
 
-<p><strong>Proof:</strong> First, let us define <em>smoothness</em> as given <a href="https://ee227c.github.io/notes/ee227c-notes.pdf" target="_blank">here</a> (see Definition 2.7). A continuously differentiable (i.e. first and second derivatives exist) is $\beta$-smooth if the gradient is $\beta$-Lipschitz, i.e.</p>
-
-<p>$$ \lVert \nabla f(x) - \nabla f(y) \rVert \leq \beta \lVert x - y \rVert. $$</p>
-
-<p>Now, taking $z = y - \frac{1}{2\beta}(\nabla f(y) - \nabla f(x))$, we can write</p>
-
-<p>$$ \begin{align} f(x) - f(y) &amp;= f(x) - f(z) + f(z) - f(y) \\\ &amp;\leq \nabla f(x)^T (x-z) + \nabla f(y)^T (y-z) \\\ &amp;= \nabla f(x)^T (x-y) + (\nabla f(x) - \nabla f(y))^T(y-z) \\\ &amp;= \nabla f(x)^T (x-y) + (\nabla f(x) - \nabla f(y))^T (\frac{1}{2\beta}(\nabla f(y) - \nabla f(x))) \\\ &amp;=  \nabla f(x)^T (x-y) - \frac{1}{2\beta}\lVert \nabla f(x) - \nabla f(y) \rVert^2 \\\ &amp;\leq \nabla f(x)^T (x-y) - \frac{\beta}{2}\lVert x-y \rVert^2 \end{align} $$</p>
-
-<p>Here, the inequality in the second step comes from the property of convex functions, in the fourth step we have substituted $z$, and in the final step we have used the definition of $\beta$-Lipschitz. Reversing the sign of the inequality, we get</p>
-
-<p>$$ f(x) - f(y) \geq -\nabla f(x)^T (y-x) - \frac{\beta}{2}\lVert x-y \rVert^2. $$</p>
-
-<p>Now, take $x = \theta_t$ and $y = \theta_{t+1}$ to get</p>
-
-<p>$$ \begin{align} f(\theta_t) - f(\theta_{t+1}) &amp;\geq -\nabla f(\theta_t)(\theta_{t+1} - \theta_t) - \frac{\beta}{2}\lVert \theta_t - \theta_{t+1} \rVert^2 \\\ &amp;= \eta |\nabla_t|^2 - \frac{1}{2}\beta\eta^2 |\nabla_t|^2 = \frac{1}{2\beta}|\nabla_t|^2. \end{align} $$</p>
-
-<p>So a single update reduces the function value by at least $\frac{\epsilon^2}{2\beta}$. Therefore, it would take $\mathcal{O}(\frac{\beta}{\epsilon^2})$ steps to arrive at a critical point.</p>
+<p><strong>Proof:</strong> See the proof of Lemma 2.8 <a href="https://ee227c.github.io/notes/ee227c-notes.pdf" target="_blank">here</a> (see Definition 2.7). So a single update reduces the function value by at least $\frac{\epsilon^2}{2\beta}$. Therefore, it would take $\mathcal{O}(\frac{\beta}{\epsilon^2})$ steps to arrive at a critical point.</p>
 
 <h4 id="evading-saddle-points">Evading saddle points</h4>
 

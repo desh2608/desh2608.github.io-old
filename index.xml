@@ -775,7 +775,7 @@ overparameterization.&lt;/p&gt;
 &lt;li&gt;&lt;strong&gt;Gaussian kernel:&lt;/strong&gt; Its mathematical formulation is&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;$$ K(x,y) = \exp \left( - \frac{\lVert x-y \rVert}{2\sigma^2} \right). $$&lt;/p&gt;
+&lt;p&gt;$$ K(x,y) = \exp \left( - \frac{\lVert x-y \rVert^2}{2\sigma^2} \right). $$&lt;/p&gt;
 
 &lt;p&gt;Both the Laplacian and Gaussian kernels are examples of the &lt;a href=&#34;https://en.wikipedia.org/wiki/Radial_basis_function&#34; target=&#34;_blank&#34;&gt;radial basis function&lt;/a&gt; kernels. The difference lies only in the parameter $\sigma$. Since the Gaussian depends on the square of this parameter, it is more sensitive to changes in $\sigma$ than the Laplacian.&lt;/p&gt;
 
@@ -970,23 +970,7 @@ overparameterization.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Claim (&lt;a href=&#34;https://rd.springer.com/book/10.1007%2F978-1-4419-8853-9&#34; target=&#34;_blank&#34;&gt;Nesterov 1998&lt;/a&gt;):&lt;/strong&gt; If we choose $\eta = \frac{1}{2\beta}$, we can achieve $|\nabla f|&amp;lt;\epsilon$ in number of steps proportional to $\frac{\beta}{\epsilon^2}$.&lt;/p&gt;
 &lt;/blockquote&gt;
 
-&lt;p&gt;&lt;strong&gt;Proof:&lt;/strong&gt; First, let us define &lt;em&gt;smoothness&lt;/em&gt; as given &lt;a href=&#34;https://ee227c.github.io/notes/ee227c-notes.pdf&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; (see Definition 2.7). A continuously differentiable (i.e. first and second derivatives exist) is $\beta$-smooth if the gradient is $\beta$-Lipschitz, i.e.&lt;/p&gt;
-
-&lt;p&gt;$$ \lVert \nabla f(x) - \nabla f(y) \rVert \leq \beta \lVert x - y \rVert. $$&lt;/p&gt;
-
-&lt;p&gt;Now, taking $z = y - \frac{1}{2\beta}(\nabla f(y) - \nabla f(x))$, we can write&lt;/p&gt;
-
-&lt;p&gt;$$ \begin{align} f(x) - f(y) &amp;amp;= f(x) - f(z) + f(z) - f(y) \\\ &amp;amp;\leq \nabla f(x)^T (x-z) + \nabla f(y)^T (y-z) \\\ &amp;amp;= \nabla f(x)^T (x-y) + (\nabla f(x) - \nabla f(y))^T(y-z) \\\ &amp;amp;= \nabla f(x)^T (x-y) + (\nabla f(x) - \nabla f(y))^T (\frac{1}{2\beta}(\nabla f(y) - \nabla f(x))) \\\ &amp;amp;=  \nabla f(x)^T (x-y) - \frac{1}{2\beta}\lVert \nabla f(x) - \nabla f(y) \rVert^2 \\\ &amp;amp;\leq \nabla f(x)^T (x-y) - \frac{\beta}{2}\lVert x-y \rVert^2 \end{align} $$&lt;/p&gt;
-
-&lt;p&gt;Here, the inequality in the second step comes from the property of convex functions, in the fourth step we have substituted $z$, and in the final step we have used the definition of $\beta$-Lipschitz. Reversing the sign of the inequality, we get&lt;/p&gt;
-
-&lt;p&gt;$$ f(x) - f(y) \geq -\nabla f(x)^T (y-x) - \frac{\beta}{2}\lVert x-y \rVert^2. $$&lt;/p&gt;
-
-&lt;p&gt;Now, take $x = \theta_t$ and $y = \theta_{t+1}$ to get&lt;/p&gt;
-
-&lt;p&gt;$$ \begin{align} f(\theta_t) - f(\theta_{t+1}) &amp;amp;\geq -\nabla f(\theta_t)(\theta_{t+1} - \theta_t) - \frac{\beta}{2}\lVert \theta_t - \theta_{t+1} \rVert^2 \\\ &amp;amp;= \eta |\nabla_t|^2 - \frac{1}{2}\beta\eta^2 |\nabla_t|^2 = \frac{1}{2\beta}|\nabla_t|^2. \end{align} $$&lt;/p&gt;
-
-&lt;p&gt;So a single update reduces the function value by at least $\frac{\epsilon^2}{2\beta}$. Therefore, it would take $\mathcal{O}(\frac{\beta}{\epsilon^2})$ steps to arrive at a critical point.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Proof:&lt;/strong&gt; See the proof of Lemma 2.8 &lt;a href=&#34;https://ee227c.github.io/notes/ee227c-notes.pdf&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; (see Definition 2.7). So a single update reduces the function value by at least $\frac{\epsilon^2}{2\beta}$. Therefore, it would take $\mathcal{O}(\frac{\beta}{\epsilon^2})$ steps to arrive at a critical point.&lt;/p&gt;
 
 &lt;h4 id=&#34;evading-saddle-points&#34;&gt;Evading saddle points&lt;/h4&gt;
 
