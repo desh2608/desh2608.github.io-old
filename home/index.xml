@@ -7,7 +7,7 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2018</copyright>
-    <lastBuildDate>Tue, 03 Jul 2018 00:00:00 +0530</lastBuildDate>
+    <lastBuildDate>Tue, 03 Jul 2018 00:00:00 -0400</lastBuildDate>
     
 	<atom:link href="https://desh2608.github.io/home/index.xml" rel="self" type="application/rss+xml" />
     
@@ -15,18 +15,17 @@
     <item>
       <title></title>
       <link>https://desh2608.github.io/home/about/</link>
-      <pubDate>Tue, 03 Jul 2018 00:00:00 +0530</pubDate>
+      <pubDate>Tue, 03 Jul 2018 00:00:00 -0400</pubDate>
       
       <guid>https://desh2608.github.io/home/about/</guid>
-      <description>About I am a graduate student at Johns Hopkins University, working in the Center for Language and Speech Processing (CLSP). My research interests are in theoretical and applied machine learning, particularly unsupervised learning techniques for language.
-I graduated from IIT Guwahati in 2017 with a major in Computer Science. My bachelor thesis was on deep learning methods for relation extraction in clinical text, supervised by Prof. Ashish Anand.
-When I&amp;rsquo;m not doing ML, I like to work out, swim, play the guitar, and read fiction.</description>
+      <description>About I am a graduate student at Johns Hopkins University, working in the Center for Language and Speech Processing (CLSP), advised by Daniel Povey and Sanjeev Khudanpur. My research interests are in theoretical and applied machine learning, particularly unsupervised learning techniques for language and speech.
+I graduated from IIT Guwahati in 2017 with a major in Computer Science. My bachelor thesis was on deep learning methods for relation extraction in clinical text, supervised by Prof.</description>
     </item>
     
     <item>
       <title>Selected Publications</title>
       <link>https://desh2608.github.io/home/publications_selected/</link>
-      <pubDate>Wed, 20 Apr 2016 00:00:00 +0530</pubDate>
+      <pubDate>Wed, 20 Apr 2016 00:00:00 -0400</pubDate>
       
       <guid>https://desh2608.github.io/home/publications_selected/</guid>
       <description></description>
@@ -35,7 +34,7 @@ When I&amp;rsquo;m not doing ML, I like to work out, swim, play the guitar, and 
     <item>
       <title>Recent Publications</title>
       <link>https://desh2608.github.io/home/publications/</link>
-      <pubDate>Wed, 20 Apr 2016 00:00:00 +0530</pubDate>
+      <pubDate>Wed, 20 Apr 2016 00:00:00 -0400</pubDate>
       
       <guid>https://desh2608.github.io/home/publications/</guid>
       <description></description>
@@ -44,7 +43,7 @@ When I&amp;rsquo;m not doing ML, I like to work out, swim, play the guitar, and 
     <item>
       <title>Recent &amp; Upcoming Talks</title>
       <link>https://desh2608.github.io/home/talks/</link>
-      <pubDate>Wed, 20 Apr 2016 00:00:00 +0530</pubDate>
+      <pubDate>Wed, 20 Apr 2016 00:00:00 -0400</pubDate>
       
       <guid>https://desh2608.github.io/home/talks/</guid>
       <description></description>
@@ -53,7 +52,7 @@ When I&amp;rsquo;m not doing ML, I like to work out, swim, play the guitar, and 
     <item>
       <title>Recent Posts</title>
       <link>https://desh2608.github.io/home/posts/</link>
-      <pubDate>Wed, 20 Apr 2016 00:00:00 +0530</pubDate>
+      <pubDate>Wed, 20 Apr 2016 00:00:00 -0400</pubDate>
       
       <guid>https://desh2608.github.io/home/posts/</guid>
       <description></description>
@@ -62,7 +61,7 @@ When I&amp;rsquo;m not doing ML, I like to work out, swim, play the guitar, and 
     <item>
       <title>Projects</title>
       <link>https://desh2608.github.io/home/projects/</link>
-      <pubDate>Wed, 20 Apr 2016 00:00:00 +0530</pubDate>
+      <pubDate>Wed, 20 Apr 2016 00:00:00 -0400</pubDate>
       
       <guid>https://desh2608.github.io/home/projects/</guid>
       <description></description>
@@ -71,7 +70,7 @@ When I&amp;rsquo;m not doing ML, I like to work out, swim, play the guitar, and 
     <item>
       <title>Custom Section</title>
       <link>https://desh2608.github.io/home/teaching/</link>
-      <pubDate>Wed, 20 Apr 2016 00:00:00 +0530</pubDate>
+      <pubDate>Wed, 20 Apr 2016 00:00:00 -0400</pubDate>
       
       <guid>https://desh2608.github.io/home/teaching/</guid>
       <description>This is an example of using the custom widget to create your own homepage section.
@@ -81,7 +80,7 @@ To remove this section, either delete content/home/teaching.md or edit the front
     <item>
       <title>Tags</title>
       <link>https://desh2608.github.io/home/tags/</link>
-      <pubDate>Wed, 20 Sep 2017 00:00:00 +0530</pubDate>
+      <pubDate>Wed, 20 Sep 2017 00:00:00 -0400</pubDate>
       
       <guid>https://desh2608.github.io/home/tags/</guid>
       <description></description>
@@ -90,7 +89,7 @@ To remove this section, either delete content/home/teaching.md or edit the front
     <item>
       <title>Contact</title>
       <link>https://desh2608.github.io/home/contact/</link>
-      <pubDate>Wed, 20 Apr 2016 00:00:00 +0530</pubDate>
+      <pubDate>Wed, 20 Apr 2016 00:00:00 -0400</pubDate>
       
       <guid>https://desh2608.github.io/home/contact/</guid>
       <description></description>
