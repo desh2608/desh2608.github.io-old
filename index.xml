@@ -119,6 +119,18 @@
 
 &lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.jmlr.org/papers/volume1/allwein00a/allwein00a.pdf&#34; target=&#34;_blank&#34;&gt;Reducing Multiclass to Binary: A Unifying Approach for Margin Classifiers&lt;/a&gt;. Erin Allwein, Robert Schapire, and Yoram Singer. ICML 2000. &lt;em&gt;Best 10 year paper award at ICML 2000&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Some random observations:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;NLP venues didn&amp;rsquo;t really have a classic paper section until this year&amp;rsquo;s NAACL, which is probably why so many papers were nominated.&lt;/li&gt;
+&lt;li&gt;2001 seems to have been a dismal year for NLP, with no good papers in the long run. By contrast, the community appears to have bounced back next year, with all 3 NAACL 2018 test-of-time awards given to papers from 2002.&lt;/li&gt;
+&lt;li&gt;I have no idea why BLEU won. It was supposed to be an &amp;ldquo;understudy,&amp;rdquo; which is pretty clear from its name. The fact that it is still being used as an evaluation metric speaks more of a general failure to construct better metrics than of its strength.&lt;/li&gt;
+&lt;li&gt;Since the papers are from before 2010, deep learning is conspicuous by its absence. In fact, Collobert and Weston&amp;rsquo;s ICML&amp;rsquo;08 paper on a unified architecture for language is the only such paper.&lt;/li&gt;
+&lt;li&gt;Ali Rahimi&amp;rsquo;s &lt;a href=&#34;https://www.livescience.com/62495-rahimi-machine-learning-ai-alchemy.html&#34; target=&#34;_blank&#34;&gt;&amp;ldquo;ML is alchemy&amp;rdquo; talk at NIPS&amp;rsquo;17&lt;/a&gt; got a lot of attention, probably much more than his paper on random features.&lt;/li&gt;
+&lt;/ol&gt;
 </description>
     </item>
     
