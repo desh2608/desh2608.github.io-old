@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.41" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="I was trying to find a consolidated list of papers in machine learning (ICML, NIPS) and natural language processing (ACL, EMNLP, NAACL) published after 2000, which are held in some regard, perhaps by winning prizes such as Test-of-time paper at these major conferences. However, there seems to be no such list, or if it is, it&rsquo;s hidden too deep and it may just be quicker to prepare a similar list of my own.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/classic-papers/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/classic-papers/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/classic-papers/">
+  <meta property="og:title" content="Award-winning classic papers in ML and NLP | Desh Raj">
+  <meta property="og:description" content="I was trying to find a consolidated list of papers in machine learning (ICML, NIPS) and natural language processing (ACL, EMNLP, NAACL) published after 2000, which are held in some regard, perhaps by winning prizes such as Test-of-time paper at these major conferences. However, there seems to be no such list, or if it is, it&rsquo;s hidden too deep and it may just be quicker to prepare a similar list of my own.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2018-08-30T19:57:44-04:00">
+  
+  <meta property="article:modified_time" content="2018-08-30T19:57:44-04:00">
+  
+
+  
+  
+
+  <title>Award-winning classic papers in ML and NLP | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Award-winning classic papers in ML and NLP</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2018-08-30 19:57:44 -0400 EDT" itemprop="datePublished dateModified">
+      Aug 30, 2018
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    4 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/classic-papers/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Award-winning%20classic%20papers%20in%20ML%20and%20NLP&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fclassic-papers%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fclassic-papers%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fclassic-papers%2f&amp;title=Award-winning%20classic%20papers%20in%20ML%20and%20NLP"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fclassic-papers%2f&amp;title=Award-winning%20classic%20papers%20in%20ML%20and%20NLP"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Award-winning%20classic%20papers%20in%20ML%20and%20NLP&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fclassic-papers%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p>I was trying to find a consolidated list of papers in machine learning (ICML, NIPS) and natural language processing (ACL, EMNLP, NAACL) published after 2000, which are held in some regard, perhaps by winning prizes such as Test-of-time paper at these major conferences. However, there seems to be no such list, or if it is, it&rsquo;s hidden too deep and it may just be quicker to prepare a similar list of my own. I will add the papers in reverse chronological order of their publication year.</p>
+
+<h2 id="2009">2009</h2>
+
+<ul>
+<li><a href="http://www.aclweb.org/anthology/E/E09/E09-1081.pdf" target="_blank">A General, Abstract Model of Incremental Dialogue Processing</a>. David Schlangen and Gabriel Skantze. EACL 2009. <em>Honorable mention at NAACL 2018</em></li>
+</ul>
+
+<h2 id="2008">2008</h2>
+
+<ul>
+<li><p><a href="https://ronan.collobert.com/pub/matos/2008_nlp_icml.pdf" target="_blank">A unified architecture for natural language processing: deep neural networks with multitask learning</a>. Ronan Collobert and Jason Weston. ICML 2008. <em>Test-of-time award at ICML 2018</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/D08-1027" target="_blank">Cheap and Fast—But is it Good?: Evaluating Non-Expert Annotations for Natural Language Tasks</a>. Snow, O&rsquo;Connor, Jurafsky, and Ng. EMNLP 2008. <em>Honorable mention at NAACL 2018</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/J/J08/J08-1001.pdf" target="_blank">Modeling Local Coherence: An entity-based approach</a>. Regina Barzilay and Mirella Lapata. Transactions of ACL (2008). <em>Honorable mention at NAACL 2018</em></p></li>
+</ul>
+
+<h2 id="2007">2007</h2>
+
+<ul>
+<li><p><a href="https://people.eecs.berkeley.edu/~brecht/papers/07.rah.rec.nips.pdf" target="_blank">Random features for large scale kernel machines</a>. Ali Rahimi and Ben Recht. NIPS 2007. <em>Test-of-time award at NIPS 2017</em></p></li>
+
+<li><p><a href="http://www0.cs.ucl.ac.uk/staff/d.silver/web/Applications_files/combining_uct.pdf" target="_blank">Combining Online and Offline Knowledge in UCT</a>. Sylvain Gelly and David Silver. ICML 2007. <em>Test-of-time award at ICML 2017</em></p></li>
+
+<li><p><a href="http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf" target="_blank">Pegasos: Primal estimated sub-gradient solver for SVM</a>. Shalev-Shwartz et al. ICML 2007. <em>Honorable mention at ICML 2017</em></p></li>
+
+<li><p><a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.83.719&amp;rep=rep1&amp;type=pdf" target="_blank">A Bound on the Label Complexity of Agnostic Active Learning</a>. Steve Hanneke. ICML 2007. <em>Honorable mention at ICML 2017</em></p></li>
+
+<li><p><a href="http://aclweb.org/anthology/J/J09/J09-4008.pdf" target="_blank">An Investigation into the Validity of Some Metrics for Automatically Evaluating Natural Language Generation Systems</a>. Ehud Reiter and Anja Belz. Transactions of ACL 2009. <em>Honorable mention at NAACL 2018</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/P07-1033" target="_blank">Frustratingly Easy Domain Adaptation</a>. Hal Daume III. ACL 2007. <em>Honorable mention at NAACL 2018</em></p></li>
+</ul>
+
+<h2 id="2006">2006</h2>
+
+<ul>
+<li><a href="https://icml.cc/2016/awards/dtm.pdf" target="_blank">Dynamic topic models</a>. David Blei and John Lafferty. ICML 2006. <em>Test-of-time award at ICML 2016</em></li>
+</ul>
+
+<h2 id="2005">2005</h2>
+
+<ul>
+<li><p><a href="https://icml.cc/2015/wp-content/uploads/2015/06/icml_ranking.pdf" target="_blank">Learning to Rank Using Gradient Descent</a>. Burges et al. ICML 2005. <em>Test-of-time award at ICML 2015</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/H/H05/H05-1044.pdf" target="_blank">Recognizing Contextual Polarity in Phrase-Level Sentiment Analysis</a>. Wilson, Weibi, and Hoffman. EMNLP 2005. <em>Honorable mention at NAACL 2018</em></p></li>
+</ul>
+
+<h2 id="2004">2004</h2>
+
+<ul>
+<li><p><a href="https://www.di.ens.fr/~fbach/skm_icml.pdf" target="_blank">Multiple kernel learning, conic duality, and the SMO algorithm</a>. Michael Jordan&rsquo;s group. ICML 2004. <em>10 year paper award at ICML 2014</em></p></li>
+
+<li><p><a href="http://l2r.cs.uiuc.edu/~danr/Papers/RothYi04.pdf" target="_blank">A Linear Programming Formulation for Global Inference in Natural Language Tasks</a>. Dan Roth and Wen-tau Yih. CoNLL 2004. <em>Honorable mention at NAACL 2018</em></p></li>
+
+<li><p><a href="http://www.cs.columbia.edu/~ani/papers/pyramid.pdf" target="_blank">Evaluating Content Selection in Summarization: The Pyramid Method</a>. Ani Nenkova and Rebecca Passonneau. NAACL 2004. <em>Honorable mention at NAACL 2018</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/W/W04/W04-3252.pdf" target="_blank">TextRank: Bringing Order into Texts</a>. Rada Mihalcea and Paul Tarau. EMNLP 2004. <em>Honorable mention at NAACL 2018</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/P/P04/P04-1011.pdf" target="_blank">Trainable sentence planning for complex information presentation in spoken dialog systems</a>. Stent, Prasad, and Walker. ACL 2004. <em>Honorable mention at NAACL 2018</em></p></li>
+</ul>
+
+<h2 id="2003">2003</h2>
+
+<ul>
+<li><p><a href="http://mlg.eng.cam.ac.uk/zoubin/papers/zgl.pdf" target="_blank">Semi-Supervised Learning Using Gaussian Fields and Harmonic Functions</a>. Zhu, Ghahramani, and Lafferty. ICML 2003. <em>Classic paper prize at ICML 2013</em></p></li>
+
+<li><p><a href="https://people.eecs.berkeley.edu/~brecht/cs294docs/week1/03.Zinkevich.pdf" target="_blank">Online Convex Programming and Generalized Infinitesimal Gradient Ascent</a>. Martin Zinkevich. ICML 2003. <em>Classic paper prize at ICML 2013</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/J/J03/J03-4002.pdf" target="_blank">Anaphora and Discourse Structure</a>. Webber et al. Computational Linguistics (2003). <em>Honorable mention at NAACL 2018</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/P03-1021" target="_blank">Minimum Error Rate Training In Statistical Machine Translation</a>. Franz Och. ACL 2003. <em>Honorable mention at NAACL 2018</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/P03-1069" target="_blank">Probabilistic Text Structuring: Experiments with Sentence Ordering</a>. Mirella Lapata. ACL 2003. <em>Honorable mention at NAACL 2018</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/N/N03/N03-1030.pdf" target="_blank">Sentence Level Discourse Parsing using Syntactic and Lexical Information</a>. Radu Soricut and Daniel Marcu. NAACL 2003. <em>Honorable mention at NAACL 2018</em></p></li>
+</ul>
+
+<h2 id="2002">2002</h2>
+
+<ul>
+<li><p><a href="http://www.aclweb.org/anthology/P02-1033" target="_blank">An Unsupervised Method for Word Sense Tagging using Parallel Corpora</a>. Mona Diab and Philip Resnik. ACL 2002. <em>Honorable mention at NAACL 2018</em></p></li>
+
+<li><p><a href="https://www.aclweb.org/anthology/P02-1040.pdf" target="_blank">BLEU: a Method for Automatic Evaluation of Machine Translation</a>. Papineni et al. ACL 2002. <em>Test-of-time award at NAACL 2018</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/W02-1001" target="_blank">Discriminative Training Methods for Hidden Markov Models: Theory and Experiments with Perceptron Algorithms</a>. Michael Collins. EMNLP 2002. <em>Test-of-time award at NAACL 2018</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/W02-1011" target="_blank">Thumbs up?: Sentiment Classification using Machine Learning Techniques</a>. Pang, Lee, and Vaithyanathan. EMNLP 2002. <em>Test-of-time award at NAACL 2018</em></p></li>
+
+<li><p><a href="http://www.aclweb.org/anthology/W/W02/W02-0603.pdf" target="_blank">Unsupervised Discovery of Morphemes</a>. Mathia Creutz and Krista Laguz. SIGPHON 2002. <em>Honorable mention at NAACL 2018</em></p></li>
+</ul>
+
+<h2 id="2001">2001</h2>
+
+<h2 id="2000">2000</h2>
+
+<ul>
+<li><p><a href="https://papers.nips.cc/paper/1861-algorithms-for-non-negative-matrix-factorization.pdf" target="_blank">Algorithms for non-negative matrix factorization</a>. Daniel Lee and H. Sebastian Seung. NIPS 2000. <em>Classic paper award at NIPS 2013</em></p></li>
+
+<li><p><a href="http://www.jmlr.org/papers/volume1/allwein00a/allwein00a.pdf" target="_blank">Reducing Multiclass to Binary: A Unifying Approach for Margin Classifiers</a>. Erin Allwein, Robert Schapire, and Yoram Singer. ICML 2000. <em>Best 10 year paper award at ICML 2000</em></p></li>
+</ul>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/machine-learning/">machine-learning</a>
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/natural-language-processing/">natural-language-processing</a>
+  
+</div>
+
+
+
+
+    
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "desh2608-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//desh2608-github-io.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+

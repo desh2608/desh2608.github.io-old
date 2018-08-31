@@ -5,6 +5,15 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/post/classic-papers/</loc>
+      <lastmod>2018-08-30T19:57:44-04:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/post/deep-learning-theory-5/</loc>
       <lastmod>2018-07-31T18:45:15+05:30</lastmod>
     </url>
@@ -511,6 +520,16 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/tags/machine-learning/</loc>
+      <lastmod>2018-04-23T13:41:31+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/tags/multimodal/</loc>
       <lastmod>2017-11-09T13:38:58+05:30</lastmod>
       <priority>0</priority>
@@ -523,6 +542,16 @@
     
       <loc>https://desh2608.github.io/tags/natural-language-generation/</loc>
       <lastmod>2017-09-16T09:15:44+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/tags/natural-language-processing/</loc>
+      <lastmod>2018-07-03T16:56:46+05:30</lastmod>
       <priority>0</priority>
     </url>
     

@@ -11,6 +11,118 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Award-winning classic papers in ML and NLP</title>
+      <link>https://desh2608.github.io/post/classic-papers/</link>
+      <pubDate>Thu, 30 Aug 2018 19:57:44 -0400</pubDate>
+      
+      <guid>https://desh2608.github.io/post/classic-papers/</guid>
+      <description>
+
+&lt;p&gt;I was trying to find a consolidated list of papers in machine learning (ICML, NIPS) and natural language processing (ACL, EMNLP, NAACL) published after 2000, which are held in some regard, perhaps by winning prizes such as Test-of-time paper at these major conferences. However, there seems to be no such list, or if it is, it&amp;rsquo;s hidden too deep and it may just be quicker to prepare a similar list of my own. I will add the papers in reverse chronological order of their publication year.&lt;/p&gt;
+
+&lt;h2 id=&#34;2009&#34;&gt;2009&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/E/E09/E09-1081.pdf&#34; target=&#34;_blank&#34;&gt;A General, Abstract Model of Incremental Dialogue Processing&lt;/a&gt;. David Schlangen and Gabriel Skantze. EACL 2009. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2008&#34;&gt;2008&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://ronan.collobert.com/pub/matos/2008_nlp_icml.pdf&#34; target=&#34;_blank&#34;&gt;A unified architecture for natural language processing: deep neural networks with multitask learning&lt;/a&gt;. Ronan Collobert and Jason Weston. ICML 2008. &lt;em&gt;Test-of-time award at ICML 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/D08-1027&#34; target=&#34;_blank&#34;&gt;Cheap and Fast—But is it Good?: Evaluating Non-Expert Annotations for Natural Language Tasks&lt;/a&gt;. Snow, O&amp;rsquo;Connor, Jurafsky, and Ng. EMNLP 2008. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/J/J08/J08-1001.pdf&#34; target=&#34;_blank&#34;&gt;Modeling Local Coherence: An entity-based approach&lt;/a&gt;. Regina Barzilay and Mirella Lapata. Transactions of ACL (2008). &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2007&#34;&gt;2007&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://people.eecs.berkeley.edu/~brecht/papers/07.rah.rec.nips.pdf&#34; target=&#34;_blank&#34;&gt;Random features for large scale kernel machines&lt;/a&gt;. Ali Rahimi and Ben Recht. NIPS 2007. &lt;em&gt;Test-of-time award at NIPS 2017&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www0.cs.ucl.ac.uk/staff/d.silver/web/Applications_files/combining_uct.pdf&#34; target=&#34;_blank&#34;&gt;Combining Online and Offline Knowledge in UCT&lt;/a&gt;. Sylvain Gelly and David Silver. ICML 2007. &lt;em&gt;Test-of-time award at ICML 2017&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf&#34; target=&#34;_blank&#34;&gt;Pegasos: Primal estimated sub-gradient solver for SVM&lt;/a&gt;. Shalev-Shwartz et al. ICML 2007. &lt;em&gt;Honorable mention at ICML 2017&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.83.719&amp;amp;rep=rep1&amp;amp;type=pdf&#34; target=&#34;_blank&#34;&gt;A Bound on the Label Complexity of Agnostic Active Learning&lt;/a&gt;. Steve Hanneke. ICML 2007. &lt;em&gt;Honorable mention at ICML 2017&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://aclweb.org/anthology/J/J09/J09-4008.pdf&#34; target=&#34;_blank&#34;&gt;An Investigation into the Validity of Some Metrics for Automatically Evaluating Natural Language Generation Systems&lt;/a&gt;. Ehud Reiter and Anja Belz. Transactions of ACL 2009. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/P07-1033&#34; target=&#34;_blank&#34;&gt;Frustratingly Easy Domain Adaptation&lt;/a&gt;. Hal Daume III. ACL 2007. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2006&#34;&gt;2006&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://icml.cc/2016/awards/dtm.pdf&#34; target=&#34;_blank&#34;&gt;Dynamic topic models&lt;/a&gt;. David Blei and John Lafferty. ICML 2006. &lt;em&gt;Test-of-time award at ICML 2016&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2005&#34;&gt;2005&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://icml.cc/2015/wp-content/uploads/2015/06/icml_ranking.pdf&#34; target=&#34;_blank&#34;&gt;Learning to Rank Using Gradient Descent&lt;/a&gt;. Burges et al. ICML 2005. &lt;em&gt;Test-of-time award at ICML 2015&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/H/H05/H05-1044.pdf&#34; target=&#34;_blank&#34;&gt;Recognizing Contextual Polarity in Phrase-Level Sentiment Analysis&lt;/a&gt;. Wilson, Weibi, and Hoffman. EMNLP 2005. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2004&#34;&gt;2004&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://www.di.ens.fr/~fbach/skm_icml.pdf&#34; target=&#34;_blank&#34;&gt;Multiple kernel learning, conic duality, and the SMO algorithm&lt;/a&gt;. Michael Jordan&amp;rsquo;s group. ICML 2004. &lt;em&gt;10 year paper award at ICML 2014&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://l2r.cs.uiuc.edu/~danr/Papers/RothYi04.pdf&#34; target=&#34;_blank&#34;&gt;A Linear Programming Formulation for Global Inference in Natural Language Tasks&lt;/a&gt;. Dan Roth and Wen-tau Yih. CoNLL 2004. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.cs.columbia.edu/~ani/papers/pyramid.pdf&#34; target=&#34;_blank&#34;&gt;Evaluating Content Selection in Summarization: The Pyramid Method&lt;/a&gt;. Ani Nenkova and Rebecca Passonneau. NAACL 2004. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/W/W04/W04-3252.pdf&#34; target=&#34;_blank&#34;&gt;TextRank: Bringing Order into Texts&lt;/a&gt;. Rada Mihalcea and Paul Tarau. EMNLP 2004. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/P/P04/P04-1011.pdf&#34; target=&#34;_blank&#34;&gt;Trainable sentence planning for complex information presentation in spoken dialog systems&lt;/a&gt;. Stent, Prasad, and Walker. ACL 2004. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2003&#34;&gt;2003&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://mlg.eng.cam.ac.uk/zoubin/papers/zgl.pdf&#34; target=&#34;_blank&#34;&gt;Semi-Supervised Learning Using Gaussian Fields and Harmonic Functions&lt;/a&gt;. Zhu, Ghahramani, and Lafferty. ICML 2003. &lt;em&gt;Classic paper prize at ICML 2013&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://people.eecs.berkeley.edu/~brecht/cs294docs/week1/03.Zinkevich.pdf&#34; target=&#34;_blank&#34;&gt;Online Convex Programming and Generalized Infinitesimal Gradient Ascent&lt;/a&gt;. Martin Zinkevich. ICML 2003. &lt;em&gt;Classic paper prize at ICML 2013&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/J/J03/J03-4002.pdf&#34; target=&#34;_blank&#34;&gt;Anaphora and Discourse Structure&lt;/a&gt;. Webber et al. Computational Linguistics (2003). &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/P03-1021&#34; target=&#34;_blank&#34;&gt;Minimum Error Rate Training In Statistical Machine Translation&lt;/a&gt;. Franz Och. ACL 2003. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/P03-1069&#34; target=&#34;_blank&#34;&gt;Probabilistic Text Structuring: Experiments with Sentence Ordering&lt;/a&gt;. Mirella Lapata. ACL 2003. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/N/N03/N03-1030.pdf&#34; target=&#34;_blank&#34;&gt;Sentence Level Discourse Parsing using Syntactic and Lexical Information&lt;/a&gt;. Radu Soricut and Daniel Marcu. NAACL 2003. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2002&#34;&gt;2002&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/P02-1033&#34; target=&#34;_blank&#34;&gt;An Unsupervised Method for Word Sense Tagging using Parallel Corpora&lt;/a&gt;. Mona Diab and Philip Resnik. ACL 2002. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://www.aclweb.org/anthology/P02-1040.pdf&#34; target=&#34;_blank&#34;&gt;BLEU: a Method for Automatic Evaluation of Machine Translation&lt;/a&gt;. Papineni et al. ACL 2002. &lt;em&gt;Test-of-time award at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/W02-1001&#34; target=&#34;_blank&#34;&gt;Discriminative Training Methods for Hidden Markov Models: Theory and Experiments with Perceptron Algorithms&lt;/a&gt;. Michael Collins. EMNLP 2002. &lt;em&gt;Test-of-time award at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/W02-1011&#34; target=&#34;_blank&#34;&gt;Thumbs up?: Sentiment Classification using Machine Learning Techniques&lt;/a&gt;. Pang, Lee, and Vaithyanathan. EMNLP 2002. &lt;em&gt;Test-of-time award at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/W/W02/W02-0603.pdf&#34; target=&#34;_blank&#34;&gt;Unsupervised Discovery of Morphemes&lt;/a&gt;. Mathia Creutz and Krista Laguz. SIGPHON 2002. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2001&#34;&gt;2001&lt;/h2&gt;
+
+&lt;h2 id=&#34;2000&#34;&gt;2000&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://papers.nips.cc/paper/1861-algorithms-for-non-negative-matrix-factorization.pdf&#34; target=&#34;_blank&#34;&gt;Algorithms for non-negative matrix factorization&lt;/a&gt;. Daniel Lee and H. Sebastian Seung. NIPS 2000. &lt;em&gt;Classic paper award at NIPS 2013&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.jmlr.org/papers/volume1/allwein00a/allwein00a.pdf&#34; target=&#34;_blank&#34;&gt;Reducing Multiclass to Binary: A Unifying Approach for Margin Classifiers&lt;/a&gt;. Erin Allwein, Robert Schapire, and Yoram Singer. ICML 2000. &lt;em&gt;Best 10 year paper award at ICML 2000&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Theory of Deep Learning: An Illustration with Embeddings</title>
       <link>https://desh2608.github.io/post/deep-learning-theory-5/</link>
       <pubDate>Tue, 31 Jul 2018 18:45:15 +0530</pubDate>
@@ -2070,70 +2182,6 @@ non-decreasing sequence selected at the beginning of the algorithm. For the case
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>A Short Note on Stochastic Gradient Descent Algorithms</title>
-      <link>https://desh2608.github.io/post/short-note-sgd-algorithms/</link>
-      <pubDate>Thu, 08 Feb 2018 13:40:25 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/short-note-sgd-algorithms/</guid>
-      <description>
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/13/mindmap.png&#34; alt=&#34;Mind Map for algorithms (taken from [this](http://forums.fast.ai/t/how-do-we-decide-the-optimizer-used-for-training/1829/6) forum post)&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;I just finished reading &lt;a href=&#34;http://ruder.io/&#34; target=&#34;_blank&#34;&gt;Sebastian Ruder&lt;/a&gt;’s amazing &lt;a href=&#34;https://arxiv.org/abs/1609.04747&#34; target=&#34;_blank&#34;&gt;article&lt;/a&gt; providing an overview of the most popular algorithms used for optimizing gradient descent. Here I’ll make very short notes on them primarily for purposes of recall.&lt;/p&gt;
-
-&lt;h4 id=&#34;momentum&#34;&gt;Momentum&lt;/h4&gt;
-
-&lt;p&gt;The update vector consists of another term which has the previous update vector (weighted by $\gamma$). This helps it to move faster downhill — like a ball.&lt;/p&gt;
-
-&lt;p&gt;$$ v_t = \gamma v_{t-1} + \eta \nabla_{\theta}J(\theta) $$&lt;/p&gt;
-
-&lt;h4 id=&#34;nesterov-accelerated-gradient-nag&#34;&gt;Nesterov accelerated gradient (NAG)&lt;/h4&gt;
-
-&lt;p&gt;In Momentum optimizer, the ball may go past the minima due to too much momentum, so we want to have a look-ahead term. In NAG, we take gradient of future position instead of current position.&lt;/p&gt;
-
-&lt;p&gt;$$ v_t = \gamma v_{t-1} + \eta \nabla_{\theta}J(\theta - \gamma v_{t-1}) $$&lt;/p&gt;
-
-&lt;h4 id=&#34;adagrad&#34;&gt;Adagrad&lt;/h4&gt;
-
-&lt;p&gt;Instead of a common learning rate for all parameters, we want to have separate learning rate for each. So Adagrad keeps sum of squares of parameter-wise gradients and modifies individual learning rates using this. As a result, parameters occuring more often have smaller gradients.&lt;/p&gt;
-
-&lt;p&gt;$$ \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{G_t +\epsilon}} \odot g_t $$&lt;/p&gt;
-
-&lt;h4 id=&#34;rmsprop&#34;&gt;RMSProp&lt;/h4&gt;
-
-&lt;p&gt;In Adagrad, since we keep adding all gradients, gradients become vanishingly small after some time. So in RMSProp, the idea is to add them in a decaying fashion as&lt;/p&gt;
-
-&lt;p&gt;$$ \mathbb{E}[g^2]_t = \gamma \mathbb{E}[g^2]_{t-1} + (1-\gamma)g_t^2 $$&lt;/p&gt;
-
-&lt;p&gt;Now replace $G_t$ in the denominator of Adagrad equation by this new term. Due to this, the gradients are no more vanishing.&lt;/p&gt;
-
-&lt;h4 id=&#34;adam-adaptive-moment-estimation&#34;&gt;Adam (Adaptive Moment Estimation)&lt;/h4&gt;
-
-&lt;p&gt;Adam combines RMSProp with Momentum. So, in addition to using the decaying average of past squared gradients for parameter-specific learning rate, it uses a decaying average of past gradients in place of the current gradient (similar to Momentum).&lt;/p&gt;
-
-&lt;p&gt;$$ \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{\hat{v_t}+\epsilon}}\hat{m}_t $$&lt;/p&gt;
-
-&lt;p&gt;The $\hat{}$ terms are actually bias-corrected averages to ensure that the values are not biased towards 0.&lt;/p&gt;
-
-&lt;h4 id=&#34;nadam&#34;&gt;Nadam&lt;/h4&gt;
-
-&lt;p&gt;Nadam combines RMSProp with NAG (since NAG is usually better for slope adaptation than Momentum. The derivation is simple and can be found in Ruder’s paper.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;In summary, SGD suffers from 2 problems: (i) being hesitant at steep slopes, and (ii) having same learning rate for all parameters. So the improved algorithms are categorized as:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Momentum, NAG: address issue (i). Usually NAG &amp;gt; Momentum.&lt;/li&gt;
-&lt;li&gt;Adagrad, RMSProp: address issue (ii). RMSProp &amp;gt; Adagrad.&lt;/li&gt;
-&lt;li&gt;Adam, Nadam: address both issues, by combining above methods.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;em&gt;Note&lt;/em&gt;: I have skipped a discussion on AdaDelta in this post since it is very similar to RMSProp and the latter is more popular.&lt;/p&gt;
 </description>
     </item>
     
