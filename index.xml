@@ -18,7 +18,7 @@
       <guid>https://desh2608.github.io/post/classic-papers/</guid>
       <description>
 
-&lt;p&gt;I was trying to find a consolidated list of papers in machine learning (ICML, NIPS) and natural language processing (ACL, EMNLP, NAACL) published after 2000, which are held in some regard, perhaps by winning prizes such as Test-of-time paper at these major conferences. However, there seems to be no such list, or if it is, it&amp;rsquo;s hidden too deep and it may just be quicker to prepare a similar list of my own. I will add the papers in reverse chronological order of their publication year.&lt;/p&gt;
+&lt;p&gt;I was trying to find a consolidated list of papers in machine learning (ICML, NIPS, AAAI, SIGIR) and natural language processing (ACL, EMNLP, NAACL) published after 2000, which are held in some regard, perhaps by winning prizes such as Test-of-time paper at these major conferences. However, there seems to be no such list, or if it is, it&amp;rsquo;s hidden too deep and it may just be quicker to prepare a similar list of my own. I will add the papers in reverse chronological order of their publication year.&lt;/p&gt;
 
 &lt;h2 id=&#34;2009&#34;&gt;2009&lt;/h2&gt;
 
@@ -55,7 +55,9 @@
 &lt;h2 id=&#34;2006&#34;&gt;2006&lt;/h2&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://icml.cc/2016/awards/dtm.pdf&#34; target=&#34;_blank&#34;&gt;Dynamic topic models&lt;/a&gt;. David Blei and John Lafferty. ICML 2006. &lt;em&gt;Test-of-time award at ICML 2016&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://icml.cc/2016/awards/dtm.pdf&#34; target=&#34;_blank&#34;&gt;Dynamic topic models&lt;/a&gt;. David Blei and John Lafferty. ICML 2006. &lt;em&gt;Test-of-time award at ICML 2016&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://dl.acm.org/citation.cfm?id=1148177&#34; target=&#34;_blank&#34;&gt;Improving web search ranking by incorporating user behavior information&lt;/a&gt;. Agichtein et al. SIGIR 2006. &lt;em&gt;Test-of-time award at SIGIR 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h2 id=&#34;2005&#34;&gt;2005&lt;/h2&gt;
@@ -118,6 +120,8 @@
 &lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://papers.nips.cc/paper/1861-algorithms-for-non-negative-matrix-factorization.pdf&#34; target=&#34;_blank&#34;&gt;Algorithms for non-negative matrix factorization&lt;/a&gt;. Daniel Lee and H. Sebastian Seung. NIPS 2000. &lt;em&gt;Classic paper award at NIPS 2013&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.jmlr.org/papers/volume1/allwein00a/allwein00a.pdf&#34; target=&#34;_blank&#34;&gt;Reducing Multiclass to Binary: A Unifying Approach for Margin Classifiers&lt;/a&gt;. Erin Allwein, Robert Schapire, and Yoram Singer. ICML 2000. &lt;em&gt;Best 10 year paper award at ICML 2000&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://www.aaai.org/Papers/AAAI/2000/AAAI00-069.pdf&#34; target=&#34;_blank&#34;&gt;PROMPT: Algorithm and Tool for Automated Ontology Merging and Alignment&lt;/a&gt;. Natalya Roy and Mark Musen. AAAI 2000. &lt;em&gt;Classic paper award at AAAI 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;hr /&gt;
@@ -131,6 +135,12 @@
 &lt;li&gt;Since the papers are from before 2010, deep learning is conspicuous by its absence. In fact, Collobert and Weston&amp;rsquo;s ICML&amp;rsquo;08 paper on a unified architecture for language is the only such paper.&lt;/li&gt;
 &lt;li&gt;Ali Rahimi&amp;rsquo;s &lt;a href=&#34;https://www.livescience.com/62495-rahimi-machine-learning-ai-alchemy.html&#34; target=&#34;_blank&#34;&gt;&amp;ldquo;ML is alchemy&amp;rdquo; talk at NIPS&amp;rsquo;17&lt;/a&gt; got a lot of attention, probably much more than his paper on random features.&lt;/li&gt;
 &lt;/ol&gt;
+
+&lt;h2 id=&#34;other-similar-lists&#34;&gt;Other similar lists&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://jeffhuang.com/best_paper_awards.html&#34; target=&#34;_blank&#34;&gt;Best paper award winners in Computer Science&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
 </description>
     </item>
     
