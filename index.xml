@@ -11,6 +11,159 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Experiments with Subword Modeling</title>
+      <link>https://desh2608.github.io/post/subword-segmentation/</link>
+      <pubDate>Thu, 22 Nov 2018 11:27:15 -0500</pubDate>
+      
+      <guid>https://desh2608.github.io/post/subword-segmentation/</guid>
+      <description>
+
+&lt;p&gt;Think about tasks such as machine translation (MT), automatic speech recognition (ASR), or handwriting recognition (HWR). While these appear very distinct, on abstraction they share the same pipeline wherein given an input signal, we are required to predict some text. The difference only lies in the form of the input signal - it is a piece of text, a sound wave, or a line image, in the case of MT, ASR, and HWR, respectively.&lt;/p&gt;
+
+&lt;p&gt;In all of these tasks, OOV words are a major source of nuisance. &lt;em&gt;What is an OOV word?&lt;/em&gt; Simply put, these are those words in the test dataset which are not seen in the training data, and as such, not present in the vocabulary - hence the name &amp;ldquo;out of vocabulary&amp;rdquo;. Even if the training vocabulary is very large (in fact, the name Large Vocabulary ASR is very common), the test data may still have words which were never seen before, for instance, names of people, places, or organizations.&lt;/p&gt;
+
+&lt;p&gt;A crude way of dealing with such OOV words may be to simply predict a special token &lt;code&gt;&amp;lt;UNK&amp;gt;&lt;/code&gt; whenever they are encountered. However, this would lead to severe information loss, especially when all new names are replaced by the special token. This is where subwords come into the picture.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Subwords are smaller units that comprise words. They may be a single character, or even entire words.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;For example, suppose our training vocabulary consists of just 2 words {&amp;lsquo;speech&amp;rsquo;,&amp;lsquo;processing&amp;rsquo;}. If our language model is trained on word-level, we would only be able to predict these 2 words, and nothing else. So while testing, if we are required to predict the phrase &amp;ldquo;&lt;em&gt;he sings in a choir&lt;/em&gt;&amp;rdquo;, our model would fail miserably. However, if we had trained on a subword-level (say, character level), we have a non-zero chance of predicting the phrase since all the characters are seen in the training. This provides sufficient motivation for using subwords in these tasks.&lt;/p&gt;
+
+&lt;p&gt;Traditionally, in ASR, subwords have been modeled using information from phonemes (distinct sound units), such that a subword corresponds to a phoneme unit. The intuition is that at test time, any new word can only be formed using phonemes of the language. However, this requires considerable domain knowledge, and even still, variations in accent or speaker can greatly affect test-time performance.&lt;/p&gt;
+
+&lt;p&gt;In MT, subwords first came into limelight with &lt;a href=&#34;http://www.aclweb.org/anthology/P16-1162&#34; target=&#34;_blank&#34;&gt;this popular paper&lt;/a&gt; from Seinrich and Haddow at the University of Edinburgh. They used a simple but effective &lt;a href=&#34;https://en.wikipedia.org/wiki/Byte_pair_encoding&#34; target=&#34;_blank&#34;&gt;Byte Pair Encoding (BPE)&lt;/a&gt; based approach to identify subword units in the text. The summary of their method is as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Fix a vocabulary size &lt;em&gt;V&lt;/em&gt; according to your total data size.&lt;/li&gt;
+&lt;li&gt;Separate all the characters in all the words.&lt;/li&gt;
+&lt;li&gt;Merge the most frequent bigram into one token and add it to the vocabulary.&lt;/li&gt;
+&lt;li&gt;Perform &lt;em&gt;V&lt;/em&gt; such merge operations to get the final vocabulary.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This simple method performs extremely well in practice, and the authors were able to get improvements of about 1.1 BLEU points on an English to German translation task.&lt;/p&gt;
+
+&lt;p&gt;I was recently working on an HWR task which required similar subword modeling for OOV word recognition, and the remainder of this article is about the methods used and their performance.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;towards-a-likelihood-based-model&#34;&gt;Towards a likelihood-based model&lt;/h2&gt;
+
+&lt;p&gt;The first method we tried was the BPE-based approach, and it gave improvements on the word-error rate (WER) over the word-based model. However, BPE is constrained in the sense that it is a deterministic technique. Once you have fixed the training vocabulary, every string can only be segmented in a specific way. This may hint at a loss of modeling power, and so our first hypothesis is that a probabilistic segmentation technique may perform better.&lt;/p&gt;
+
+&lt;p&gt;On further investigation, I found a &lt;a href=&#34;https://arxiv.org/abs/1804.10959&#34; target=&#34;_blank&#34;&gt;recent paper&lt;/a&gt; which proposes a technique known as &amp;ldquo;subword regularization&amp;rdquo; for MT. The method consists of two parts: vocabulary learning, and subword sampling.&lt;/p&gt;
+
+&lt;h3 id=&#34;vocabulary-learning&#34;&gt;Vocabulary learning&lt;/h3&gt;
+
+&lt;p&gt;Similar to the BPE-based technique, we start with all the characters distinct in every word, and merge until we reach the desired vocabulary size &lt;em&gt;V&lt;/em&gt;. However, while BPE used the metric of most frequent bigram, the Unigram SR method ranks all subwords according to the likelihood reduction on removing the subword from the vocabulary. The top 80% of these are retained and the rest are discarded. Once this phase is over, we can now obtain the likelihood of observing a subword sequence given any string (sentence).&lt;/p&gt;
+
+&lt;h3 id=&#34;subword-sampling&#34;&gt;Subword sampling&lt;/h3&gt;
+
+&lt;p&gt;We choose the top-k segmentations based on the likelihood, and then model them as a multinomial distribution $P(x_i | X) = \frac{P(x_i)^{\alpha}}{\sum_l P(x_i)^{\alpha}}$, where $\alpha$ is a smoothing hyperparameter. A smaller $\alpha$ leads to a more uniform distribution, while a larger $\alpha$ leads to Viterbi sampling (i.e., selection of the best segmentation).&lt;/p&gt;
+
+&lt;p&gt;The idea behind this method is &amp;ldquo;regularization by noise&amp;rdquo;. This means that the algorithm is expected to generalize well since we are now training it with some added noise by selecting several different segmentation candidates for any word, and so the model sees a wider variety of subwords during training.&lt;/p&gt;
+
+&lt;p&gt;For implementation, we used Google&amp;rsquo;s &lt;code&gt;sentencepiece&lt;/code&gt; library, which is also the official code of the paper linked above, and integrated it in our Kaldi-based pipeline (&lt;a href=&#34;https://github.com/desh2608/kaldi/blob/iam_sr/egs/wsj/s5/utils/lang/bpe/learn_unigram_sr.py&#34; target=&#34;_blank&#34;&gt;see here&lt;/a&gt;). While the method supposedly performed well in MT, we didn&amp;rsquo;t obtain the same performance improvements in the HWR task. A top-1 (deterministic) sampler gave similar results as BPE, but a top-5 sampler performed worse, which hinted that probabilstic sampling may not necessarily be the best suited option for our task.&lt;/p&gt;
+
+&lt;p&gt;For further analysis, I looked at the frequency of different subword lengths learned by the two methods for the same total vocabulary size.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/bpe.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/uni.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;It turns out that the unigram method learns several &amp;ldquo;longer&amp;rdquo; subwords than BPE, which may give us some idea about the poorer performance. This suggested that if we somehow put a constraint on the lengths of the learned subwords while keeping the probabilistic sampling, we might get the best of both worlds.&lt;/p&gt;
+
+&lt;h2 id=&#34;digression-the-morfessor-tool&#34;&gt;Digression - The Morfessor tool&lt;/h2&gt;
+
+&lt;p&gt;Readers familiar with linguistics (or morphology in particular) would have heard about (or used) the  Morfessor tool, which provides an unsupervised technique for morpheme recognition. Morphemes, in a crude sense, are essentially subword units which are self-contained in meaning. Interestingly, &lt;a href=&#34;http://www.aclweb.org/anthology/W02-0603&#34; target=&#34;_blank&#34;&gt;the first Morfessor paper&lt;/a&gt; proposed a technique which is very similar to the likelihood-based subword modeling in the unigram SR paper (although the author does not seem to be aware of this). Additionally, they also proposed a minimum description length (MDL) based approach which added the subword lengths as a cost in the objective function, and therefore penalized longer subwords. Empirically, they found that the MDL technique outperformed the likelihood based method, and this further reinforced my belief that a subword length constraint would prove beneficial for the task.&lt;/p&gt;
+
+&lt;h2 id=&#34;lzw-based-subword-modeling&#34;&gt;LZW-based subword modeling&lt;/h2&gt;
+
+&lt;p&gt;In an &lt;a href=&#34;https://pdfs.semanticscholar.org/dfcd/6bb8dcbcf828f8414c494fa56e96f8169a7b.pdf&#34; target=&#34;_blank&#34;&gt;Interspeech 2005 paper&lt;/a&gt;, a new subword modeling algorithm was presented which supposedly correlated strongly with syllables of a language. The method is based on the popular &lt;a href=&#34;https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Welch&#34; target=&#34;_blank&#34;&gt;LZW compression technique&lt;/a&gt; (which is also used in the Unix &lt;code&gt;compress&lt;/code&gt; utility). In the context of strings, the LZW method finds a set of prefix-free substrings to encode the given string. The authors of the paper further used subword length tables to keep track of how many times each such subword was called during training, and thus ranked them within the tables. The test-time segmentation was determined by computing the average rank of all the segmentation candidates in this tree traversal.&lt;/p&gt;
+
+&lt;p&gt;In our implementation, we further integrated the probabilistic sampling method from the unigram SR, and used memoization to make the tree traversal computationally efficient. The implementation for learning and applying the model can be found &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/iam_sr/egs/wsj/s5/utils/lang/learn_lzw.py&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; and &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/iam_sr/egs/wsj/s5/utils/lang/apply_lzw.py&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;, respectively.&lt;/p&gt;
+
+&lt;p&gt;Perhaps the most critical segments of the implementation are the following:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;def learn_subwords_from_word(word, tab_seqlen, tab_pos, max_subword_length):
+    w = &amp;quot;&amp;quot;
+    pos = 0
+    for i,c in enumerate(word):
+        if (i == len(word) - 1):
+            pos = 2
+        wc = w + c
+        if (len(wc) &amp;gt; max_subword_length):
+            wc = c
+        
+        if wc in tab_seqlen[len(wc)-1]:
+            w = wc
+            tab_seqlen[len(wc)-1][wc] += 1
+        else:
+            tab_seqlen[len(wc)-1][wc] = 1
+            w = c
+        if wc in tab_pos[pos]:
+            w = wc
+            tab_pos[pos][wc] += 1
+            i -= 1
+        else:
+            tab_pos[pos][wc] = 1
+            w = c
+            pos = min(i,1)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;def compute_segment_scores(word, tab_seqlen, tab_pos, scores):
+    if (len(word) == 0):
+        return ([])
+    max_subword_length = len(tab_seqlen)
+    seg_scores = []
+    for i in range(max_subword_length):
+        if(i &amp;lt; len(word)):
+            subword = word[:i+1]
+            if subword in tab_seqlen[i]:
+                other_scores = []
+                subword_score = float(tab_seqlen[i][subword][1]/(((i+1)**max_subword_length)*len(tab_seqlen[i])))
+                if (word[i+1:] in scores):
+                    other_scores = copy.deepcopy(scores[word[i+1:]])
+                else:
+                    other_scores = copy.deepcopy(compute_segment_scores(word[i+1:], tab_seqlen, tab_pos, scores))
+                if (len(other_scores) == 0):
+                    seg_scores.append(([subword],subword_score))
+                else:
+                    for j,segment in enumerate(other_scores):
+                        other_scores[j] = ([subword]+segment[0],subword_score+segment[1])
+                    seg_scores += other_scores
+    seg_scores = sorted(seg_scores, key=lambda item: item[1])
+    scores[word] = seg_scores
+    return seg_scores
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It may be noted here that the score of a segmentation candidate is calculated as the sum of the scores for all the subwords in that segmentation, where the score of subword $\sigma_w$ is defined as&lt;/p&gt;
+
+&lt;p&gt;$$ \sigma_w = w \times \text{relative rank of subword in its table}$$&lt;/p&gt;
+
+&lt;p&gt;Here, $w = \left(\frac{1}{|w|}\right)^{\max_w{|w|}}$. This score empirically gives subword lengths which correspond closely with the distribution of syllable lengths in English. It is a variation of the scoring scheme proposed in the original paper.&lt;/p&gt;
+
+&lt;p&gt;An analysis of the subword length frequencies obtained using this method reveals the following.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/lzw1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As expected, it produces more subwords of shorter lengths. A log-scale graph reveals further details about frequencies of longer subwords.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/lzw2.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For higher lengths, LZW corresponds strongly with BPE, while unigram SR is nowhere close.&lt;/p&gt;
+
+&lt;p&gt;However, in the actual task, the method performs worse than both BPE and unigram, and this further strengthed my belief that probabilistic sampling, while useful for MT, does not quite fit in this particular HWR dataset.&lt;/p&gt;
+
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;While BPE seems like an ad-hoc technique for modeling subword units, it actually performs exceptionally well in practice. This, combined with its simplicity of implementation and low time complexity, makes it a great candidate for the task.&lt;/p&gt;
+
+&lt;p&gt;However, I believe that if a subword model were informed by the grapheme units (for HWR), as early techniques for ASR were informed by phonemes, it might perform well on the task. This seems like an interesting direction for exploration.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Award-winning classic papers in ML and NLP</title>
       <link>https://desh2608.github.io/post/classic-papers/</link>
       <pubDate>Thu, 30 Aug 2018 19:57:44 -0400</pubDate>
@@ -2033,175 +2186,6 @@ selection of the algorithm.)&lt;/p&gt;
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;li id=&#34;fn:2&#34;&gt;Kaji, Nobuhiro, and Hayato Kobayashi. &amp;ldquo;&lt;em&gt;Incremental skip-gram model with negative sampling.&lt;/em&gt;&amp;rdquo; arXiv preprint arXiv:1704.03956 (2017).*
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Sparsity in Online Learning with Lasso Regularization</title>
-      <link>https://desh2608.github.io/post/sparse-online-learning-lasso-regularization/</link>
-      <pubDate>Sat, 24 Feb 2018 13:40:42 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/sparse-online-learning-lasso-regularization/</guid>
-      <description>
-
-&lt;p&gt;Sparse vectors have become popular recently for 2 reasons:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Sparse matrices require much less storage since they can be stored using various space-saving methods.&lt;/li&gt;
-&lt;li&gt;Sparse vectors are much more interpretable than dense vectors. For instance, the non-zero non-negative components of a sparse word vector may be taken to denote the weights for certain features. In contrast, there is no interpretation for a value like $-0.1347$.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Sparsity is often induced through the use of L1 (or Lasso) regularization. There are 2 formulations of the Lasso: (i) convex constraint, and (ii) soft regularization.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Convex constraint&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;As the name suggests, a convex constraint is added to the minimization problem so that the parameters do not exceed a certain value.&lt;/p&gt;
-
-&lt;p&gt;$$ \min_{\beta \in \mathbb{R}^p}\lVert y - X\beta \rVert_2^2 \quad \text{s.t.} \quad \lVert \beta \rVert_1 \leq t $$&lt;/p&gt;
-
-&lt;p&gt;The smaller the value of the tuning parameter $t$, fewer is the number of non-zero components in the solution.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Soft regularization&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;This is just the Lagrange form the the convex constraint, and is used because it is easier to optimize. Note that it is equivalent to the convex constraint formulation for an appropriately chosen $g$.&lt;/p&gt;
-
-&lt;p&gt;$$ \min_{\beta \in \mathbb{R}^p}\lVert y - X\beta \rVert_2^2 + g\lVert \beta \rVert_1 $$&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;There is a great theoretical explanation of sparsity with Lasso regularization by &lt;a href=&#34;http://www.stat.cmu.edu/~ryantibs/&#34; target=&#34;_blank&#34;&gt;Ryan Tibshirani&lt;/a&gt; and &lt;a href=&#34;http://www.stat.cmu.edu/~larry/&#34; target=&#34;_blank&#34;&gt;Larry Wasserman&lt;/a&gt; which you can find &lt;a href=&#34;http://www.stat.cmu.edu/~larry/=sml/sparsity.pdf&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. I will instead be focusing on some methods that have been introduced recently for inducing sparsity while learning online i.e., when the samples are obtained one at a time. In addition to such a scenario, online learning also comes into the picture when the data set is simply too large to be loaded in memory at once, and there are not sufficient resources for performing batch learning in a parallel fashion.&lt;/p&gt;
-
-&lt;p&gt;In this post, I will summarize 3 such methods:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.jmlr.org/papers/volume10/langford09a/langford09a.pdf&#34; target=&#34;_blank&#34;&gt;Stochastic Truncated Gradient&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.jmlr.org/papers/volume10/duchi09a/duchi09a.pdf&#34; target=&#34;_blank&#34;&gt;Forward Backward Splitting&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.mendeley.com/viewer/?fileId=00e458de-d9ca-a697-5d67-a4c177759778&amp;amp;documentId=0e9eba78-0cbb-3cb2-a8ea-385a2afb64f5&#34; target=&#34;_blank&#34;&gt;Regularized Dual Averaging&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;But first, why a simple soft Lasso regularization won’t work? With the soft regularization method, we are essentially summing up 2 floating point values. As such, it is highly improbable that the sum will be zero, since very few pairs of floats add up to zero.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;stochastic-truncated-gradient-stg&#34;&gt;Stochastic Truncated Gradient (STG)&lt;/h4&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/14/stg.png&#34; alt=&#34;Simple round-off (T0) vs. Truncated Gradient (T1). Image taken from paper&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;STG combines ideas from 2 simple techniques:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;em&gt;Coefficient rounding&lt;/em&gt;: In this method, the coefficients are rounded to 0 if they are less than a value $\theta$. This is denoted in the figure above (left graph). The rounding is done after every $k$ steps. The problem with this approach is that if $k$ is small, the coefficients do not get an opportunity to reach a value above $\theta$ before they are pulled back to $0$. On the other hand, if $k$ is large, the intermediate steps in the algorithm need to store a large number of non-zero coefficients, which does not solve the storage issue.&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;Sub-gradient method&lt;/em&gt;: In this method, L1-regularization is performed by shifting the update in the opposite direction depending on the sign of the coefficient. The update equation is&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;$$ f(w_i) = w_i - \eta\nabla_1 L(w_i,z_i) - \eta g \text{sgn}(w_i) $$&lt;/p&gt;
-
-&lt;p&gt;STG combines &lt;em&gt;rounding&lt;/em&gt; from (1) and &lt;em&gt;gravity&lt;/em&gt; from (2) so that (i) sparsity is achieved (unlike the sub-gradient method), and (ii) the rounding off is not too aggressive (unlike the direct rounding approach). The parameter update is then given by the function $T_1$ (shown in the right graph above).&lt;/p&gt;
-
-&lt;p&gt;$$ T_1(v_j,\alpha,\theta) = \begin{cases} \max(0,v_j-\alpha) \quad &amp;amp;\text{if}~ v_j \in [0,\theta] \\\ \min(0,v_j+\alpha) \quad &amp;amp;\text{if}~ v_j \in [-\theta,0] \\\ 0 \quad &amp;amp;\text{otherwise}   \end{cases} $$&lt;/p&gt;
-
-&lt;p&gt;The update rule is given using $T_1$ as&lt;/p&gt;
-
-&lt;p&gt;$$ f(w_i) = T_1 (w_i - \nabla_1 L_1 (w_i,z_i,\eta g_i,\theta)) $$&lt;/p&gt;
-
-&lt;p&gt;Here, $g$ may be called the gravity parameter, and $\theta$ is called the truncation parameter. In general, the larger these parameters are, the more sparsity is incurred. This can be understood easily from the definition of the truncation function.&lt;/p&gt;
-
-&lt;p&gt;Furthermore, note that on setting $\theta = \infty$ in the truncation function yields a special case of the Sub-gradient method wherein &lt;strong&gt;max&lt;/strong&gt; and &lt;strong&gt;min&lt;/strong&gt; operations are performed after applying gravity pull.&lt;/p&gt;
-
-&lt;p&gt;In the remainder of the paper, the authors prove a strong regret bound for the STG method, and also provide an efficient implementation for the same. Furthermore, they show the asymptotic solution of one instance of the algorithm is essentially equivalent to the Lasso regression, thus justifying the algorithm’s ability to produce sparse weight vectors when the number of features is intractably large.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;forward-backward-splitting-fobos&#34;&gt;Forward Backward Splitting (FOBOS)&lt;/h4&gt;
-
-&lt;p&gt;&lt;em&gt;Note: The method was named Forward Looking Subgradient (FOLOS) in the first draft and later renamed since it was essentially the same as an earlier proposed technique, the Forward Backward Splitting. The authors abbreviated it to FOBOS instead of FOBAS to avoid confusing readers of the first draft.&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;First, a little background. Consider an objective function of the form $f(w) + r(w)$. In the case of a number of machine learning algorithms, the function $f$ denotes the empirical sum of some loss function (such as mean squared error), and the function $r$ is a regularizer (such as Lasso). If we use a simple gradient descent technique to minimize this objective function, the iterates would be of the form&lt;/p&gt;
-
-&lt;p&gt;$$ w_{t+1} = w_t - \eta_t g_t^f - \eta_t g_t^r $$&lt;/p&gt;
-
-&lt;p&gt;where the $g$’s are vectors from the subgradient sets of the corresponding functions. From the paper:&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;A common problem in subgradient methods is that if $r$ or $f$ is non-differentiable, the iterates of the subgradient method are very rarely at the points of non-differentiability. In the case of the Lasso regularization function, however, these points are often the true minima of the function.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;In other words, the subgradient approach will result in neither a true minima nor a sparse solution if $r$ is the L1 regularizer.&lt;/p&gt;
-
-&lt;p&gt;FOBOS, as the name suggests, splits every iteration into 2 steps — a forward step and a backward step, instead of minimizing both $f$ and $r$ simultaneously. The motivation for the method is that for L1 regularization functions, true minima is usually attained at the points of non-differentiability. For example, in the 2-D space, the function resembles a Diamond shape and the minima is obtained at one of the corner points. Each iteration of FOBOS consists of the following 2 steps:&lt;/p&gt;
-
-&lt;p&gt;$$ w_{t+\frac{1}{2}} = w_t - \eta_t g_t^f \\\ w_{t+1} = \text{argmin}_w { \frac{1}{2}(w_t - w_{t+\frac{1}{2}})^2 + \eta_{t+\frac{1}{2}}r(w) } $$&lt;/p&gt;
-
-&lt;p&gt;The first step is a simple unconstrained subgradient step with respect to the function $f$. In the second step, we try to achieve 2 objectives:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Stay close to the interim update vector. This is achieved by the first term.&lt;/li&gt;
-&lt;li&gt;Attain a low complexity value as expressed by $r$. (Second term)&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;So the first step is a &lt;em&gt;forward&lt;/em&gt; step, where we update the coefficient in the direction of the subgradient, while the second is a &lt;em&gt;backward&lt;/em&gt; step where we pull the update back a little so as to obtain sparsity by moving in the direction of the non-differentiable points of $r$.&lt;/p&gt;
-
-&lt;p&gt;Using the first equation in the second, taking derivative w.r.t $w$, and equating the derivative to $0$, we obtain the update scheme as&lt;/p&gt;
-
-&lt;p&gt;$$ w_{t+1} = w_t - \eta_t g_t^f + \eta_{t+\frac{1}{2}} g_{t+1}^r $$&lt;/p&gt;
-
-&lt;p&gt;(&lt;strong&gt;Note&lt;/strong&gt;: The equation above looks suspiciously similar to the &lt;strong&gt;&lt;em&gt;Nesterov Accelerated Gradient (NAG)&lt;/em&gt;&lt;/strong&gt; method for optimization. The authors have even cited Nesterov’s paper in related work. It might be interesting to  investigate this further.)&lt;/p&gt;
-
-&lt;p&gt;This update scheme has 2 major advantages, according to the author.&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;First, from an algorithmic standpoint, it enables sparse solutions at virtually no additional computational cost. Second, the forward-looking gradient allows us to build on existing analyses and show that the resulting framework enjoys the formal convergence properties of many existing gradient-based and online convex programming algorithms.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;In the paper, the authors also prove convergence of the method and show that on setting the intermediate learning rate properly, low regret bounds can be proved for both online as well as batch settings.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;regularized-dual-averaging-rda&#34;&gt;Regularized Dual Averaging (RDA)&lt;/h4&gt;
-
-&lt;p&gt;Both of the above discussed techniques have one limitation — they perform updates depending only on the subgradients at a particular time step. In contrast, the RDA method “exploits the full regularization structure at each iteration.” Also, since the authors derive closed-form solutions for several popular optimization objectives, it follows that the computational complexity of such an approach is not worse than the methods which perform updates only based on current subgradients (both being $\mathcal{O}(n)$).&lt;/p&gt;
-
-&lt;p&gt;RDA comprises of 3 steps in every iteration.&lt;/p&gt;
-
-&lt;p&gt;In the first step, the subgradient is computed for that particular time step. This is the same as every other subgradient-based online optimization method.&lt;/p&gt;
-
-&lt;p&gt;The second step consists of computing a running average of all past subgradients. This is done using the online approach as&lt;/p&gt;
-
-&lt;p&gt;$$ \bar{g}_t = \frac{t-1}{t}\bar{g}_{t-1} + \frac{1}{t}g_t $$&lt;/p&gt;
-
-&lt;p&gt;In the third step, the update is computed as&lt;/p&gt;
-
-&lt;p&gt;$$ w_{t+1} = \text{argmin}_w { &amp;lt;\bar{g}_t,w&amp;gt; + \psi(w) + \frac{\beta}{t}h(w) } $$&lt;/p&gt;
-
-&lt;p&gt;Let us try to understand this update scheme. First, the function $h(w)$ is a strongly convex function such that the update vector which minimizes it also minimizes the regularizer. In the case of Lasso regularization, $h(w)$ is chosen as follows.&lt;/p&gt;
-
-&lt;p&gt;$$ h(w) = \frac{1}{2}\lVert w \rVert_2^2 + \rho \lVert w \rVert_1 $$&lt;/p&gt;
-
-&lt;p&gt;where $\rho$ is a parameter called the sparsity enhancing parameter. $\beta$ is a predetermined non-negative and non-decreasing sequence.&lt;/p&gt;
-
-&lt;p&gt;Now to solve the equation, we can just take the derivative of the argument of argmin and equate it to $0$. On solving this equation, we get an update of the form&lt;/p&gt;
-
-&lt;p&gt;$$ w_{t+1} = \frac{t}{\beta_t}(\bar{g}_t + \rho) $$&lt;/p&gt;
-
-&lt;p&gt;So the scheme ensures that the update is in the same convex space as the regularized dual average. Sparsity can further be controlled by tuning the value of the parameter $\rho$. The scaling factor can be regulated using the
-non-decreasing sequence selected at the beginning of the algorithm. For the case when it is equal to the time step $t$, the new coefficient is simply the sum of the dual average and the sparsity parameter.&lt;/p&gt;
-
-&lt;p&gt;The above is just my attempt at understanding the update scheme for RDA. I would be happy to discuss it further if you find something wrong with this explanation.&lt;/p&gt;
-
-&lt;p&gt;Now the method itself would become extremely infeasible if this differentiation would have to be performed for every iteration. However, for most commonly used regularizers and loss functions, the update rule can be represented with a closed-form solution. For this reason, the overall algorithm has the same complexity as earlier algorithms which use only the current step subgradient for performing updates.&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:1&#34;&gt;Langford, John, Lihong Li, and Tong Zhang. “Sparse online learning via truncated gradient.” &lt;em&gt;Journal of Machine Learning Research&lt;/em&gt; 10.Mar (2009): 777–801.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:2&#34;&gt;Duchi, John, and Yoram Singer. “Efficient online and batch learning using forward backward splitting.” &lt;em&gt;Journal of Machine Learning Research&lt;/em&gt; 10.Dec (2009): 2899–2934.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:3&#34;&gt;Xiao, Lin. “Dual averaging methods for regularized stochastic learning and online optimization.” &lt;em&gt;Journal of Machine Learning Research&lt;/em&gt; 11.Oct (2010): 2543–2596.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
 </description>
