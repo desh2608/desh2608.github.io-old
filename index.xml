@@ -11,6 +11,92 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Iterative Scaling and Coordinate Descent</title>
+      <link>https://desh2608.github.io/post/iterative-scaling-coordinate-descent/</link>
+      <pubDate>Mon, 10 Dec 2018 11:29:31 -0500</pubDate>
+      
+      <guid>https://desh2608.github.io/post/iterative-scaling-coordinate-descent/</guid>
+      <description>
+
+&lt;p&gt;Recently, I was reading a paper on language model adaptation, which used an optimization technique called Generalized Iterative Scaling (GIS). Having no idea what the method was, I sought out &lt;a href=&#34;https://www.jstor.org/stable/2240069?seq=1#metadata_info_tab_contents&#34; target=&#34;_blank&#34;&gt;the first paper&lt;/a&gt; which proposed it, but since the paper is from 1972, and I am not a pure math guy, I found it difficult to follow. After some more looking around, I chanced upon this lucid JMLR&amp;rsquo;10 paper from &lt;a href=&#34;https://www.csie.ntu.edu.tw/~cjlin/&#34; target=&#34;_blank&#34;&gt;Chih-Jen Lin&lt;/a&gt;: &lt;a href=&#34;http://www.jmlr.org/papers/volume11/huang10a/huang10a.pdf&#34; target=&#34;_blank&#34;&gt;Iterative Scaling and Coordinate Descent Methods for Maximum Entropy Models&lt;/a&gt;. In this post, I will summarize the ideas in the paper, primarily the discussion about a unified framework for &lt;strong&gt;Iterative Scaling&lt;/strong&gt; (IS) and &lt;strong&gt;Coordinate Descent&lt;/strong&gt; (CD) methods, and how each particular technique is derived from this general framework.&lt;/p&gt;
+
+&lt;h2 id=&#34;the-general-framework&#34;&gt;The General Framework&lt;/h2&gt;
+
+&lt;p&gt;Iterative Scaling (IS) and Coordinate Descent (CD) are methods used to optimize maximum entropy (maxent) models. &lt;em&gt;What is a maxent model?&lt;/em&gt; Given a sequence $x$, a maxent model predicts the label sequence $y$ with maximal probability. It is discriminatively trained by modeling the conditional probability&lt;/p&gt;
+
+&lt;p&gt;$$ P_{\mathbf{w}}(y|x) = \frac{S_{\mathbf{w}}(x,y)}{T_{\mathbf{w}}(x)}, $$&lt;/p&gt;
+
+&lt;p&gt;where $S_{\mathbf{w}}(x,y) = \exp(\sum_t w_t f_t(x,y))$ and $T_{\mathbf{w}}(x) = \sum_y S_{\mathbf{w}}(x,y)$.&lt;/p&gt;
+
+&lt;p&gt;Note that each of the $f_t$ are features which can be defined arbitrarily with the sole constraint that they must be non-negative. Each $f_t$ has a corresponding weight $w_t$ which needs to be estimated. IS and CD methods do this estimation by iterating over all the $w_t$&amp;rsquo;s, either sequentially or in parallel. Based on the above conditional probability, we can define an objective function by taking the log of the probability and adding an L2-regularization term to it as&lt;/p&gt;
+
+&lt;p&gt;$$ \text{min}_{\mathbf{w}} L(\mathbf{w}) \equiv \text{min}_{\mathbf{w}} \sum_x \tilde{P}(x) \log T_{\mathbf{w}}(x) - \sum_t w_t \tilde{P}(f_t) + \frac{1}{2\sigma^2}\sum_t w_t^2. $$&lt;/p&gt;
+
+&lt;p&gt;Here, $\tilde{P}(x) = \sum_y \tilde{P}(x,y),$ where $\tilde{P}(x,y)$ is the empirical distribution, and $\tilde{P}(f_t)$ is the expected value of $f_t(x,y)$. The log-likelihood itself (without regularization) is convex, but adding the regularization term makes it strictly convex, and it can also be shown that this objective function has a unique global minima.&lt;/p&gt;
+
+&lt;p&gt;If we update our weights (either in parallel or in sequence), after one such iteration of updation, we change our objective function from $L(\mathbf{w})$ to $L(\mathbf{w}+\mathbf{z})$, where $\mathbf{z}$ si the update made to the weights. Each such iteration can be written as a subproblem which we need to solve, i.e.&lt;/p&gt;
+
+&lt;p&gt;$$ A(\mathbf{z}) \leq L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}).$$&lt;/p&gt;
+
+&lt;p&gt;In addition, if we have $A(0) = 0$, this implies that $L$ decreases with every update. Let us now expand the RHS in the above equation. We have&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) &amp;amp;= \sum_x \tilde{P}(x) \log T_{\mathbf{w}+\mathbf{z}}(x) - \sum_t w_t \tilde{P}(f_t) + \frac{1}{2\sigma^2}\sum_t (w_t+z_t)^2 \\\ &amp;amp; - \sum_x \tilde{P}(x) \log T_{\mathbf{w}}(x) + \sum_t w_t \tilde{P}(f_t) - \frac{1}{2\sigma^2}\sum_t w_t^2 \\\ &amp;amp;= \sum_x \tilde{P}(x) \log \frac{T_{\mathbf{w}+\mathbf{z}}(x)}{T_{\mathbf{w}}(x)} + \sum_t Q_t (z_t) \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;where $Q_t(z_t) \equiv \frac{2w_tz_t + z_t^2}{2\sigma^2} - z_t \tilde{P}(f_t)$. Further, the ratio in the log term can be simplified as&lt;/p&gt;
+
+&lt;p&gt;$$ \frac{T_{\mathbf{w}+\mathbf{z}}(x)}{T_{\mathbf{w}}(x)} = \sum_y P_{\mathbf{w}}(y|x)e^{\sum_t z_t f_t(x,y)}. $$&lt;/p&gt;
+
+&lt;p&gt;This is the general overview of the problem that all IS and CD methods solve. The difference is in how this function is minimized. Let us look at each of the methods and how they build upon this general framework.&lt;/p&gt;
+
+&lt;h3 id=&#34;coordinate-descent&#34;&gt;Coordinate Descent&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://link.springer.com/article/10.1007%2Fs10107-015-0892-3&#34; target=&#34;_blank&#34;&gt;CD&lt;/a&gt; solves the exact problem without any approximation, i.e., the subproblem is&lt;/p&gt;
+
+&lt;p&gt;$$ A(\mathbf{z}) = L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) $$&lt;/p&gt;
+
+&lt;p&gt;This then leads to the subproblem be exactly equal to as derived above. This has an advantage and a limitation.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Since $A(\mathbf{z})$ here is the maximum possible decrement in any iteration, the convergence requires the least number of steps out of all possible approximations of $A(\mathbf{z})$.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Because of the presence of the log term in the objective function, there is no closed form solution, and so every iteration must solve an optimization problem using the Newton method.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In practice, the Newton optimization at each step overshadows any gain due to fewer iterations till convergence, so that CD takes more time to converge than IS methods which approximate $A(\mathbf{z})$.&lt;/p&gt;
+
+&lt;h3 id=&#34;generalized-is-gis-and-sequential-conditional-gis-sc-gis&#34;&gt;Generalized IS (GIS) and Sequential Conditional GIS (SC-GIS)&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.jstor.org/stable/2240069?seq=1#metadata_info_tab_contents&#34; target=&#34;_blank&#34;&gt;GIS&lt;/a&gt; and &lt;a href=&#34;http://www.aclweb.org/anthology/P02-1002&#34; target=&#34;_blank&#34;&gt;SC-GIS&lt;/a&gt; use the approximation $\log \alpha \leq \alpha -1$ to get&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) &amp;amp;\leq \sum_t Q_t (z_t) + \sum_x \tilde{P}(x)       (\sum_y P_{\mathbf{w}}(y|x) e^{\sum_t z_t f_t(x,y)} - 1) \\\ &amp;amp;= \sum_t Q_t (z_t) + \sum_{x,y} \tilde{P}(x) (P_{\mathbf{w}}(y|x)e^{\sum_t z_t f_t(x,y)} - 1)   \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;Define $f^{\#}(x,y) = \sum_t f_t(x,y)$ and $f^{\#}=\text{max}_{x,y}(f^{\#}(x,y))$. We can then use Jensen&amp;rsquo;s inequality to upper bound the exponential term in the above inequality. GIS is a parallel update method, i.e., all the $w_t$&amp;rsquo;s are updated simultaneously, which means that we can use $f^{\#}$ to bound the exponential terms. On the contrary, SC-GIS is a sequential method, which means we can only use $f_t^{\#}$ to get this bound, where $f_t^{\#} \equiv \text{max}_{x,y}f_t(x,y)$. Finally, the subproblems can be written as&lt;/p&gt;
+
+&lt;p&gt;$$ A_t^{GIS}(z_t) = Q_t (z_t) + \frac{e^{z_t f^{\#}}-1}{f^{\#}}\sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y)  $$&lt;/p&gt;
+
+&lt;p&gt;$$ A_t^{SC-GIS}(z_t) = Q_t (z_t) + \frac{e^{z_t f_t^{\#}}-1}{f_t^{\#}}\sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y) $$&lt;/p&gt;
+
+&lt;h3 id=&#34;improved-is-iis&#34;&gt;Improved IS (IIS)&lt;/h3&gt;
+
+&lt;p&gt;A problem with bounding in terms of $f^{\#}$ as done in GIS is that $f^{\#}$ can be too large even if one of the $(x,y)$ pairs has a large value of $f^{\#}(x,y)$. This would cause the subproblem to be very small, similar to the issue of small learning rates in gradient-based optimization. To remedy this, we can bound in terms of $f^{\#}(x,y)$, although in that case we the term cannot be taken out of the summation. This is what is done in IIS, and this gives the following definition of the subproblem.&lt;/p&gt;
+
+&lt;p&gt;$$ A_t^{IIS}(z_t) = Q_t (z_t) + \sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y)\frac{e^{z_t f^{\#}(x,y)}-1}{f^{\#}(x,y)} $$&lt;/p&gt;
+
+&lt;h2 id=&#34;key-points&#34;&gt;Key points&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Iterative scaling and coordinate descent methods have provably linear convergence.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;However, the time complexity of solving each subproblem is key in choosing which method to use for optimization.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;GIS and SC-GIS have closed form solutions for the subproblems, which makes it $\mathcal{O}(1)$ to solve each iteration.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Although CD and IIS need Newton optimization for each subproblem, the authors propose a fast CD method which performs only 1 update in later iterations. This is because it is empirically observed that a single update is enough to update the weight sufficiently in later stages.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Experiments with Subword Modeling</title>
       <link>https://desh2608.github.io/post/subword-segmentation/</link>
       <pubDate>Thu, 22 Nov 2018 11:27:15 -0500</pubDate>
@@ -2041,153 +2127,6 @@ print(args.accumulate(args.integers))
 &lt;/ul&gt;
 
 &lt;p&gt;We were able to obtain a validation accuracy of 69%, although the model performed poorly in the final test phase. The code for the project is available &lt;a href=&#34;https://github.com/desh2608/tweet-irony-detection&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Online Learning of Word Embeddings</title>
-      <link>https://desh2608.github.io/post/online-learning-word-embeddings/</link>
-      <pubDate>Wed, 14 Mar 2018 13:40:57 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/online-learning-word-embeddings/</guid>
-      <description>
-
-&lt;p&gt;Word vectors have become the building blocks for all natural language processing systems. I have earlier written an overview of popular algorithms for learning word embeddings &lt;a href=&#34;https://desh2608.github.io/post/understanding-word-vectors/&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. One limitation with all these methods (namely SVD, skip-gram, and GloVe) is that they are all “batch” techniques. In this post, I will discuss two recent papers (which are very similar but were developed independently) which aim to provide an online approximation for the skip-gram algorithm.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;But first, what do we mean by a “batch” algorithm?&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;Simply put, in a batch algorithm, the entire data set needs to be available before we begin the processing. In contrast, an “online” algorithm can process inputs on-the-fly, i.e., in a streaming fashion. Needless to say, such algorithms are also preferable when the available resources are not sufficient to process the entire dataset at once.&lt;/p&gt;
-
-&lt;p&gt;Now that we have some idea about batch algorithms, I’ll explain why the existing methods for word representation learning are of this kind. First, in the case of the standard SVD and Stanford’s GloVe, the entire cooccurence matrix needs to be computed, and only then can the processing be started. If some additional data arrives later, the matrix would have to be recomputed, and training would have to be restarted (if at least one of the updates depends on a changed matrix element). Second, in the case of Mikolov’s &lt;em&gt;word2vec&lt;/em&gt; (skip-gram and CBOW), negative sampling is often used to make the computation more efficient. This sampling depends on the unigram probability distribution of the vocabulary words in the corpus. As such, before learning can happen, we need to compute the vocabulary as well as the unigram distribution.&lt;/p&gt;
-
-&lt;p&gt;Recently, two very similar methods (developed independently) have been proposed to make the skip-gram with negative sampling (SGNS) algorithm learn in a streaming fashion. I’ll quickly review the SGNS algorithm first so that there is some context when we discuss the papers.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;batch-sgns-algorithm&#34;&gt;Batch SGNS algorithm&lt;/h3&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/15/skipgram.png&#34; alt=&#34;Skip-gram objective. Image taken from [The Morning Paper](https://blog.acolyer.org/2016/04/21/the-amazing-power-of-word-vectors/).&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;SGNS is a window-based method with the following training objective: Given the target word, predict all the context words in the window.&lt;/p&gt;
-
-&lt;p&gt;Suppose we have a context window where $w$ is the target word and $c$ is one of the context words. Then, skip-gram’s objective is to compute $P(c|w)$, which is given as&lt;/p&gt;
-
-&lt;p&gt;$$ p(c|w;\theta) = \frac{\exp(v_c \cdot v_w)}{\sum_{c^{\prime}\in C}\exp(v_{c^{\prime}}\cdot v_w)} $$&lt;/p&gt;
-
-&lt;p&gt;Basically, it is just a softmax probability distribution over all the word-context pairs in the corpus, directed by the cosine similarity. However, the denominator term here is very expensive to compute since there may be a very large number of possible context words. To solve this problem, negative sampling is used.&lt;/p&gt;
-
-&lt;p&gt;Goldberg and Levy have explained the derivation for the objective function in SGNS very clearly in their &lt;a href=&#34;https://arxiv.org/pdf/1402.3722.pdf&#34; target=&#34;_blank&#34;&gt;note&lt;/a&gt;. I will try to provide a little intuition here.&lt;/p&gt;
-
-&lt;p&gt;For the word $w$, we are trying to predict the context word $c$. Since we are using softmax, this is essentially like a multi-class classification problem, where we are trying to classify the next word into one of $N$ classes (where $N$ is the number of words in the dictionary). Since $N$ may be quite large, this is a very difficult problem.&lt;/p&gt;
-
-&lt;p&gt;What SGNS does is that it converts this multi-classification problem into binary classification. The new objective is to predict, for any given word-context pair $(w,c)$, whether the pair is in the window or not. For this, we try to increase the probability of a &amp;ldquo;positive&amp;rdquo; pair $(w,c)$, while at the same time reducing the probability of $k$ randomly chosen &amp;ldquo;negative samples&amp;rdquo; $(w,s)$ where $s$ is a word not found in $w$’s context. This leads to the following objective function which we try to maximize in SGNS:&lt;/p&gt;
-
-&lt;p&gt;$$ J = \log \sigma(c\cdot w) + \sum_{i=1}^k \mathbb{E}_{w_i \sim p(w)}[\log \sigma (-w_i \cdot w)]  $$&lt;/p&gt;
-
-&lt;p&gt;In other words, we push the target vector in the direction of the positive context vector, and pull it away from $k$ randomly chosen (w.r.t. the unigram probability distribution) negative vectors. Here &amp;ldquo;negative&amp;rdquo; means that these vectors are not actually present in the target’s context.&lt;/p&gt;
-
-&lt;h4 id=&#34;what-do-we-need-to-make-sgns-online&#34;&gt;What do we need to make SGNS online?&lt;/h4&gt;
-
-&lt;p&gt;As is evident from the above discussion, since SGNS is a window-based approach, the training itself is very much in an online paradigm. However, the constraints are in creating a vocabulary and a unigram distribution for negative sampling, which makes SGNS a two-pass method. Further, if additional data is seen later, the distribution and vocabulary would change, and the model would have to be retrained.&lt;/p&gt;
-
-&lt;p&gt;Essentially, we need online alternatives for 2 aspects of the algorithms:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Dynamic vocabulary building&lt;/li&gt;
-&lt;li&gt;Adaptive unigram distribution&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;With this background, I will now discuss the two proposed methods for online SGNS.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;space-saving-word2vec&#34;&gt;Space-Saving word2vec&lt;/h3&gt;
-
-&lt;p&gt;In &lt;a href=&#34;https://arxiv.org/pdf/1704.07463.pdf&#34; target=&#34;_blank&#34;&gt;this paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; from researchers at Johns Hopkins, the following solutions were proposed for the two problems mentioned above.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Space-saving algorithm for dynamic vocabulary building.&lt;/li&gt;
-&lt;li&gt;Reservoir sampling for adaptive unigram distribution.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;strong&gt;Space-saving algorithm:&lt;/strong&gt; It is a popular method to estimate the top-$k$ most frequent items in a streaming data.&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;We declare a structure V containing $k$ pairs of word and their counts, and initialize it to empty pairs.&lt;/li&gt;
-&lt;li&gt;As word $w$ arrives, if $w \in V$, we increment its count.&lt;/li&gt;
-&lt;li&gt;Otherwise, if $V$ has space, we append the pair $(w,1)$ to $V$.&lt;/li&gt;
-&lt;li&gt;If not, the word with the lowest count is replaced by $w$.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;At any instant, the words in the structure V denote the dynamic vocabulary of the corpus.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Reservoir sampling:&lt;/strong&gt; Reservoir sampling is a family of randomized algorithms for randomly choosing a sample of $k$ items from a list S containing $n$ items, where $n$ is either a very large or unknown number. (Wikipedia)&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Similar to the SS algorithm, we declare a structure (called the reservoir) of $k$ empty elements (not pairs this time). In addition, we initialize a counter $c$ to 0.&lt;/li&gt;
-&lt;li&gt;The first $k$ elements in the stream are filled into the reservoir. $c$ is incremented at every occurence.&lt;/li&gt;
-&lt;li&gt;For the remaining items, we draw $j$ from $1,\ldots,c$ randomly. If $j &amp;lt; k$, the $j^{\text{th}}$ element of the reservoir is replaced with the new element.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;At any instant, the samples present in the reservoir provide an approximate distribution of items in the entire data stream.&lt;/p&gt;
-
-&lt;p&gt;While the algorithm itslelf is conceptually simple, the authors have mentioned several implementation choices which are important for training SGNS online. I list them here with some observations:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;When a word is ejected from a bin in the dynamic vocabulary, its embeddings are re-initialized. As such, every bin has its own learning rate which is reset when the word in the bin is changed.&lt;/li&gt;
-&lt;li&gt;During sentence subsampling, all words not in $W$ are retained. Those in $W$ are retained with a probability which is inversely proportional to the square root of its count in the dictionary.&lt;/li&gt;
-&lt;li&gt;Probably the most important deviation from the SGNS algorithm is that the reservoir sampling essentially generates an empirical distribution from which to sample negative context words. In contrast, in the original SGNS algorithm, a &lt;em&gt;smoothed&lt;/em&gt; empirical distribution is used. The authors have themselves allowed that “ smoothing the negative sampling distribution was (sic) shown to increase word embedding quality consistently.”&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;incremental-sgns&#34;&gt;Incremental SGNS&lt;/h3&gt;
-
-&lt;p&gt;This &lt;a href=&#34;http://aclweb.org/anthology/D17-1037&#34; target=&#34;_blank&#34;&gt;EMNLP’17 paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; from researchers at Yahoo Japan proposes the following alternative solutions for the aforementioned problems.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Misra-Gries algorithm for dynamic vocabulary building.&lt;/li&gt;
-&lt;li&gt;A modified reservoir sampling algorithm for adaptive unigram table.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;strong&gt;Misra-Gries algorithm:&lt;/strong&gt; This was developed long before the space-saving algorithm (1982) and was the go-to technique for top-$k$ most frequent itemset estimation in streaming data, before the space-saving algorithm was developed. The method is very similar to SS except for one difference:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;When word $w$ is not in $V$ and there is no space to append, every element in $V$ is decremented until some element becomes 0, at which point it is replaced by the new word.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;strong&gt;Modified reservoir sampling:&lt;/strong&gt; Here is the pseudocode from the paper.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/15/reservoir.png&#34; alt=&#34;Modified reservoir sampling. Image taken from original paper&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;This algorithm differs from the conventional Reservoir Sampling in two important ways:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;The counts used here are &lt;em&gt;smoothed&lt;/em&gt; (see line 4 to 6). This has been shown to be important for word vector quality, as discussed above.&lt;/li&gt;
-&lt;li&gt;If the reservoir does not have enough space, we iterate over all existing words and replace them with some probability (which is proportional to the smoothed count of $w$). Contrast this with the earlier technique, where a $j$ was randomly sampled and word at that index was replaced. (&lt;strong&gt;Disclaimer&lt;/strong&gt;: &lt;em&gt;I am not sure how exactly this modification helps in learning. If I am allowed to venture a guess, I would say that it is a “soft” equivalent of the hard replacement in the original algorithm. This probably helps in the theoretical analysis of the algorithm.&lt;/em&gt;)&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;In addition, the authors have also provided theoretical justification for their algorithm and proved the following theorem: &lt;em&gt;The loss in case of incremental SGNS converges in probability to that of batch SGNS.&lt;/em&gt;&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;In summary, SGNS is probably the easiest batch word embedding algorithm to “streamify” because of its inherent window-based nature. The constraints of vocabulary and counts are addressed with approximation algorithms. I can think of several possible directions in which this work can be continued.&lt;/p&gt;
-
-&lt;p&gt;First, there are several algorithms for estimating the top-$k$ most frequent items in a data stream. These are divided into count-based and sketch-based methods. The SS algorithm is probably the most efficient count-based technique, but it may be useful to look at other methods to see if they provide some edge. (Although I’m pretty sure the JHU researchers would have been thorough in their
-selection of the algorithm.)&lt;/p&gt;
-
-&lt;p&gt;Second, GloVe and SVD are yet to be addressed. In case of GloVe in particular, the problem would be to construct the co-occurence matrix in a online fashion. There should be some related work in statistics which can be leveraged for this, but I haven’t conducted much literature survey in this direction.&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:1&#34;&gt;May, Chandler, Kevin Duh, Benjamin Van Durme, and Ashwin Lall. &amp;ldquo;&lt;em&gt;Streaming word embeddings with the space-saving algorithm.&lt;/em&gt;&amp;rdquo; arXiv preprint arXiv:1704.07463 (2017).
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:2&#34;&gt;Kaji, Nobuhiro, and Hayato Kobayashi. &amp;ldquo;&lt;em&gt;Incremental skip-gram model with negative sampling.&lt;/em&gt;&amp;rdquo; arXiv preprint arXiv:1704.03956 (2017).*
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
 </description>
     </item>
     

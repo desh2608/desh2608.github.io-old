@@ -13,6 +13,15 @@
     
     
     <item>
+      <title>Iterative Scaling and Coordinate Descent</title>
+      <link>https://desh2608.github.io/post/iterative-scaling-coordinate-descent/</link>
+      <pubDate>Mon, 10 Dec 2018 11:29:31 -0500</pubDate>
+      
+      <guid>https://desh2608.github.io/post/iterative-scaling-coordinate-descent/</guid>
+      <description>Recently, I was reading a paper on language model adaptation, which used an optimization technique called Generalized Iterative Scaling (GIS). Having no idea what the method was, I sought out the first paper which proposed it, but since the paper is from 1972, and I am not a pure math guy, I found it difficult to follow. After some more looking around, I chanced upon this lucid JMLR&amp;rsquo;10 paper from Chih-Jen Lin: Iterative Scaling and Coordinate Descent Methods for Maximum Entropy Models.</description>
+    </item>
+    
+    <item>
       <title>Experiments with Subword Modeling</title>
       <link>https://desh2608.github.io/post/subword-segmentation/</link>
       <pubDate>Thu, 22 Nov 2018 11:27:15 -0500</pubDate>

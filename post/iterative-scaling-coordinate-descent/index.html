@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.41" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="Recently, I was reading a paper on language model adaptation, which used an optimization technique called Generalized Iterative Scaling (GIS). Having no idea what the method was, I sought out the first paper which proposed it, but since the paper is from 1972, and I am not a pure math guy, I found it difficult to follow. After some more looking around, I chanced upon this lucid JMLR&rsquo;10 paper from Chih-Jen Lin: Iterative Scaling and Coordinate Descent Methods for Maximum Entropy Models.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/iterative-scaling-coordinate-descent/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/iterative-scaling-coordinate-descent/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/iterative-scaling-coordinate-descent/">
+  <meta property="og:title" content="Iterative Scaling and Coordinate Descent | Desh Raj">
+  <meta property="og:description" content="Recently, I was reading a paper on language model adaptation, which used an optimization technique called Generalized Iterative Scaling (GIS). Having no idea what the method was, I sought out the first paper which proposed it, but since the paper is from 1972, and I am not a pure math guy, I found it difficult to follow. After some more looking around, I chanced upon this lucid JMLR&rsquo;10 paper from Chih-Jen Lin: Iterative Scaling and Coordinate Descent Methods for Maximum Entropy Models.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2018-12-10T11:29:31-05:00">
+  
+  <meta property="article:modified_time" content="2018-12-10T11:29:31-05:00">
+  
+
+  
+  
+
+  <title>Iterative Scaling and Coordinate Descent | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#projects">
+            
+            <span>Projects</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">Iterative Scaling and Coordinate Descent</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2018-12-10 11:29:31 -0500 EST" itemprop="datePublished dateModified">
+      Dec 10, 2018
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    5 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/iterative-scaling-coordinate-descent/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=Iterative%20Scaling%20and%20Coordinate%20Descent&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fiterative-scaling-coordinate-descent%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fiterative-scaling-coordinate-descent%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fiterative-scaling-coordinate-descent%2f&amp;title=Iterative%20Scaling%20and%20Coordinate%20Descent"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fiterative-scaling-coordinate-descent%2f&amp;title=Iterative%20Scaling%20and%20Coordinate%20Descent"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=Iterative%20Scaling%20and%20Coordinate%20Descent&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fiterative-scaling-coordinate-descent%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p>Recently, I was reading a paper on language model adaptation, which used an optimization technique called Generalized Iterative Scaling (GIS). Having no idea what the method was, I sought out <a href="https://www.jstor.org/stable/2240069?seq=1#metadata_info_tab_contents" target="_blank">the first paper</a> which proposed it, but since the paper is from 1972, and I am not a pure math guy, I found it difficult to follow. After some more looking around, I chanced upon this lucid JMLR&rsquo;10 paper from <a href="https://www.csie.ntu.edu.tw/~cjlin/" target="_blank">Chih-Jen Lin</a>: <a href="http://www.jmlr.org/papers/volume11/huang10a/huang10a.pdf" target="_blank">Iterative Scaling and Coordinate Descent Methods for Maximum Entropy Models</a>. In this post, I will summarize the ideas in the paper, primarily the discussion about a unified framework for <strong>Iterative Scaling</strong> (IS) and <strong>Coordinate Descent</strong> (CD) methods, and how each particular technique is derived from this general framework.</p>
+
+<h2 id="the-general-framework">The General Framework</h2>
+
+<p>Iterative Scaling (IS) and Coordinate Descent (CD) are methods used to optimize maximum entropy (maxent) models. <em>What is a maxent model?</em> Given a sequence $x$, a maxent model predicts the label sequence $y$ with maximal probability. It is discriminatively trained by modeling the conditional probability</p>
+
+<p>$$ P_{\mathbf{w}}(y|x) = \frac{S_{\mathbf{w}}(x,y)}{T_{\mathbf{w}}(x)}, $$</p>
+
+<p>where $S_{\mathbf{w}}(x,y) = \exp(\sum_t w_t f_t(x,y))$ and $T_{\mathbf{w}}(x) = \sum_y S_{\mathbf{w}}(x,y)$.</p>
+
+<p>Note that each of the $f_t$ are features which can be defined arbitrarily with the sole constraint that they must be non-negative. Each $f_t$ has a corresponding weight $w_t$ which needs to be estimated. IS and CD methods do this estimation by iterating over all the $w_t$&rsquo;s, either sequentially or in parallel. Based on the above conditional probability, we can define an objective function by taking the log of the probability and adding an L2-regularization term to it as</p>
+
+<p>$$ \text{min}_{\mathbf{w}} L(\mathbf{w}) \equiv \text{min}_{\mathbf{w}} \sum_x \tilde{P}(x) \log T_{\mathbf{w}}(x) - \sum_t w_t \tilde{P}(f_t) + \frac{1}{2\sigma^2}\sum_t w_t^2. $$</p>
+
+<p>Here, $\tilde{P}(x) = \sum_y \tilde{P}(x,y),$ where $\tilde{P}(x,y)$ is the empirical distribution, and $\tilde{P}(f_t)$ is the expected value of $f_t(x,y)$. The log-likelihood itself (without regularization) is convex, but adding the regularization term makes it strictly convex, and it can also be shown that this objective function has a unique global minima.</p>
+
+<p>If we update our weights (either in parallel or in sequence), after one such iteration of updation, we change our objective function from $L(\mathbf{w})$ to $L(\mathbf{w}+\mathbf{z})$, where $\mathbf{z}$ si the update made to the weights. Each such iteration can be written as a subproblem which we need to solve, i.e.</p>
+
+<p>$$ A(\mathbf{z}) \leq L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}).$$</p>
+
+<p>In addition, if we have $A(0) = 0$, this implies that $L$ decreases with every update. Let us now expand the RHS in the above equation. We have</p>
+
+<p>$$ \begin{align} L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) &amp;= \sum_x \tilde{P}(x) \log T_{\mathbf{w}+\mathbf{z}}(x) - \sum_t w_t \tilde{P}(f_t) + \frac{1}{2\sigma^2}\sum_t (w_t+z_t)^2 \\\ &amp; - \sum_x \tilde{P}(x) \log T_{\mathbf{w}}(x) + \sum_t w_t \tilde{P}(f_t) - \frac{1}{2\sigma^2}\sum_t w_t^2 \\\ &amp;= \sum_x \tilde{P}(x) \log \frac{T_{\mathbf{w}+\mathbf{z}}(x)}{T_{\mathbf{w}}(x)} + \sum_t Q_t (z_t) \end{align} $$</p>
+
+<p>where $Q_t(z_t) \equiv \frac{2w_tz_t + z_t^2}{2\sigma^2} - z_t \tilde{P}(f_t)$. Further, the ratio in the log term can be simplified as</p>
+
+<p>$$ \frac{T_{\mathbf{w}+\mathbf{z}}(x)}{T_{\mathbf{w}}(x)} = \sum_y P_{\mathbf{w}}(y|x)e^{\sum_t z_t f_t(x,y)}. $$</p>
+
+<p>This is the general overview of the problem that all IS and CD methods solve. The difference is in how this function is minimized. Let us look at each of the methods and how they build upon this general framework.</p>
+
+<h3 id="coordinate-descent">Coordinate Descent</h3>
+
+<p><a href="https://link.springer.com/article/10.1007%2Fs10107-015-0892-3" target="_blank">CD</a> solves the exact problem without any approximation, i.e., the subproblem is</p>
+
+<p>$$ A(\mathbf{z}) = L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) $$</p>
+
+<p>This then leads to the subproblem be exactly equal to as derived above. This has an advantage and a limitation.</p>
+
+<ul>
+<li><p>Since $A(\mathbf{z})$ here is the maximum possible decrement in any iteration, the convergence requires the least number of steps out of all possible approximations of $A(\mathbf{z})$.</p></li>
+
+<li><p>Because of the presence of the log term in the objective function, there is no closed form solution, and so every iteration must solve an optimization problem using the Newton method.</p></li>
+</ul>
+
+<p>In practice, the Newton optimization at each step overshadows any gain due to fewer iterations till convergence, so that CD takes more time to converge than IS methods which approximate $A(\mathbf{z})$.</p>
+
+<h3 id="generalized-is-gis-and-sequential-conditional-gis-sc-gis">Generalized IS (GIS) and Sequential Conditional GIS (SC-GIS)</h3>
+
+<p><a href="https://www.jstor.org/stable/2240069?seq=1#metadata_info_tab_contents" target="_blank">GIS</a> and <a href="http://www.aclweb.org/anthology/P02-1002" target="_blank">SC-GIS</a> use the approximation $\log \alpha \leq \alpha -1$ to get</p>
+
+<p>$$ \begin{align} L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) &amp;\leq \sum_t Q_t (z_t) + \sum_x \tilde{P}(x)       (\sum_y P_{\mathbf{w}}(y|x) e^{\sum_t z_t f_t(x,y)} - 1) \\\ &amp;= \sum_t Q_t (z_t) + \sum_{x,y} \tilde{P}(x) (P_{\mathbf{w}}(y|x)e^{\sum_t z_t f_t(x,y)} - 1)   \end{align} $$</p>
+
+<p>Define $f^{\#}(x,y) = \sum_t f_t(x,y)$ and $f^{\#}=\text{max}_{x,y}(f^{\#}(x,y))$. We can then use Jensen&rsquo;s inequality to upper bound the exponential term in the above inequality. GIS is a parallel update method, i.e., all the $w_t$&rsquo;s are updated simultaneously, which means that we can use $f^{\#}$ to bound the exponential terms. On the contrary, SC-GIS is a sequential method, which means we can only use $f_t^{\#}$ to get this bound, where $f_t^{\#} \equiv \text{max}_{x,y}f_t(x,y)$. Finally, the subproblems can be written as</p>
+
+<p>$$ A_t^{GIS}(z_t) = Q_t (z_t) + \frac{e^{z_t f^{\#}}-1}{f^{\#}}\sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y)  $$</p>
+
+<p>$$ A_t^{SC-GIS}(z_t) = Q_t (z_t) + \frac{e^{z_t f_t^{\#}}-1}{f_t^{\#}}\sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y) $$</p>
+
+<h3 id="improved-is-iis">Improved IS (IIS)</h3>
+
+<p>A problem with bounding in terms of $f^{\#}$ as done in GIS is that $f^{\#}$ can be too large even if one of the $(x,y)$ pairs has a large value of $f^{\#}(x,y)$. This would cause the subproblem to be very small, similar to the issue of small learning rates in gradient-based optimization. To remedy this, we can bound in terms of $f^{\#}(x,y)$, although in that case we the term cannot be taken out of the summation. This is what is done in IIS, and this gives the following definition of the subproblem.</p>
+
+<p>$$ A_t^{IIS}(z_t) = Q_t (z_t) + \sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y)\frac{e^{z_t f^{\#}(x,y)}-1}{f^{\#}(x,y)} $$</p>
+
+<h2 id="key-points">Key points</h2>
+
+<ol>
+<li><p>Iterative scaling and coordinate descent methods have provably linear convergence.</p></li>
+
+<li><p>However, the time complexity of solving each subproblem is key in choosing which method to use for optimization.</p></li>
+
+<li><p>GIS and SC-GIS have closed form solutions for the subproblems, which makes it $\mathcal{O}(1)$ to solve each iteration.</p></li>
+
+<li><p>Although CD and IIS need Newton optimization for each subproblem, the authors propose a fast CD method which performs only 1 update in later iterations. This is because it is empirically observed that a single update is enough to update the weight sufficiently in later stages.</p></li>
+</ol>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/machine-learning/">machine-learning</a>
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/optimization/">optimization</a>
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/maxent/">maxent</a>
+  
+</div>
+
+
+
+
+    
+    
+    <div class="article-widget">
+      <div class="hr-light"></div>
+      <h3>Related</h3>
+      <ul>
+        
+        <li><a href="/post/subword-segmentation/">Experiments with Subword Modeling</a></li>
+        
+        <li><a href="/post/classic-papers/">Award-winning classic papers in ML and NLP</a></li>
+        
+        <li><a href="/post/short-note-sgd-algorithms/">A Short Note on Stochastic Gradient Descent Algorithms</a></li>
+        
+      </ul>
+    </div>
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "desh2608-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//desh2608-github-io.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+
