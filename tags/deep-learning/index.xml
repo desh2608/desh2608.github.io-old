@@ -62,26 +62,6 @@ At the outset, we should understand that a number of important concepts in deep 
     </item>
     
     <item>
-      <title>Waldo: A system for optical character recognition</title>
-      <link>https://desh2608.github.io/project/waldo-ocr/</link>
-      <pubDate>Tue, 03 Jul 2018 16:56:46 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/project/waldo-ocr/</guid>
-      <description>It is an ongoing project under Prof. Daniel Povey to develop an Optical Character Recognition system that is robust on focused as well as incidental text. My contributions are:
- Experimenting with the ICDAR 2015 Robust Reading Challenge dataset by modifying training script. A visualization and compression module for segmentation mask overlayed on images.  The system consists of a modified UNet first proposed in this paper.</description>
-    </item>
-    
-    <item>
-      <title>Irony detection in tweets</title>
-      <link>https://desh2608.github.io/project/irony-tweet/</link>
-      <pubDate>Tue, 20 Mar 2018 17:00:16 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/project/irony-tweet/</guid>
-      <description>The task was to recognize whether a tweet has irony or not - binary classification. In essence, we identified 2 aspects that were essential to identify irony in tweets:
- Semantic interaction between text and hashtags, modeled using holographic embeddings (or circular cross-correlations). World knowledge about irony in text, obtained through transfer learning from DeepMoji.  We were able to obtain a validation accuracy of 69%, although the model performed poorly in the final test phase.</description>
-    </item>
-    
-    <item>
       <title>Unsupervised Approaches for NMT</title>
       <link>https://desh2608.github.io/post/unsupervised-approaches-for-nmt/</link>
       <pubDate>Thu, 14 Dec 2017 13:39:30 +0530</pubDate>
@@ -143,16 +123,6 @@ At the outset, we should understand that a number of important concepts in deep 
       <guid>https://desh2608.github.io/project/btp/</guid>
       <description>The objective of the project was to devise a method for obtaining structured triplets from unstructured clinical records such as journal articles, patient health records etc. Simplifying this objective, I was tasked with creating a neural technique which can classify relations existing between entities in a given sentence, an NLP task known as relation classification.
 The key insight is that convolutions can capture short-term phrases, while recurrence learns long-term dependencies. Combining both, we proposed the CRNN model which outperformed earlier single and double layer methods on two benchmark datasets: i2b2-2010 and DDI.</description>
-    </item>
-    
-    <item>
-      <title>Sptial Transformer Networks</title>
-      <link>https://desh2608.github.io/project/stn/</link>
-      <pubDate>Sun, 20 Nov 2016 17:00:42 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/project/stn/</guid>
-      <description>Jaderberg et al. proposed the Spatial Transformer Network in NIPS 2015 in order to improve the classification of transformed images (i.e., images with affine transformation). In this project, we achieved 2 objectives:
- Improved the STN architecture by applying a recurrence in the outermost layer, i.e., transformed images are again fed into the module for further processing. Applied the network to egocentric image data to improve benchmark datasets like GTEA and Intel Egocentric Vision data.</description>
     </item>
     
   </channel>

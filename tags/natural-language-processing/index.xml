@@ -7,20 +7,10 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; 2018</copyright>
-    <lastBuildDate>Tue, 03 Jul 2018 16:56:46 +0530</lastBuildDate>
+    <lastBuildDate>Fri, 15 Jun 2018 13:42:18 +0530</lastBuildDate>
     
 	<atom:link href="https://desh2608.github.io/tags/natural-language-processing/index.xml" rel="self" type="application/rss+xml" />
     
-    
-    <item>
-      <title>Waldo: A system for optical character recognition</title>
-      <link>https://desh2608.github.io/project/waldo-ocr/</link>
-      <pubDate>Tue, 03 Jul 2018 16:56:46 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/project/waldo-ocr/</guid>
-      <description>It is an ongoing project under Prof. Daniel Povey to develop an Optical Character Recognition system that is robust on focused as well as incidental text. My contributions are:
- Experimenting with the ICDAR 2015 Robust Reading Challenge dataset by modifying training script. A visualization and compression module for segmentation mask overlayed on images.  The system consists of a modified UNet first proposed in this paper.</description>
-    </item>
     
     <item>
       <title>Transfer Learning in NLP</title>
@@ -29,16 +19,6 @@
       
       <guid>https://desh2608.github.io/post/transfer-learning-nlp/</guid>
       <description>Transfer learning is undoubtedly the new (well, relatively anyway) hot thing in deep learning right now. In vision, it has been in practice for some time now, with people using models trained to learn features from the huge ImageNet dataset, and then training it further on smaller data for different tasks. In NLP, though, transfer learning was mostly limited to the use of pretrained word embeddings (which, to be fair, improved baselines significantly).</description>
-    </item>
-    
-    <item>
-      <title>Irony detection in tweets</title>
-      <link>https://desh2608.github.io/project/irony-tweet/</link>
-      <pubDate>Tue, 20 Mar 2018 17:00:16 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/project/irony-tweet/</guid>
-      <description>The task was to recognize whether a tweet has irony or not - binary classification. In essence, we identified 2 aspects that were essential to identify irony in tweets:
- Semantic interaction between text and hashtags, modeled using holographic embeddings (or circular cross-correlations). World knowledge about irony in text, obtained through transfer learning from DeepMoji.  We were able to obtain a validation accuracy of 69%, although the model performed poorly in the final test phase.</description>
     </item>
     
     <item>

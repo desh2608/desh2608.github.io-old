@@ -22,39 +22,12 @@
     </item>
     
     <item>
-      <title>Principal component analysis approach in selecting type-1 and type-2 fuzzy membership functions for high-dimensional data</title>
-      <link>https://desh2608.github.io/publication/ifsa-17-pca/</link>
-      <pubDate>Wed, 28 Jun 2017 15:02:56 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/publication/ifsa-17-pca/</guid>
-      <description></description>
-    </item>
-    
-    <item>
       <title>Analysis of data generated from multidimensional type-1 and type-2 fuzzy membership functions</title>
       <link>https://desh2608.github.io/publication/tfs-16-analysis/</link>
       <pubDate>Sat, 01 Apr 2017 15:02:18 +0530</pubDate>
       
       <guid>https://desh2608.github.io/publication/tfs-16-analysis/</guid>
       <description></description>
-    </item>
-    
-    <item>
-      <title>Visual analysis and representations of type-2 fuzzy membership functions</title>
-      <link>https://desh2608.github.io/publication/fuzz-16-visual/</link>
-      <pubDate>Sat, 30 Jul 2016 00:00:00 +0000</pubDate>
-      
-      <guid>https://desh2608.github.io/publication/fuzz-16-visual/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Fuzzy adaptive resonance theory (ART) clustering</title>
-      <link>https://desh2608.github.io/project/fuzzy-art/</link>
-      <pubDate>Wed, 03 Feb 2016 17:01:11 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/project/fuzzy-art/</guid>
-      <description> Worked on improving clustering performance of fuzzy ART algorithm by integrating Interval Type-2 approach into vigilance parameter computation. Obtained 5-10% better classification results compared to earlier ART methods, on several benchmark datasets like Iris, Wine, and real world image segmentation tasks.  </description>
     </item>
     
     <item>
