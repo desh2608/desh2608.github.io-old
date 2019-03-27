@@ -18,7 +18,9 @@
     
   
   <meta name="description" content="This is a continuously updated post on some tips and tricks for development in Kaldi that I think may be useful for myself and others.
-How to stop training mid-way and decode using last trained stage In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe). During training, suppose you decide to stop midway and check the decoding result.">
+List of contents:
+ How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig  
+How to stop training mid-way and decode using last trained stage In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe).">
 
   
   <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/kaldi-tricks/">
@@ -95,7 +97,9 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
   <meta property="og:url" content="https://desh2608.github.io/post/kaldi-tricks/">
   <meta property="og:title" content="Some Kaldi Things | Desh Raj">
   <meta property="og:description" content="This is a continuously updated post on some tips and tricks for development in Kaldi that I think may be useful for myself and others.
-How to stop training mid-way and decode using last trained stage In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe). During training, suppose you decide to stop midway and check the decoding result.">
+List of contents:
+ How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig  
+How to stop training mid-way and decode using last trained stage In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe).">
   <meta property="og:locale" content="en-us">
   
   <meta property="article:published_time" content="2019-03-27T12:05:41-04:00">
@@ -313,6 +317,17 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
 
 <p><em>This is a continuously updated post on some tips and tricks for development in <a href="http://kaldi-asr.org/" target="_blank">Kaldi</a> that I think may be useful for myself and others.</em></p>
 
+<p>List of contents:</p>
+
+<ol>
+<li><a href="#stop-train">How to stop training mid-way and decode using last trained stage</a></li>
+<li><a href="#sum-append">About <code>Sum()</code> and <code>Append()</code> in Kaldi xconfig</a></li>
+</ol>
+
+<hr />
+
+<p><a name="stop-train"></a></p>
+
 <h3 id="how-to-stop-training-mid-way-and-decode-using-last-trained-stage">How to stop training mid-way and decode using last trained stage</h3>
 
 <p>In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe). During training, suppose you decide to stop midway and check the decoding result.</p>
@@ -325,6 +340,10 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
 </code></pre>
 
 <p>This creates a testing model called <code>final.mdl</code> which the <code>decode.sh</code> script uses for decoding. Instead of using the default name <code>final</code>, you can create any test copy name, say <code>239-final.mdl</code>. To use this mdl file for decoding, pass this as argument to the <code>--iter</code> argument in <code>decode.sh</code>.</p>
+
+<hr />
+
+<p><a name="sum-append"></a></p>
 
 <h3 id="about-sum-and-append-in-kaldi-xconfig">About <code>Sum()</code> and <code>Append()</code> in Kaldi xconfig</h3>
 
