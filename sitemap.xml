@@ -5,6 +5,15 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/post/kaldi-tricks/</loc>
+      <lastmod>2019-03-27T12:05:41-04:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/post/iterative-scaling-coordinate-descent/</loc>
       <lastmod>2018-12-10T11:29:31-05:00</lastmod>
     </url>
@@ -388,6 +397,16 @@
     
       <loc>https://desh2608.github.io/tags/fuzzy/</loc>
       <lastmod>2018-01-15T15:02:35+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/tags/kaldi/</loc>
+      <lastmod>2019-03-27T12:05:41-04:00</lastmod>
       <priority>0</priority>
     </url>
     

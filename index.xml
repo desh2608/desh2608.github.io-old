@@ -11,6 +11,52 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Some Kaldi Things</title>
+      <link>https://desh2608.github.io/post/kaldi-tricks/</link>
+      <pubDate>Wed, 27 Mar 2019 12:05:41 -0400</pubDate>
+      
+      <guid>https://desh2608.github.io/post/kaldi-tricks/</guid>
+      <description>
+
+&lt;p&gt;&lt;em&gt;This is a continuously updated post on some tips and tricks for development in &lt;a href=&#34;http://kaldi-asr.org/&#34; target=&#34;_blank&#34;&gt;Kaldi&lt;/a&gt; that I think may be useful for myself and others.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;how-to-stop-training-mid-way-and-decode-using-last-trained-stage&#34;&gt;How to stop training mid-way and decode using last trained stage&lt;/h3&gt;
+
+&lt;p&gt;In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe). During training, suppose you decide to stop midway and check the decoding result.&lt;/p&gt;
+
+&lt;p&gt;Now, the training can be stopped and resumed simply by supplying the arguments &lt;code&gt;--stage&lt;/code&gt; and &lt;code&gt;--train-stage&lt;/code&gt;, where the input to &lt;code&gt;stage&lt;/code&gt; is the stage where the &lt;code&gt;train.py&lt;/code&gt; is called, and &lt;code&gt;train-stage&lt;/code&gt; is the stage from where you want to continue training.&lt;/p&gt;
+
+&lt;p&gt;But if you stop at, say, stage 239, and want to decode, you first have to prepare the model for testing. This is so that dropout and batchnorm aren&amp;rsquo;t performed at test time. For this, first run&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;nnet3-am-copy --prepare-for-test=true &amp;lt;dir&amp;gt;/239.mdl &amp;lt;dir&amp;gt;/final.mdl
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This creates a testing model called &lt;code&gt;final.mdl&lt;/code&gt; which the &lt;code&gt;decode.sh&lt;/code&gt; script uses for decoding. Instead of using the default name &lt;code&gt;final&lt;/code&gt;, you can create any test copy name, say &lt;code&gt;239-final.mdl&lt;/code&gt;. To use this mdl file for decoding, pass this as argument to the &lt;code&gt;--iter&lt;/code&gt; argument in &lt;code&gt;decode.sh&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;about-sum-and-append-in-kaldi-xconfig&#34;&gt;About &lt;code&gt;Sum()&lt;/code&gt; and &lt;code&gt;Append()&lt;/code&gt; in Kaldi xconfig&lt;/h3&gt;
+
+&lt;p&gt;If you have worked with Kaldi xconfig, it is pretty easy to define layer inputs and outputs, using something called &lt;a href=&#34;http://kaldi-asr.org/doc/dnn3_code_data_types.html&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;Descriptors&lt;/code&gt;&lt;/a&gt;. They act as a glue between components and can also perform easy operations like append, sum, scale, round, etc. So, for instance, you can have the following xconfig:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;input name=ivector dim=100
+input dim=40 name=input
+relu-batchnorm-layer name=tdnn1 dim=1280 input=Append(-1,0,1,ReplaceIndex(ivector, t, 0))
+linear-component name=tdnn2l dim=256 input=Append(-1,0)
+relu-batchnorm-layer name=tdnn2 input=Append(0,1) dim=1280
+linear-component name=tdnn3l dim=256
+relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(tdnn3l,tdnn2l)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This network does not make too much sense and is only for purpose of representation. At some point, you may require to do something of the sort &lt;code&gt;Sum(Append(x,y),z)&lt;/code&gt;, i.e., append two inputs and add it to a third input. This operation, however, isn&amp;rsquo;t allowed in the xconfig.&lt;/p&gt;
+
+&lt;p&gt;This is because &lt;code&gt;Sum()&lt;/code&gt; takes 2 &lt;code&gt;&amp;lt;sum-descriptor&amp;gt;&lt;/code&gt; types, while the output of &lt;code&gt;Append()&lt;/code&gt; is a &lt;code&gt;&amp;lt;descriptor&amp;gt;&lt;/code&gt; type which is a super class of &lt;code&gt;&amp;lt;sum-descriptor&amp;gt;&lt;/code&gt;, and as such, there is an argument type mismatch. This can be easily solved:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;no-op-component name=noop1 input=Append(x,y)
+relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(noop1,tdnn2l)
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Iterative Scaling and Coordinate Descent</title>
       <link>https://desh2608.github.io/post/iterative-scaling-coordinate-descent/</link>
       <pubDate>Mon, 10 Dec 2018 11:29:31 -0500</pubDate>
@@ -2238,175 +2284,6 @@ selection of the algorithm.)&lt;/p&gt;
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;li id=&#34;fn:2&#34;&gt;Kaji, Nobuhiro, and Hayato Kobayashi. &amp;ldquo;&lt;em&gt;Incremental skip-gram model with negative sampling.&lt;/em&gt;&amp;rdquo; arXiv preprint arXiv:1704.03956 (2017).*
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Sparsity in Online Learning with Lasso Regularization</title>
-      <link>https://desh2608.github.io/post/sparse-online-learning-lasso-regularization/</link>
-      <pubDate>Sat, 24 Feb 2018 13:40:42 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/sparse-online-learning-lasso-regularization/</guid>
-      <description>
-
-&lt;p&gt;Sparse vectors have become popular recently for 2 reasons:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Sparse matrices require much less storage since they can be stored using various space-saving methods.&lt;/li&gt;
-&lt;li&gt;Sparse vectors are much more interpretable than dense vectors. For instance, the non-zero non-negative components of a sparse word vector may be taken to denote the weights for certain features. In contrast, there is no interpretation for a value like $-0.1347$.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Sparsity is often induced through the use of L1 (or Lasso) regularization. There are 2 formulations of the Lasso: (i) convex constraint, and (ii) soft regularization.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Convex constraint&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;As the name suggests, a convex constraint is added to the minimization problem so that the parameters do not exceed a certain value.&lt;/p&gt;
-
-&lt;p&gt;$$ \min_{\beta \in \mathbb{R}^p}\lVert y - X\beta \rVert_2^2 \quad \text{s.t.} \quad \lVert \beta \rVert_1 \leq t $$&lt;/p&gt;
-
-&lt;p&gt;The smaller the value of the tuning parameter $t$, fewer is the number of non-zero components in the solution.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Soft regularization&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;This is just the Lagrange form the the convex constraint, and is used because it is easier to optimize. Note that it is equivalent to the convex constraint formulation for an appropriately chosen $g$.&lt;/p&gt;
-
-&lt;p&gt;$$ \min_{\beta \in \mathbb{R}^p}\lVert y - X\beta \rVert_2^2 + g\lVert \beta \rVert_1 $$&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;There is a great theoretical explanation of sparsity with Lasso regularization by &lt;a href=&#34;http://www.stat.cmu.edu/~ryantibs/&#34; target=&#34;_blank&#34;&gt;Ryan Tibshirani&lt;/a&gt; and &lt;a href=&#34;http://www.stat.cmu.edu/~larry/&#34; target=&#34;_blank&#34;&gt;Larry Wasserman&lt;/a&gt; which you can find &lt;a href=&#34;http://www.stat.cmu.edu/~larry/=sml/sparsity.pdf&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. I will instead be focusing on some methods that have been introduced recently for inducing sparsity while learning online i.e., when the samples are obtained one at a time. In addition to such a scenario, online learning also comes into the picture when the data set is simply too large to be loaded in memory at once, and there are not sufficient resources for performing batch learning in a parallel fashion.&lt;/p&gt;
-
-&lt;p&gt;In this post, I will summarize 3 such methods:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.jmlr.org/papers/volume10/langford09a/langford09a.pdf&#34; target=&#34;_blank&#34;&gt;Stochastic Truncated Gradient&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.jmlr.org/papers/volume10/duchi09a/duchi09a.pdf&#34; target=&#34;_blank&#34;&gt;Forward Backward Splitting&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.mendeley.com/viewer/?fileId=00e458de-d9ca-a697-5d67-a4c177759778&amp;amp;documentId=0e9eba78-0cbb-3cb2-a8ea-385a2afb64f5&#34; target=&#34;_blank&#34;&gt;Regularized Dual Averaging&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;But first, why a simple soft Lasso regularization won’t work? With the soft regularization method, we are essentially summing up 2 floating point values. As such, it is highly improbable that the sum will be zero, since very few pairs of floats add up to zero.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;stochastic-truncated-gradient-stg&#34;&gt;Stochastic Truncated Gradient (STG)&lt;/h4&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/14/stg.png&#34; alt=&#34;Simple round-off (T0) vs. Truncated Gradient (T1). Image taken from paper&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;STG combines ideas from 2 simple techniques:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;&lt;em&gt;Coefficient rounding&lt;/em&gt;: In this method, the coefficients are rounded to 0 if they are less than a value $\theta$. This is denoted in the figure above (left graph). The rounding is done after every $k$ steps. The problem with this approach is that if $k$ is small, the coefficients do not get an opportunity to reach a value above $\theta$ before they are pulled back to $0$. On the other hand, if $k$ is large, the intermediate steps in the algorithm need to store a large number of non-zero coefficients, which does not solve the storage issue.&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;Sub-gradient method&lt;/em&gt;: In this method, L1-regularization is performed by shifting the update in the opposite direction depending on the sign of the coefficient. The update equation is&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;$$ f(w_i) = w_i - \eta\nabla_1 L(w_i,z_i) - \eta g \text{sgn}(w_i) $$&lt;/p&gt;
-
-&lt;p&gt;STG combines &lt;em&gt;rounding&lt;/em&gt; from (1) and &lt;em&gt;gravity&lt;/em&gt; from (2) so that (i) sparsity is achieved (unlike the sub-gradient method), and (ii) the rounding off is not too aggressive (unlike the direct rounding approach). The parameter update is then given by the function $T_1$ (shown in the right graph above).&lt;/p&gt;
-
-&lt;p&gt;$$ T_1(v_j,\alpha,\theta) = \begin{cases} \max(0,v_j-\alpha) \quad &amp;amp;\text{if}~ v_j \in [0,\theta] \\\ \min(0,v_j+\alpha) \quad &amp;amp;\text{if}~ v_j \in [-\theta,0] \\\ 0 \quad &amp;amp;\text{otherwise}   \end{cases} $$&lt;/p&gt;
-
-&lt;p&gt;The update rule is given using $T_1$ as&lt;/p&gt;
-
-&lt;p&gt;$$ f(w_i) = T_1 (w_i - \nabla_1 L_1 (w_i,z_i,\eta g_i,\theta)) $$&lt;/p&gt;
-
-&lt;p&gt;Here, $g$ may be called the gravity parameter, and $\theta$ is called the truncation parameter. In general, the larger these parameters are, the more sparsity is incurred. This can be understood easily from the definition of the truncation function.&lt;/p&gt;
-
-&lt;p&gt;Furthermore, note that on setting $\theta = \infty$ in the truncation function yields a special case of the Sub-gradient method wherein &lt;strong&gt;max&lt;/strong&gt; and &lt;strong&gt;min&lt;/strong&gt; operations are performed after applying gravity pull.&lt;/p&gt;
-
-&lt;p&gt;In the remainder of the paper, the authors prove a strong regret bound for the STG method, and also provide an efficient implementation for the same. Furthermore, they show the asymptotic solution of one instance of the algorithm is essentially equivalent to the Lasso regression, thus justifying the algorithm’s ability to produce sparse weight vectors when the number of features is intractably large.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;forward-backward-splitting-fobos&#34;&gt;Forward Backward Splitting (FOBOS)&lt;/h4&gt;
-
-&lt;p&gt;&lt;em&gt;Note: The method was named Forward Looking Subgradient (FOLOS) in the first draft and later renamed since it was essentially the same as an earlier proposed technique, the Forward Backward Splitting. The authors abbreviated it to FOBOS instead of FOBAS to avoid confusing readers of the first draft.&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;First, a little background. Consider an objective function of the form $f(w) + r(w)$. In the case of a number of machine learning algorithms, the function $f$ denotes the empirical sum of some loss function (such as mean squared error), and the function $r$ is a regularizer (such as Lasso). If we use a simple gradient descent technique to minimize this objective function, the iterates would be of the form&lt;/p&gt;
-
-&lt;p&gt;$$ w_{t+1} = w_t - \eta_t g_t^f - \eta_t g_t^r $$&lt;/p&gt;
-
-&lt;p&gt;where the $g$’s are vectors from the subgradient sets of the corresponding functions. From the paper:&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;A common problem in subgradient methods is that if $r$ or $f$ is non-differentiable, the iterates of the subgradient method are very rarely at the points of non-differentiability. In the case of the Lasso regularization function, however, these points are often the true minima of the function.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;In other words, the subgradient approach will result in neither a true minima nor a sparse solution if $r$ is the L1 regularizer.&lt;/p&gt;
-
-&lt;p&gt;FOBOS, as the name suggests, splits every iteration into 2 steps — a forward step and a backward step, instead of minimizing both $f$ and $r$ simultaneously. The motivation for the method is that for L1 regularization functions, true minima is usually attained at the points of non-differentiability. For example, in the 2-D space, the function resembles a Diamond shape and the minima is obtained at one of the corner points. Each iteration of FOBOS consists of the following 2 steps:&lt;/p&gt;
-
-&lt;p&gt;$$ w_{t+\frac{1}{2}} = w_t - \eta_t g_t^f \\\ w_{t+1} = \text{argmin}_w { \frac{1}{2}(w_t - w_{t+\frac{1}{2}})^2 + \eta_{t+\frac{1}{2}}r(w) } $$&lt;/p&gt;
-
-&lt;p&gt;The first step is a simple unconstrained subgradient step with respect to the function $f$. In the second step, we try to achieve 2 objectives:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Stay close to the interim update vector. This is achieved by the first term.&lt;/li&gt;
-&lt;li&gt;Attain a low complexity value as expressed by $r$. (Second term)&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;So the first step is a &lt;em&gt;forward&lt;/em&gt; step, where we update the coefficient in the direction of the subgradient, while the second is a &lt;em&gt;backward&lt;/em&gt; step where we pull the update back a little so as to obtain sparsity by moving in the direction of the non-differentiable points of $r$.&lt;/p&gt;
-
-&lt;p&gt;Using the first equation in the second, taking derivative w.r.t $w$, and equating the derivative to $0$, we obtain the update scheme as&lt;/p&gt;
-
-&lt;p&gt;$$ w_{t+1} = w_t - \eta_t g_t^f + \eta_{t+\frac{1}{2}} g_{t+1}^r $$&lt;/p&gt;
-
-&lt;p&gt;(&lt;strong&gt;Note&lt;/strong&gt;: The equation above looks suspiciously similar to the &lt;strong&gt;&lt;em&gt;Nesterov Accelerated Gradient (NAG)&lt;/em&gt;&lt;/strong&gt; method for optimization. The authors have even cited Nesterov’s paper in related work. It might be interesting to  investigate this further.)&lt;/p&gt;
-
-&lt;p&gt;This update scheme has 2 major advantages, according to the author.&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;First, from an algorithmic standpoint, it enables sparse solutions at virtually no additional computational cost. Second, the forward-looking gradient allows us to build on existing analyses and show that the resulting framework enjoys the formal convergence properties of many existing gradient-based and online convex programming algorithms.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;In the paper, the authors also prove convergence of the method and show that on setting the intermediate learning rate properly, low regret bounds can be proved for both online as well as batch settings.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;regularized-dual-averaging-rda&#34;&gt;Regularized Dual Averaging (RDA)&lt;/h4&gt;
-
-&lt;p&gt;Both of the above discussed techniques have one limitation — they perform updates depending only on the subgradients at a particular time step. In contrast, the RDA method “exploits the full regularization structure at each iteration.” Also, since the authors derive closed-form solutions for several popular optimization objectives, it follows that the computational complexity of such an approach is not worse than the methods which perform updates only based on current subgradients (both being $\mathcal{O}(n)$).&lt;/p&gt;
-
-&lt;p&gt;RDA comprises of 3 steps in every iteration.&lt;/p&gt;
-
-&lt;p&gt;In the first step, the subgradient is computed for that particular time step. This is the same as every other subgradient-based online optimization method.&lt;/p&gt;
-
-&lt;p&gt;The second step consists of computing a running average of all past subgradients. This is done using the online approach as&lt;/p&gt;
-
-&lt;p&gt;$$ \bar{g}_t = \frac{t-1}{t}\bar{g}_{t-1} + \frac{1}{t}g_t $$&lt;/p&gt;
-
-&lt;p&gt;In the third step, the update is computed as&lt;/p&gt;
-
-&lt;p&gt;$$ w_{t+1} = \text{argmin}_w { &amp;lt;\bar{g}_t,w&amp;gt; + \psi(w) + \frac{\beta}{t}h(w) } $$&lt;/p&gt;
-
-&lt;p&gt;Let us try to understand this update scheme. First, the function $h(w)$ is a strongly convex function such that the update vector which minimizes it also minimizes the regularizer. In the case of Lasso regularization, $h(w)$ is chosen as follows.&lt;/p&gt;
-
-&lt;p&gt;$$ h(w) = \frac{1}{2}\lVert w \rVert_2^2 + \rho \lVert w \rVert_1 $$&lt;/p&gt;
-
-&lt;p&gt;where $\rho$ is a parameter called the sparsity enhancing parameter. $\beta$ is a predetermined non-negative and non-decreasing sequence.&lt;/p&gt;
-
-&lt;p&gt;Now to solve the equation, we can just take the derivative of the argument of argmin and equate it to $0$. On solving this equation, we get an update of the form&lt;/p&gt;
-
-&lt;p&gt;$$ w_{t+1} = \frac{t}{\beta_t}(\bar{g}_t + \rho) $$&lt;/p&gt;
-
-&lt;p&gt;So the scheme ensures that the update is in the same convex space as the regularized dual average. Sparsity can further be controlled by tuning the value of the parameter $\rho$. The scaling factor can be regulated using the
-non-decreasing sequence selected at the beginning of the algorithm. For the case when it is equal to the time step $t$, the new coefficient is simply the sum of the dual average and the sparsity parameter.&lt;/p&gt;
-
-&lt;p&gt;The above is just my attempt at understanding the update scheme for RDA. I would be happy to discuss it further if you find something wrong with this explanation.&lt;/p&gt;
-
-&lt;p&gt;Now the method itself would become extremely infeasible if this differentiation would have to be performed for every iteration. However, for most commonly used regularizers and loss functions, the update rule can be represented with a closed-form solution. For this reason, the overall algorithm has the same complexity as earlier algorithms which use only the current step subgradient for performing updates.&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:1&#34;&gt;Langford, John, Lihong Li, and Tong Zhang. “Sparse online learning via truncated gradient.” &lt;em&gt;Journal of Machine Learning Research&lt;/em&gt; 10.Mar (2009): 777–801.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:2&#34;&gt;Duchi, John, and Yoram Singer. “Efficient online and batch learning using forward backward splitting.” &lt;em&gt;Journal of Machine Learning Research&lt;/em&gt; 10.Dec (2009): 2899–2934.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:3&#34;&gt;Xiao, Lin. “Dual averaging methods for regularized stochastic learning and online optimization.” &lt;em&gt;Journal of Machine Learning Research&lt;/em&gt; 11.Oct (2010): 2543–2596.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
 </description>
