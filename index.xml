@@ -18,13 +18,14 @@
       <guid>https://desh2608.github.io/post/kaldi-tricks/</guid>
       <description>
 
-&lt;p&gt;&lt;em&gt;This is a continuously updated post on some tips and tricks for development in &lt;a href=&#34;http://kaldi-asr.org/&#34; target=&#34;_blank&#34;&gt;Kaldi&lt;/a&gt; that I think may be useful for myself and others.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;This is a regularly updated post on some tips and tricks for working with &lt;a href=&#34;http://kaldi-asr.org/&#34; target=&#34;_blank&#34;&gt;Kaldi&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;List of contents:&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;&lt;a href=&#34;#stop-train&#34;&gt;How to stop training mid-way and decode using last trained stage&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#sum-append&#34;&gt;About &lt;code&gt;Sum()&lt;/code&gt; and &lt;code&gt;Append()&lt;/code&gt; in Kaldi xconfig&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#train-logs&#34;&gt;Checking training logs&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;hr /&gt;
@@ -68,6 +69,39 @@ relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(tdnn3l,tdnn2l)
 &lt;pre&gt;&lt;code&gt;no-op-component name=noop1 input=Append(x,y)
 relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(noop1,tdnn2l)
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a name=&#34;train-logs&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;checking-training-logs&#34;&gt;Checking training logs&lt;/h3&gt;
+
+&lt;p&gt;When you are training any chain model in Kaldi, it is important to know if the parameters are getting updated well and if the objective function is improving. All such information is stored in the &lt;code&gt;log&lt;/code&gt; directories in Kaldi, but since there is so much information in there, it may be difficult to find what you are looking for.&lt;/p&gt;
+
+&lt;p&gt;Suppose your working directory is something like &lt;code&gt;exp/chain/tdnn_1a/&lt;/code&gt;. Then, first go to the &lt;code&gt;log&lt;/code&gt; directory by&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;cd exp/chain/tdnn_1a/log
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now, to check the objective functions for all the training iterations, do&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ls -lt train* | grep -r &#39;average objective&#39; .
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This will print something like this, for all the iterations.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;LOG (nnet3-chain-train[5.5.103~1-34cc4e]:PrintTotalStats():nnet-training.cc:348) Overall average objective function for &#39;output&#39; is -0.100819 over 505600 frames.
+LOG (nnet3-chain-train[5.5.103~1-34cc4e]:PrintTotalStats():nnet-training.cc:348) Overall average objective function for &#39;output-xent&#39; is -1.17531 over 505600 frames.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Here, our actual objective is &amp;lsquo;output&amp;rsquo;. The other objective is the cross-entropy regularization term. To avoid printing it, you can replace &lt;code&gt;&#39;average objective&#39;&lt;/code&gt; with &lt;code&gt;&amp;quot;average objective function for &#39;output&#39;&amp;quot;&lt;/code&gt; in the previous command. Look at the values. If the model is learning well, the objective should be increasing (since it is the log-likelihood).&lt;/p&gt;
+
+&lt;p&gt;You may also want to see if your parameters are updating how you want them to be. For this, do&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ls -lt progress* | grep -r &#39;Relative parameter differences&#39; .
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Usually, the relative parameter differences are close to the learning rate.&lt;/p&gt;
 </description>
     </item>
     

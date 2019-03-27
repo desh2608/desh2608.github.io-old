@@ -17,9 +17,9 @@
       
     
   
-  <meta name="description" content="This is a continuously updated post on some tips and tricks for development in Kaldi that I think may be useful for myself and others.
+  <meta name="description" content="This is a regularly updated post on some tips and tricks for working with Kaldi.
 List of contents:
- How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig  
+ How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig Checking training logs  
 How to stop training mid-way and decode using last trained stage In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe).">
 
   
@@ -96,9 +96,9 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
   <meta property="og:site_name" content="Desh Raj">
   <meta property="og:url" content="https://desh2608.github.io/post/kaldi-tricks/">
   <meta property="og:title" content="Some Kaldi Things | Desh Raj">
-  <meta property="og:description" content="This is a continuously updated post on some tips and tricks for development in Kaldi that I think may be useful for myself and others.
+  <meta property="og:description" content="This is a regularly updated post on some tips and tricks for working with Kaldi.
 List of contents:
- How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig  
+ How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig Checking training logs  
 How to stop training mid-way and decode using last trained stage In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe).">
   <meta property="og:locale" content="en-us">
   
@@ -250,7 +250,7 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    2 min read
+    3 min read
   </span>
   
 
@@ -315,13 +315,14 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
     <div class="article-style" itemprop="articleBody">
       
 
-<p><em>This is a continuously updated post on some tips and tricks for development in <a href="http://kaldi-asr.org/" target="_blank">Kaldi</a> that I think may be useful for myself and others.</em></p>
+<p><em>This is a regularly updated post on some tips and tricks for working with <a href="http://kaldi-asr.org/" target="_blank">Kaldi</a>.</em></p>
 
 <p>List of contents:</p>
 
 <ol>
 <li><a href="#stop-train">How to stop training mid-way and decode using last trained stage</a></li>
 <li><a href="#sum-append">About <code>Sum()</code> and <code>Append()</code> in Kaldi xconfig</a></li>
+<li><a href="#train-logs">Checking training logs</a></li>
 </ol>
 
 <hr />
@@ -365,6 +366,39 @@ relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(tdnn3l,tdnn2l)
 <pre><code>no-op-component name=noop1 input=Append(x,y)
 relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(noop1,tdnn2l)
 </code></pre>
+
+<hr />
+
+<p><a name="train-logs"></a></p>
+
+<h3 id="checking-training-logs">Checking training logs</h3>
+
+<p>When you are training any chain model in Kaldi, it is important to know if the parameters are getting updated well and if the objective function is improving. All such information is stored in the <code>log</code> directories in Kaldi, but since there is so much information in there, it may be difficult to find what you are looking for.</p>
+
+<p>Suppose your working directory is something like <code>exp/chain/tdnn_1a/</code>. Then, first go to the <code>log</code> directory by</p>
+
+<pre><code>cd exp/chain/tdnn_1a/log
+</code></pre>
+
+<p>Now, to check the objective functions for all the training iterations, do</p>
+
+<pre><code>ls -lt train* | grep -r 'average objective' .
+</code></pre>
+
+<p>This will print something like this, for all the iterations.</p>
+
+<pre><code>LOG (nnet3-chain-train[5.5.103~1-34cc4e]:PrintTotalStats():nnet-training.cc:348) Overall average objective function for 'output' is -0.100819 over 505600 frames.
+LOG (nnet3-chain-train[5.5.103~1-34cc4e]:PrintTotalStats():nnet-training.cc:348) Overall average objective function for 'output-xent' is -1.17531 over 505600 frames.
+</code></pre>
+
+<p>Here, our actual objective is &lsquo;output&rsquo;. The other objective is the cross-entropy regularization term. To avoid printing it, you can replace <code>'average objective'</code> with <code>&quot;average objective function for 'output'&quot;</code> in the previous command. Look at the values. If the model is learning well, the objective should be increasing (since it is the log-likelihood).</p>
+
+<p>You may also want to see if your parameters are updating how you want them to be. For this, do</p>
+
+<pre><code>ls -lt progress* | grep -r 'Relative parameter differences' .
+</code></pre>
+
+<p>Usually, the relative parameter differences are close to the learning rate.</p>
 
     </div>
 
