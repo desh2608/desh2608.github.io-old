@@ -13,6 +13,16 @@
     
     
     <item>
+      <title>What do speech datasets sounds like?</title>
+      <link>https://desh2608.github.io/post/asr-data/</link>
+      <pubDate>Thu, 11 Apr 2019 20:10:35 -0400</pubDate>
+      
+      <guid>https://desh2608.github.io/post/asr-data/</guid>
+      <description>RM: SHOW THE GRIDLEY+S TRACK IN BRIGHT ORANGE WITH HORNE+S IN DIM RED
+Your browser does not support the audio element.  </description>
+    </item>
+    
+    <item>
       <title>Some Kaldi Things</title>
       <link>https://desh2608.github.io/post/kaldi-tricks/</link>
       <pubDate>Wed, 27 Mar 2019 12:05:41 -0400</pubDate>

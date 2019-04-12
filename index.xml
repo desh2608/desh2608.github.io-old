@@ -11,6 +11,24 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>What do speech datasets sounds like?</title>
+      <link>https://desh2608.github.io/post/asr-data/</link>
+      <pubDate>Thu, 11 Apr 2019 20:10:35 -0400</pubDate>
+      
+      <guid>https://desh2608.github.io/post/asr-data/</guid>
+      <description>&lt;p&gt;RM: SHOW THE GRIDLEY+S TRACK IN BRIGHT ORANGE WITH HORNE+S IN DIM RED&lt;/p&gt;
+
+
+
+
+&lt;audio controls style=&#34;width: 100%; margin-bottom: 20px&#34;&gt;
+    &lt;source src=&#34;files/asr/rm.wav&#34; type=&#34;audio/wav&#34;&gt;
+    Your browser does not support the audio element.
+&lt;/audio&gt;
+</description>
+    </item>
+    
+    <item>
       <title>Some Kaldi Things</title>
       <link>https://desh2608.github.io/post/kaldi-tricks/</link>
       <pubDate>Wed, 27 Mar 2019 12:05:41 -0400</pubDate>
@@ -2186,153 +2204,6 @@ print(args.accumulate(args.integers))
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;li id=&#34;fn:3&#34;&gt;Hill, Felix, Kyunghyun Cho, and Anna Korhonen. “Learning distributed representations of sentences from unlabelled data.” arXiv preprint arXiv:1602.03483 (2016).
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Online Learning of Word Embeddings</title>
-      <link>https://desh2608.github.io/post/online-learning-word-embeddings/</link>
-      <pubDate>Wed, 14 Mar 2018 13:40:57 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/online-learning-word-embeddings/</guid>
-      <description>
-
-&lt;p&gt;Word vectors have become the building blocks for all natural language processing systems. I have earlier written an overview of popular algorithms for learning word embeddings &lt;a href=&#34;https://desh2608.github.io/post/understanding-word-vectors/&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. One limitation with all these methods (namely SVD, skip-gram, and GloVe) is that they are all “batch” techniques. In this post, I will discuss two recent papers (which are very similar but were developed independently) which aim to provide an online approximation for the skip-gram algorithm.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;But first, what do we mean by a “batch” algorithm?&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;Simply put, in a batch algorithm, the entire data set needs to be available before we begin the processing. In contrast, an “online” algorithm can process inputs on-the-fly, i.e., in a streaming fashion. Needless to say, such algorithms are also preferable when the available resources are not sufficient to process the entire dataset at once.&lt;/p&gt;
-
-&lt;p&gt;Now that we have some idea about batch algorithms, I’ll explain why the existing methods for word representation learning are of this kind. First, in the case of the standard SVD and Stanford’s GloVe, the entire cooccurence matrix needs to be computed, and only then can the processing be started. If some additional data arrives later, the matrix would have to be recomputed, and training would have to be restarted (if at least one of the updates depends on a changed matrix element). Second, in the case of Mikolov’s &lt;em&gt;word2vec&lt;/em&gt; (skip-gram and CBOW), negative sampling is often used to make the computation more efficient. This sampling depends on the unigram probability distribution of the vocabulary words in the corpus. As such, before learning can happen, we need to compute the vocabulary as well as the unigram distribution.&lt;/p&gt;
-
-&lt;p&gt;Recently, two very similar methods (developed independently) have been proposed to make the skip-gram with negative sampling (SGNS) algorithm learn in a streaming fashion. I’ll quickly review the SGNS algorithm first so that there is some context when we discuss the papers.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;batch-sgns-algorithm&#34;&gt;Batch SGNS algorithm&lt;/h3&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/15/skipgram.png&#34; alt=&#34;Skip-gram objective. Image taken from [The Morning Paper](https://blog.acolyer.org/2016/04/21/the-amazing-power-of-word-vectors/).&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;SGNS is a window-based method with the following training objective: Given the target word, predict all the context words in the window.&lt;/p&gt;
-
-&lt;p&gt;Suppose we have a context window where $w$ is the target word and $c$ is one of the context words. Then, skip-gram’s objective is to compute $P(c|w)$, which is given as&lt;/p&gt;
-
-&lt;p&gt;$$ p(c|w;\theta) = \frac{\exp(v_c \cdot v_w)}{\sum_{c^{\prime}\in C}\exp(v_{c^{\prime}}\cdot v_w)} $$&lt;/p&gt;
-
-&lt;p&gt;Basically, it is just a softmax probability distribution over all the word-context pairs in the corpus, directed by the cosine similarity. However, the denominator term here is very expensive to compute since there may be a very large number of possible context words. To solve this problem, negative sampling is used.&lt;/p&gt;
-
-&lt;p&gt;Goldberg and Levy have explained the derivation for the objective function in SGNS very clearly in their &lt;a href=&#34;https://arxiv.org/pdf/1402.3722.pdf&#34; target=&#34;_blank&#34;&gt;note&lt;/a&gt;. I will try to provide a little intuition here.&lt;/p&gt;
-
-&lt;p&gt;For the word $w$, we are trying to predict the context word $c$. Since we are using softmax, this is essentially like a multi-class classification problem, where we are trying to classify the next word into one of $N$ classes (where $N$ is the number of words in the dictionary). Since $N$ may be quite large, this is a very difficult problem.&lt;/p&gt;
-
-&lt;p&gt;What SGNS does is that it converts this multi-classification problem into binary classification. The new objective is to predict, for any given word-context pair $(w,c)$, whether the pair is in the window or not. For this, we try to increase the probability of a &amp;ldquo;positive&amp;rdquo; pair $(w,c)$, while at the same time reducing the probability of $k$ randomly chosen &amp;ldquo;negative samples&amp;rdquo; $(w,s)$ where $s$ is a word not found in $w$’s context. This leads to the following objective function which we try to maximize in SGNS:&lt;/p&gt;
-
-&lt;p&gt;$$ J = \log \sigma(c\cdot w) + \sum_{i=1}^k \mathbb{E}_{w_i \sim p(w)}[\log \sigma (-w_i \cdot w)]  $$&lt;/p&gt;
-
-&lt;p&gt;In other words, we push the target vector in the direction of the positive context vector, and pull it away from $k$ randomly chosen (w.r.t. the unigram probability distribution) negative vectors. Here &amp;ldquo;negative&amp;rdquo; means that these vectors are not actually present in the target’s context.&lt;/p&gt;
-
-&lt;h4 id=&#34;what-do-we-need-to-make-sgns-online&#34;&gt;What do we need to make SGNS online?&lt;/h4&gt;
-
-&lt;p&gt;As is evident from the above discussion, since SGNS is a window-based approach, the training itself is very much in an online paradigm. However, the constraints are in creating a vocabulary and a unigram distribution for negative sampling, which makes SGNS a two-pass method. Further, if additional data is seen later, the distribution and vocabulary would change, and the model would have to be retrained.&lt;/p&gt;
-
-&lt;p&gt;Essentially, we need online alternatives for 2 aspects of the algorithms:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Dynamic vocabulary building&lt;/li&gt;
-&lt;li&gt;Adaptive unigram distribution&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;With this background, I will now discuss the two proposed methods for online SGNS.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;space-saving-word2vec&#34;&gt;Space-Saving word2vec&lt;/h3&gt;
-
-&lt;p&gt;In &lt;a href=&#34;https://arxiv.org/pdf/1704.07463.pdf&#34; target=&#34;_blank&#34;&gt;this paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; from researchers at Johns Hopkins, the following solutions were proposed for the two problems mentioned above.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Space-saving algorithm for dynamic vocabulary building.&lt;/li&gt;
-&lt;li&gt;Reservoir sampling for adaptive unigram distribution.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;strong&gt;Space-saving algorithm:&lt;/strong&gt; It is a popular method to estimate the top-$k$ most frequent items in a streaming data.&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;We declare a structure V containing $k$ pairs of word and their counts, and initialize it to empty pairs.&lt;/li&gt;
-&lt;li&gt;As word $w$ arrives, if $w \in V$, we increment its count.&lt;/li&gt;
-&lt;li&gt;Otherwise, if $V$ has space, we append the pair $(w,1)$ to $V$.&lt;/li&gt;
-&lt;li&gt;If not, the word with the lowest count is replaced by $w$.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;At any instant, the words in the structure V denote the dynamic vocabulary of the corpus.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Reservoir sampling:&lt;/strong&gt; Reservoir sampling is a family of randomized algorithms for randomly choosing a sample of $k$ items from a list S containing $n$ items, where $n$ is either a very large or unknown number. (Wikipedia)&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Similar to the SS algorithm, we declare a structure (called the reservoir) of $k$ empty elements (not pairs this time). In addition, we initialize a counter $c$ to 0.&lt;/li&gt;
-&lt;li&gt;The first $k$ elements in the stream are filled into the reservoir. $c$ is incremented at every occurence.&lt;/li&gt;
-&lt;li&gt;For the remaining items, we draw $j$ from $1,\ldots,c$ randomly. If $j &amp;lt; k$, the $j^{\text{th}}$ element of the reservoir is replaced with the new element.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;At any instant, the samples present in the reservoir provide an approximate distribution of items in the entire data stream.&lt;/p&gt;
-
-&lt;p&gt;While the algorithm itslelf is conceptually simple, the authors have mentioned several implementation choices which are important for training SGNS online. I list them here with some observations:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;When a word is ejected from a bin in the dynamic vocabulary, its embeddings are re-initialized. As such, every bin has its own learning rate which is reset when the word in the bin is changed.&lt;/li&gt;
-&lt;li&gt;During sentence subsampling, all words not in $W$ are retained. Those in $W$ are retained with a probability which is inversely proportional to the square root of its count in the dictionary.&lt;/li&gt;
-&lt;li&gt;Probably the most important deviation from the SGNS algorithm is that the reservoir sampling essentially generates an empirical distribution from which to sample negative context words. In contrast, in the original SGNS algorithm, a &lt;em&gt;smoothed&lt;/em&gt; empirical distribution is used. The authors have themselves allowed that “ smoothing the negative sampling distribution was (sic) shown to increase word embedding quality consistently.”&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;incremental-sgns&#34;&gt;Incremental SGNS&lt;/h3&gt;
-
-&lt;p&gt;This &lt;a href=&#34;http://aclweb.org/anthology/D17-1037&#34; target=&#34;_blank&#34;&gt;EMNLP’17 paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; from researchers at Yahoo Japan proposes the following alternative solutions for the aforementioned problems.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Misra-Gries algorithm for dynamic vocabulary building.&lt;/li&gt;
-&lt;li&gt;A modified reservoir sampling algorithm for adaptive unigram table.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;strong&gt;Misra-Gries algorithm:&lt;/strong&gt; This was developed long before the space-saving algorithm (1982) and was the go-to technique for top-$k$ most frequent itemset estimation in streaming data, before the space-saving algorithm was developed. The method is very similar to SS except for one difference:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;When word $w$ is not in $V$ and there is no space to append, every element in $V$ is decremented until some element becomes 0, at which point it is replaced by the new word.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;strong&gt;Modified reservoir sampling:&lt;/strong&gt; Here is the pseudocode from the paper.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/15/reservoir.png&#34; alt=&#34;Modified reservoir sampling. Image taken from original paper&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;This algorithm differs from the conventional Reservoir Sampling in two important ways:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;The counts used here are &lt;em&gt;smoothed&lt;/em&gt; (see line 4 to 6). This has been shown to be important for word vector quality, as discussed above.&lt;/li&gt;
-&lt;li&gt;If the reservoir does not have enough space, we iterate over all existing words and replace them with some probability (which is proportional to the smoothed count of $w$). Contrast this with the earlier technique, where a $j$ was randomly sampled and word at that index was replaced. (&lt;strong&gt;Disclaimer&lt;/strong&gt;: &lt;em&gt;I am not sure how exactly this modification helps in learning. If I am allowed to venture a guess, I would say that it is a “soft” equivalent of the hard replacement in the original algorithm. This probably helps in the theoretical analysis of the algorithm.&lt;/em&gt;)&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;In addition, the authors have also provided theoretical justification for their algorithm and proved the following theorem: &lt;em&gt;The loss in case of incremental SGNS converges in probability to that of batch SGNS.&lt;/em&gt;&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;In summary, SGNS is probably the easiest batch word embedding algorithm to “streamify” because of its inherent window-based nature. The constraints of vocabulary and counts are addressed with approximation algorithms. I can think of several possible directions in which this work can be continued.&lt;/p&gt;
-
-&lt;p&gt;First, there are several algorithms for estimating the top-$k$ most frequent items in a data stream. These are divided into count-based and sketch-based methods. The SS algorithm is probably the most efficient count-based technique, but it may be useful to look at other methods to see if they provide some edge. (Although I’m pretty sure the JHU researchers would have been thorough in their
-selection of the algorithm.)&lt;/p&gt;
-
-&lt;p&gt;Second, GloVe and SVD are yet to be addressed. In case of GloVe in particular, the problem would be to construct the co-occurence matrix in a online fashion. There should be some related work in statistics which can be leveraged for this, but I haven’t conducted much literature survey in this direction.&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:1&#34;&gt;May, Chandler, Kevin Duh, Benjamin Van Durme, and Ashwin Lall. &amp;ldquo;&lt;em&gt;Streaming word embeddings with the space-saving algorithm.&lt;/em&gt;&amp;rdquo; arXiv preprint arXiv:1704.07463 (2017).
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:2&#34;&gt;Kaji, Nobuhiro, and Hayato Kobayashi. &amp;ldquo;&lt;em&gt;Incremental skip-gram model with negative sampling.&lt;/em&gt;&amp;rdquo; arXiv preprint arXiv:1704.03956 (2017).*
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;
 </description>
