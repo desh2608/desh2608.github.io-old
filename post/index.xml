@@ -13,13 +13,12 @@
     
     
     <item>
-      <title>What do speech datasets sounds like?</title>
+      <title>What do speech datasets sound like?</title>
       <link>https://desh2608.github.io/post/asr-data/</link>
       <pubDate>Thu, 11 Apr 2019 20:10:35 -0400</pubDate>
       
       <guid>https://desh2608.github.io/post/asr-data/</guid>
-      <description>RM: SHOW THE GRIDLEY+S TRACK IN BRIGHT ORANGE WITH HORNE+S IN DIM RED
-Your browser does not support the audio element.  </description>
+      <description>Since I started working on speech recognition, I have only ever evaluated results using Word Error Rate (WER) metrics. Often, when some method performed differently on different datasets, senior researchers in my lab have told me it is &amp;ldquo;too noisy&amp;rdquo;, or has &amp;ldquo;different channel characteristics&amp;rdquo;. I have learnt about read speech and conversational speech, and how an ASR system needs to be robust to several variations in the utterance.</description>
     </item>
     
     <item>
