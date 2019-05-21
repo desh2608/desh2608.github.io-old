@@ -11,6 +11,109 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>On lattice free MMI and Chain models in Kaldi</title>
+      <link>https://desh2608.github.io/post/chain/</link>
+      <pubDate>Tue, 21 May 2019 11:49:12 -0400</pubDate>
+      
+      <guid>https://desh2608.github.io/post/chain/</guid>
+      <description>
+
+&lt;p&gt;Recently, I came across &lt;a href=&#34;https://arxiv.org/pdf/1811.03700.pdf&#34; target=&#34;_blank&#34;&gt;this paper&lt;/a&gt; which compares several sequence discriminative training criteria based on the popular lattice-free MMI (LF-MMI) objective, and concludes that &amp;ldquo;boosted&amp;rdquo; LF-MMI outperforms others consistently. Since I couldn&amp;rsquo;t find the code publicly available, I set out to implement it myself in &lt;a href=&#34;http://kaldi-asr.org/&#34; target=&#34;_blank&#34;&gt;Kaldi&lt;/a&gt;. The idea was that even if the claim turned out to be false, this would give me a hands-on experience with C++ level implementations in Kaldi.&lt;/p&gt;
+
+&lt;p&gt;On first look, the implementation seems trivial if you already have a LF-MMI (also called the &amp;ldquo;chain&amp;rdquo; model in Kaldi) implementation available. However, there are several tricks used in Kaldi which are worth pointing out. In this article, I start with giving an overview of LF-MMI and its implementation in the chain models, and then talk about how I implemented boosted LF-MMI. The majority of the theory here is based on &lt;a href=&#34;https://www.danielpovey.com/files/2016_interspeech_mmi.pdf&#34; target=&#34;_blank&#34;&gt;this paper which introduced LF-MMI&lt;/a&gt; and &lt;a href=&#34;http://kaldi-asr.org/doc/chain.html&#34; target=&#34;_blank&#34;&gt;this doc on chain model&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;mmi-a-background&#34;&gt;MMI &amp;ndash; a background&lt;/h3&gt;
+
+&lt;p&gt;Maximum mutual information, or MMI, is a sequence discriminative training criteria popular in ASR. &amp;ldquo;Sequence&amp;rdquo; means that the objective takes into account the utterance as a whole instead of &amp;ldquo;frame-level&amp;rdquo; objectives like cross-entropy. &amp;ldquo;Discriminative&amp;rdquo; loosely means using an objective function which supposedly optimizes some criteria associated with the task, and then minimizing that objective directly using gradient-based methods. Discriminative training for LVCSR was made popular in &lt;a href=&#34;https://www.danielpovey.com/files/phd_2003.pdf&#34; target=&#34;_blank&#34;&gt;Dan Povey&amp;rsquo;s thesis&lt;/a&gt;. Formally, the MMI objective for ASR is written as&lt;/p&gt;
+
+&lt;p&gt;$$ F_{MMI}(\lambda) = \sum_{r=1}^R \log \frac{P_{\lambda}(O_r|M_{w_r})P(w_r)}{\sum_{\hat{w}}P_{\lambda}(O_r|M_{\hat{w}})P(\hat{w})}, $$&lt;/p&gt;
+
+&lt;p&gt;where $M_w$ is the HMM corresponding to the transcription $w$. As you can see, the objective function considers the log-probability of the whole utterance in the numerator, and normalizes it by dividing with the log-probability of all possible utterances in the denominator.&lt;/p&gt;
+
+&lt;p&gt;However, computing the sum in the denominator means summing over an exponentially large number of word sequences, which is not practically feasible. To remedy this, we approximate the sum with either of two methods:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;N-best list&lt;/strong&gt;: This is computed once and used for all utterances. However, this approximation is less used since it is too crude.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Lattice structure&lt;/strong&gt;: This may be word/phone based. A path through the lattice represents a possible word/phone sequence. One limitation with using a lattice is that it requires initialization with a trained model, and usually cross-entropy trained systems are used for this purpose. The older &lt;a href=&#34;https://kaldi-asr.org/doc/dnn.html&#34; target=&#34;_blank&#34;&gt;nnet&lt;/a&gt; setups in Kaldi used this approach.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;With the advent of end-to-end models, such a requirement of a trained system to initialize the lattice comes across as a major drawback of lattice-based MMI. How can we avoid using a lattice?&lt;/p&gt;
+
+&lt;h3 id=&#34;lattice-free-mmi&#34;&gt;Lattice-free MMI&lt;/h3&gt;
+
+&lt;p&gt;First proposed in &lt;a href=&#34;https://www.danielpovey.com/files/2016_interspeech_mmi.pdf&#34; target=&#34;_blank&#34;&gt;this paper from Dan Povey&lt;/a&gt;, lattice-free MMI is &amp;ldquo;purely sequence trained&amp;rdquo; in the sense that no cross-entropy training is required to initialize, since it does not use a lattice. So how does it approximate the sum in the denominator? Simply put, it does not &amp;ldquo;approximate&amp;rdquo; it &amp;mdash; it computes this sum exactly.&lt;/p&gt;
+
+&lt;p&gt;The key idea is that if we represent the denominator as a graph and somehow manage to fit this graph in the GPU, then computation can be performed efficiently. In the manner that it is formalized, the denominator graph cannot be fit into the GPU. To fix this, two major modifications are applied:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;A phone LM is used instead of a word LM. The number of possible phones is much smaller than the number of possible words, which makes the size of graph for phone LM significantly smaller.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;DNN outputs are computed at one-third the standard frame rate, which means that we now have 3 times fewer outputs to compute for any utterance. This is achieved by setting the frame shift to 30 ms instead of the traditional 10 ms.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;This reduced frame rate also means that now we cannot use the standard 3-state left-to-right HMM topology that is common in ASR, since we want to traverse the entire HMM in a single frame. Instead, we use an HMM which can emit symbols in the set &lt;code&gt;ab*&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;To train such a system according to the MMI objective, we need a way to efficiently compute the objective itself and its derivative. In Kaldi, the numerator and denominator are represented as FSTs (corresponding to the HMMs) and the overall objective function is simply the difference of these in log-space. As such, we need a way to efficiently represent these FSTs and perform forward-backward on them.&lt;/p&gt;
+
+&lt;h3 id=&#34;the-denominator-and-numerator-fsts&#34;&gt;The denominator and numerator FSTs&lt;/h3&gt;
+
+&lt;p&gt;Let us start with the denominator FST since it is much more expensive. The process of creating the denominator FST is very similar to the &lt;a href=&#34;http://kaldi-asr.org/doc/graph_recipe_test.html&#34; target=&#34;_blank&#34;&gt;decoding graph creation&lt;/a&gt;. The key idea, as in traditional ASR using WFSTs (see &lt;a href=&#34;https://cs.nyu.edu/~mohri/pub/hbka.pdf&#34; target=&#34;_blank&#34;&gt;Mohri&amp;rsquo;s well-known paper&lt;/a&gt;), is to have separate FSTs for &lt;code&gt;H&lt;/code&gt; (HMM state graph), &lt;code&gt;C&lt;/code&gt; (context-dependency), &lt;code&gt;L&lt;/code&gt; (the lexicon), and &lt;code&gt;G&lt;/code&gt; (the language model), and use WFST composition algorithms to get the final graph, with the exception that since we are using phones instead of words, we don&amp;rsquo;t need the &lt;code&gt;L&lt;/code&gt; graph. So our final graph is actually an &lt;code&gt;HCP&lt;/code&gt; instead of an &lt;code&gt;HCLG&lt;/code&gt;, where &lt;code&gt;P&lt;/code&gt; denotes the phone LM.&lt;/p&gt;
+
+&lt;p&gt;At this point, I would like to point out some Kaldi specifics. The phone LM &lt;code&gt;P&lt;/code&gt; is created in stage &lt;code&gt;-6&lt;/code&gt; by calling the function &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/egs/wsj/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py#L25&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;create_phone_lm()&lt;/code&gt;&lt;/a&gt;. The denominator FST is created in the stage &lt;code&gt;-5&lt;/code&gt; within the &lt;code&gt;train.py&lt;/code&gt; script, which internally makes a &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/egs/wsj/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py#L53&#34; target=&#34;_blank&#34;&gt;call to the binary &lt;code&gt;chain-make-den-fst&lt;/code&gt;&lt;/a&gt;. The denominator graph is specificied in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-den-graph.cc&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;chain-den-graph.cc&lt;/code&gt;&lt;/a&gt;. It uses the files &lt;code&gt;$dir/tree&lt;/code&gt; (the tree) and &lt;code&gt;$dir/0.trans_mdl&lt;/code&gt; (the transition model), which correspond to the &lt;code&gt;C&lt;/code&gt; and &lt;code&gt;H&lt;/code&gt; components, and the phone LM that was created in the previous stage.&lt;/p&gt;
+
+&lt;p&gt;The phone LM &lt;code&gt;P&lt;/code&gt; is constructed so that the overall size of the graph is minimized. It is a 4-gram with no backoff lower than 3-gram so that triphones not seen in training cannot be generated. The number of states is limited by completely removing low-count 4-gram states.&lt;/p&gt;
+
+&lt;p&gt;Once we have the composed graph &lt;code&gt;HCP&lt;/code&gt;, a different kind of minimization technique is used, which consists of performing the following operations thrice in a row.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;Push&lt;/em&gt; the weights&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Minimize&lt;/em&gt; the graph&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Reverse&lt;/em&gt; the arcs and swap initial and final states.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Another trick used to reduce the size of the denominator FST for training on the GPU is to train on chunks of 1-1.5 seconds, instead of the entire utterance. However, to do this, we would also need to break up the transcript, and 1-second chunks may not coincide with word boundaries. How do we solve this?&lt;/p&gt;
+
+&lt;p&gt;Recall that the numerator FST is defined to be utterance-specific, and encodes alternative pronunciations of the transcript of the original utterance. This lattice is turned into an FST that constrains at what time the phones can appear, with an error window of 0.05s from their position in the lattice. This is then processed into an FST whose labels are pdf-ids (neural net outputs). We extract fixed size chunks from this FST for training chunks in the denominator FST.&lt;/p&gt;
+
+&lt;p&gt;Another issue associated with chunk-level FSTs is that the initial probabilities are now different. We approximate this by running the HMM for a few iterations and then averaging the probabilities to use as the initial probability of any state. This is a crude approximation but it seems to work. We then call this the &lt;strong&gt;normalization FST&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;The numerator FST is much easier since it just contains the lattice for one utterance, broken into chunks of fixed length. The only point worth mentioning here (and this will be important when we talk about boosted LF-MMI later) is that the numerator FST is composed with the normalization FST. This is done for two reasons.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;It ensures that the objective function value is always negative, which makes it easier to interpret.&lt;/li&gt;
+&lt;li&gt;It also ensures that the numerator FST does not contain sequences that are not allowed by the denominator (or normalization) FST. This happens since the sum of the overall path weights for such sequences will be dominated by the normalization FST part.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;forward-backward-computations&#34;&gt;Forward-backward computations&lt;/h3&gt;
+
+&lt;p&gt;Again, since the numerator FST is much smaller, its forward and backward computations are performed on CPU (the process is outlined in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-numerator.h&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;chain-numerator.h&lt;/code&gt;&lt;/a&gt;), while those for the denominator FST (outlined in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-denominator.h&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;chain-denominator.h&lt;/code&gt;&lt;/a&gt;) are performed on the GPU.&lt;/p&gt;
+
+&lt;p&gt;The basic forward and backward algorithm are the same as well known in literature, and a pseudocode is also given in the extended comments in &lt;code&gt;chain-denominator.h&lt;/code&gt;. However, this algorithm is susceptible to numeric overflow and underflow. To avoid this, we multiply the emission probability of the frame with a normalizing factor $\frac{1}{alpha(t)}$ where $alpha(t) = \sum_{i} \alpha_i (t)$. This is also called an &amp;ldquo;arbitrary scale&amp;rdquo; since in principle it can be allowed to be any value and doesn&amp;rsquo;t affect the posterior. However, we do need to add a quantity $\sum_{t=0}^{T-1} \log alpha(t)$ to the final log probability obtained to make it equal to the actual log probability. This &amp;ldquo;arbitrary scaling&amp;rdquo; is used in both the forward and backward computations.&lt;/p&gt;
+
+&lt;p&gt;The actual objective function computation is implemented in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/src/chain/chain-training.cc#L205&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;ComputeChainObjfAndDeriv()&lt;/code&gt;&lt;/a&gt; defined in &lt;code&gt;chain-training.cc&lt;/code&gt;. There are two Kaldi-specific things I must point out here.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;The forward-backward computation for the denominator FST in the GPU is not done in the log domain, since computing log several times makes things slower. However, this also means that the objective function values can occasionally become &amp;ldquo;bad&amp;rdquo;. To fix this, the &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/src/chain/chain-training.cc#L49&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;PenalizeOutOfRange()&lt;/code&gt;&lt;/a&gt; function is used to encourage the objective to be within the [-30,30] range.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;The denominator computation is performed before the numerator, so as to reduce the maximum memory usage. I am not sure how this is, but it is important to remember this detail as we move to the implementation of boosted LF-MMI.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;implementing-boosted-lf-mmi&#34;&gt;Implementing boosted LF-MMI&lt;/h3&gt;
+
+&lt;p&gt;First, what is boosted LF-MMI? It is the same as LF-MMI, except that now we optimize the following objective function.&lt;/p&gt;
+
+&lt;p&gt;$$ F_{bMMI}(\lambda) = \sum_{r=1}^R \log \frac{P_{\lambda}(O_r|M_{W_r})P(W_r)}{\sum_{\hat{w}}P_{\lambda}(O_r|M_{\hat{w}})P(\hat{w})e^{-bA(M_{w_r},M_{\hat{w}})}}, $$&lt;/p&gt;
+
+&lt;p&gt;where $b$ is the boosting factor and $A(M_{w_r},M_{\hat{w}})$ is the accuracy function which measures the number of matching labels between the reference and hypothesis sequences. My Kaldi implementation for LF-bMMI can be found in &lt;a href=&#34;https://github.com/desh2608/kaldi/tree/bmmi&#34; target=&#34;_blank&#34;&gt;this branch&lt;/a&gt;. You may note that most of the changes are cosmetic and only serve to pass the new argument $b$ from the training script to the actual implementation, which is in the function &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/2e46097b7e4fcd1a07a7e9c1df6f1aaa062fbc33/src/chain/chain-training.cc#L319&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;ComputeBoostedChainObjfAndDeriv()&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In our implementation, the only change is that in the &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/2e46097b7e4fcd1a07a7e9c1df6f1aaa062fbc33/src/chain/chain-training.cc#L369&#34; target=&#34;_blank&#34;&gt;computation for &lt;code&gt;num_logprob_weighted&lt;/code&gt;&lt;/a&gt;, we subtract from &lt;code&gt;numerator.forward()&lt;/code&gt; by a term &lt;code&gt;b * num_seq * frames_per_seq&lt;/code&gt;. This might seem weird at first, since in the expression of the objective function, we actually subtract the denominator by this term. However, recall that the numerator FST is composed with the normalization FST, so that this modification will result in the same result as the objective function above.&lt;/p&gt;
+
+&lt;p&gt;On trying out LF-bMMI for mini-Librispeech, I found it to be slightly worse than regular LF-MMI (11.86 vs 11.74 WER), and consultation with &lt;a href=&#34;http://vimalmanohar.github.io/&#34; target=&#34;_blank&#34;&gt;Vimal Manohar&lt;/a&gt; revealed that he had tried LF-bMMI and LF-SMBR along with &lt;a href=&#34;https://hhadian.github.io/&#34; target=&#34;_blank&#34;&gt;Hossein Hadian&lt;/a&gt; last year to similar results.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
       <title>What do speech datasets sound like?</title>
       <link>https://desh2608.github.io/post/asr-data/</link>
       <pubDate>Thu, 11 Apr 2019 20:10:35 -0400</pubDate>
@@ -2224,97 +2327,6 @@ print(args.accumulate(args.integers))
 &lt;li id=&#34;fn:2&#34;&gt;Mohri, Mehryar, Fernando Pereira, and Michael Riley. &amp;ldquo;Weighted finite-state transducers in speech recognition.&amp;rdquo; Computer Speech &amp;amp; Language 16.1 (2002): 69–88.
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;li id=&#34;fn:3&#34;&gt;&lt;a href=&#34;https://wiki.eecs.yorku.ca/course_archive/2011-12/W/6328/_media/wfst-tutorial.pdf&#34; target=&#34;_blank&#34;&gt;Lecture slides&lt;/a&gt; from Prof. Hui Jiang (York University)
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>How to Obtain Sentence Vectors</title>
-      <link>https://desh2608.github.io/post/how-to-obtain-sentence-vectors/</link>
-      <pubDate>Thu, 12 Apr 2018 13:41:14 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/how-to-obtain-sentence-vectors/</guid>
-      <description>
-
-&lt;p&gt;In several of my previous posts, I have discussed methods for obtaining word embeddings, such as SVD, word2vec, or GloVe. In this post, I will abstract a level higher and talk about 4 different methods that have been proposed to get embeddings for sentences.&lt;/p&gt;
-
-&lt;p&gt;But first, some of you may ask why do we even need a different method for obtaining sentence vectors. Since sentences are essentially made up of words, it may be reasonable to argue that simply taking the sum or the average of the constituent word vectors should give a decent sentence representation. This is akin to a bag-of-words representation, and hence suffers from the same limitations, i.e.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;It ignores the order of words in the sentence.&lt;/li&gt;
-&lt;li&gt;It ignores the sentence semantics completely.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Other word vector based approaches are also similarly constrained. For instance, a weighted average technique again loses word order within the sentence. To remedy this issue, &lt;a href=&#34;https://nlp.stanford.edu/~socherr/EMNLP2013_RNTN.pdf&#34; target=&#34;_blank&#34;&gt;Socher et al.&lt;/a&gt; combined the words in the order given by the parse tree of the sentence. While this technique may be suitable for complete sentences, it does not work for phrases or paragraphs.&lt;/p&gt;
-
-&lt;p&gt;In an earlier &lt;a href=&#34;https://desh2608.github.io/post/last-3-years-in-text-classification/&#34; target=&#34;_blank&#34;&gt;post&lt;/a&gt;, I discussed several ways in which sentence representations are obtained as an intermediate step during text classification. Several approaches are used for this purpose, such as character to sentence level feature encoding, parse trees, regional (two-view) embeddings, and so on. However, the limitation with such an &amp;ldquo;intermediate&amp;rdquo; representation is that the vectors obtained are not generic in that they are closely tied to the classification objective. As such, vectors obtained through training on one objective may not be extrapolated for other tasks.&lt;/p&gt;
-
-&lt;p&gt;In light of this discussion, I will now describe 4 recent methods that have been proposed to obtain general sentence vectors. Note that each of these belongs to either of 2 categories: (i) inter-sentence, wherein the vector of one sentence depends on its surrounding sentences, and (ii) intra-sentence, where a sentence vector only depends on that particular sentence in isolation.&lt;/p&gt;
-
-&lt;h4 id=&#34;paragraph-vectors&#34;&gt;Paragraph Vectors&lt;/h4&gt;
-
-&lt;p&gt;In this &lt;a href=&#34;http://www.jmlr.org/proceedings/papers/v32/le14.pdf&#34; target=&#34;_blank&#34;&gt;ICML’14 paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; from Mikolov (who also invented &lt;em&gt;word2vec&lt;/em&gt;), the authors propose the following solution: a sentence vector can be learned simply by assigning an index to each sentence, and then treating the index like any other word. This is shown in the following figure.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/16/doc2vec.png&#34; alt=&#34;Paragraph vectors model. Figure taken from paper&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Essentially, every paragraph (or sentence) is mapped to a unique vector, and the combined paragraph and word vectors are used to predict the next word. Through such a training, the paragraph vectors may start storing missing information, thus acting like a memory for the paragraph. For this reason, this method is called the Distributed Memory model (PV-DM).&lt;/p&gt;
-
-&lt;p&gt;To obtain the embeddings for an unknown sentence, an inference step needs to be performed. A new column of randomly initialized values is added to the sentence embedding matrix. The inference step is performed keeping all the other parameters fixed to obtain the required vector.&lt;/p&gt;
-
-&lt;p&gt;The PV-DM model requires a large amount of storage space since the paragraph vectors are concatenated with all the vectors in the context window at every training step. To solve this, the authors propose another model, called the Distributed BOW (PV-DBOW), which predicts random words in the context window. The downside is that this model does not use word order, and hence performs worse than PV-DM.&lt;/p&gt;
-
-&lt;h4 id=&#34;skip-thoughts&#34;&gt;Skip-thoughts&lt;/h4&gt;
-
-&lt;p&gt;While PV was an intra-sentence model, &lt;a href=&#34;https://papers.nips.cc/paper/5950-skip-thought-vectors.pdf&#34; target=&#34;_blank&#34;&gt;skip-thoughts&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; is inter-sentence. The method uses continuity of text to predict the next sentence from the given sentence. This also solves the problem of the inference step that is present in the PV model. If you have read about the skip-gram algorithm in word2vec, skip-thoughts is essentially the same technique abstracted to the sentence level.&lt;/p&gt;
-
-&lt;p&gt;In the paper, the authors propose an encoder-decoder framework for training, with an RNN used for both encoding and decoding. In addition to a sentence embedding matrix, this method also generates vectors for the words in the corpus vocabulary. Finally, the objective function to be maximized is as follows.&lt;/p&gt;
-
-&lt;p&gt;$$ \sum_t \log P(w_{i+1}^t|w_{i+1}^{&amp;lt; t},\mathbf{h}_i) + \sum_t \log P(w_{i-1}^t|w_{i-1}^{&amp;lt; t},\mathbf{h}_i) $$&lt;/p&gt;
-
-&lt;p&gt;Here, the indices $i+1$ and $i-1$ represent the next sentence and the previous sentence, respectively. Overall, the function represents the sum of log probabilities of correctly predicting the next sentence and the previous sentence, given the current sentence.&lt;/p&gt;
-
-&lt;p&gt;Since word vectors are also precited at training time, a problem may arise at the time of inference if the new sentence contains an OOV word. To solve this, the authors present a simple solution for vocabulary expansion. We assume that any word, even if it is OOV, will definitely come from some vector space (say w2v), such that we have its vector representation in that space. As such, every known word has 2 representations, one in the RNN space and another in the w2v space. We can then identify a linear transformation matrix that transforms w2v space vectors into RNN space vectors, and this matrix may be used to obtain the RNN vectors for OOV words.&lt;/p&gt;
-
-&lt;h4 id=&#34;fastsent&#34;&gt;FastSent&lt;/h4&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1602.03483.pdf&#34; target=&#34;_blank&#34;&gt;This model&lt;/a&gt;, proposed by Kyunghun Cho&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;, is also an inter-sentence technique, and is conceptually very similar to skip-thoughts. The only difference is that it uses a BOW representation of the sentence to predict the surrounding sentences, which makes it computationally much more efficient than skip-thoughts. The training hypothesis remains the same, i.e., rich sentence semantics can be inferred from the content of adjacent sentences. Since the details of the method are same as skip-thoughts, I will not repeat them here to avoid redundancy.&lt;/p&gt;
-
-&lt;h4 id=&#34;sequential-denoising-autoencoders-sdae&#34;&gt;Sequential Denoising Autoencoders (SDAE)&lt;/h4&gt;
-
-&lt;p&gt;This technique was also proposed in the &lt;a href=&#34;https://arxiv.org/pdf/1602.03483.pdf&#34; target=&#34;_blank&#34;&gt;same paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; as FastSent. However, it is essentially an intra-sentence method wherein the objective is to regenerate a sentence from a noisy version.&lt;/p&gt;
-
-&lt;p&gt;In essence, in an SDAE, a high-dimensional input data is corrupted according to some noise function and the model is trained to recover the original data from the corrputed version.&lt;/p&gt;
-
-&lt;p&gt;In the paper, the noise function $N$ uses 2 parameters as follows.&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;For each word $w$ in the sentence $S$, $N$ deletes it according to some probability $p_0$.&lt;/li&gt;
-&lt;li&gt;For each non-overlapping bigram in $S$, $N$ swaps the bigram tokens with probability $p_x$.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;These are inspired from the “word dropout” and “debagging” approaches, respectively, which have earlier been studied in some detail.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;In the last paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;, the authors have performed detailed empirical evaluations of several sentence vector methods, including all of the above. From this analysis, the following observations can be drawn,&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;Task-dependency:&lt;/strong&gt; Although the methods intend to produce general sentence representations which work well across different tasks, it is found that some methods are more suitable from some tasks due to the inherent algorithm. For instance, skip-thoughts perform well on textual entailment tasks, whereas SDAEs perform much better on paraphrase detection.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Inter vs. intra:&lt;/strong&gt; The inter-sentence models generate similar vectors in that their nearest neighbors are those sentences which have shared concepts. In contrast, for the intra-sentence models, these are sentences which have more overlapping words.&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Dependency on word order:&lt;/strong&gt; Although the widely held view is that word order is critical for sentence vectors, the average score for models which are sensitive to word order was found to be almost equal to those which are not. It was even lower for RNN models in unsupervised objectives, which is indeed surprising. One explanation for this may be that the sentences in the dataset, or the evaluation techniques, are not robust enough so as to sufficiently challenge simple word frequency based techniques.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:1&#34;&gt;Le, Quoc, and Tomas Mikolov. “Distributed representations of sentences and documents.” International Conference on Machine Learning. 2014.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:2&#34;&gt;Kiros, Ryan, et al. “Skip-thought vectors.” Advances in neural information processing systems. 2015.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:3&#34;&gt;Hill, Felix, Kyunghyun Cho, and Anna Korhonen. “Learning distributed representations of sentences from unlabelled data.” arXiv preprint arXiv:1602.03483 (2016).
  &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/div&gt;

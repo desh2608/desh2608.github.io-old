@@ -5,6 +5,15 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/post/chain/</loc>
+      <lastmod>2019-05-21T11:49:12-04:00</lastmod>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/post/asr-data/</loc>
       <lastmod>2019-04-11T20:10:35-04:00</lastmod>
     </url>
@@ -374,6 +383,16 @@
     
     <url>
     
+      <loc>https://desh2608.github.io/tags/chain/</loc>
+      <lastmod>2019-05-21T11:49:12-04:00</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
       <loc>https://desh2608.github.io/tags/deep-learning/</loc>
       <lastmod>2018-07-31T18:45:15+05:30</lastmod>
       <priority>0</priority>
@@ -406,6 +425,16 @@
     
       <loc>https://desh2608.github.io/tags/fuzzy/</loc>
       <lastmod>2018-01-15T15:02:35+05:30</lastmod>
+      <priority>0</priority>
+    </url>
+    
+  
+    
+    
+    <url>
+    
+      <loc>https://desh2608.github.io/tags/kaldi/</loc>
+      <lastmod>2019-03-27T12:05:41-04:00</lastmod>
       <priority>0</priority>
     </url>
     
@@ -595,7 +624,7 @@
     <url>
     
       <loc>https://desh2608.github.io/tags/</loc>
-      <lastmod>2018-07-31T18:45:15+05:30</lastmod>
+      <lastmod>2019-05-21T11:49:12-04:00</lastmod>
       <priority>0</priority>
     </url>
     

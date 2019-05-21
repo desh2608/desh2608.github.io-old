@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme" content="hugo-academic">
+  <meta name="generator" content="Hugo 0.41" />
+  <meta name="author" content="Desh Raj">
+
+  
+  
+  
+  
+    
+      
+    
+  
+  <meta name="description" content="Recently, I came across this paper which compares several sequence discriminative training criteria based on the popular lattice-free MMI (LF-MMI) objective, and concludes that &ldquo;boosted&rdquo; LF-MMI outperforms others consistently. Since I couldn&rsquo;t find the code publicly available, I set out to implement it myself in Kaldi. The idea was that even if the claim turned out to be false, this would give me a hands-on experience with C&#43;&#43; level implementations in Kaldi.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/chain/">
+
+  
+
+
+  
+
+  
+  
+  <meta name="theme-color" content="#0095eb">
+  
+  
+  
+  
+    
+  
+  
+    
+    
+      
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+      
+    
+  
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha512-6MXa8B6uaO18Hid6blRMetEIoPqHf7Ux1tnyIQdpt9qI5OACx7C+O3IVTr98vwGnlcg0LOLa02i9Y1HpVhlfiw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.8.6/css/academicons.min.css" integrity="sha256-uFVgMKfistnJAfoCUQigIl+JfUaP47GrRKjf6CTPVmw=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha512-SfTiTlX6kk+qitfevl/7LibUOeJWlt9rbyDn92a1DqWOw9vWG2MFoays0sgObmWazO5BQPiFucnnEAjpAB+/Sw==" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" integrity="sha256-ygkqlh3CYSUri3LhQxzdcm0n1EQvH2Y+U5S2idbLtxs=" crossorigin="anonymous">
+  
+  
+  
+  
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Montserrat:400,700%7cRoboto:400,400italic,700%7cRoboto&#43;Mono">
+  
+  <link rel="stylesheet" href="/styles.css">
+  
+
+  
+    <script>
+      window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+      ga('create', 'UA-121781547-1', 'auto');
+      
+      ga('require', 'eventTracker');
+      ga('require', 'outboundLinkTracker');
+      ga('require', 'urlChangeTracker');
+      ga('send', 'pageview');
+    </script>
+    <script async src="//www.google-analytics.com/analytics.js"></script>
+    
+    <script async src="https://cdnjs.cloudflare.com/ajax/libs/autotrack/2.4.1/autotrack.js" integrity="sha512-HUmooslVKj4m6OBu0OgzjXXr+QuFYy/k7eLI5jdeEy/F4RSgMn6XRWRGkFi5IFaFgy7uFTkegp3Z0XnJf3Jq+g==" crossorigin="anonymous"></script>
+    
+  
+
+  
+  <link rel="alternate" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  <link rel="feed" href="https://desh2608.github.io/index.xml" type="application/rss+xml" title="Desh Raj">
+  
+
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="icon" type="image/png" href="/img/icon.png">
+  <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
+
+  <link rel="canonical" href="https://desh2608.github.io/post/chain/">
+
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@https://twitter.com/raj_desh26">
+  <meta property="twitter:creator" content="@https://twitter.com/raj_desh26">
+  
+  <meta property="og:site_name" content="Desh Raj">
+  <meta property="og:url" content="https://desh2608.github.io/post/chain/">
+  <meta property="og:title" content="On lattice free MMI and Chain models in Kaldi | Desh Raj">
+  <meta property="og:description" content="Recently, I came across this paper which compares several sequence discriminative training criteria based on the popular lattice-free MMI (LF-MMI) objective, and concludes that &ldquo;boosted&rdquo; LF-MMI outperforms others consistently. Since I couldn&rsquo;t find the code publicly available, I set out to implement it myself in Kaldi. The idea was that even if the claim turned out to be false, this would give me a hands-on experience with C&#43;&#43; level implementations in Kaldi.">
+  <meta property="og:locale" content="en-us">
+  
+  <meta property="article:published_time" content="2019-05-21T11:49:12-04:00">
+  
+  <meta property="article:modified_time" content="2019-05-21T11:49:12-04:00">
+  
+
+  
+  
+
+  <title>On lattice free MMI and Chain models in Kaldi | Desh Raj</title>
+
+</head>
+<body id="top" data-spy="scroll" data-target="#toc" data-offset="71" >
+
+<nav class="navbar navbar-default navbar-fixed-top" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="navbar-header">
+      
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+              data-target=".navbar-collapse" aria-expanded="false">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      
+      <a class="navbar-brand" href="/">Desh Raj</a>
+    </div>
+
+    
+    <div class="collapse navbar-collapse">
+
+      
+      
+      <ul class="nav navbar-nav navbar-right">
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#about">
+            
+            <span>Home</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#publications">
+            
+            <span>Publications</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#posts">
+            
+            <span>Posts</span>
+            
+          </a>
+        </li>
+
+        
+        
+
+        
+        
+        
+        
+        
+          
+        
+
+        <li class="nav-item">
+          <a href="/#contact">
+            
+            <span>Contact</span>
+            
+          </a>
+        </li>
+
+        
+        
+      
+
+      
+      </ul>
+
+    </div>
+  </div>
+</nav>
+
+
+<article class="article" itemscope itemtype="http://schema.org/Article">
+
+  
+
+
+  <div class="article-container">
+    <h1 itemprop="name">On lattice free MMI and Chain models in Kaldi</h1>
+
+    
+
+<div class="article-metadata">
+
+  <span class="article-date">
+    
+    <time datetime="2019-05-21 11:49:12 -0400 EDT" itemprop="datePublished dateModified">
+      May 21, 2019
+    </time>
+  </span>
+  <span itemscope itemprop="author publisher" itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Desh Raj">
+  </span>
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    9 min read
+  </span>
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <a href="https://desh2608.github.io/post/chain/#disqus_thread"></a>
+  
+
+  
+  
+  
+  
+
+  
+  
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    <li>
+      <a class="twitter"
+         href="https://twitter.com/intent/tweet?text=On%20lattice%20free%20MMI%20and%20Chain%20models%20in%20Kaldi&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fchain%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-twitter"></i>
+      </a>
+    </li>
+    <li>
+      <a class="facebook"
+         href="https://www.facebook.com/sharer.php?u=https%3a%2f%2fdesh2608.github.io%2fpost%2fchain%2f"
+         target="_blank" rel="noopener">
+        <i class="fa fa-facebook"></i>
+      </a>
+    </li>
+    <li>
+      <a class="linkedin"
+         href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fdesh2608.github.io%2fpost%2fchain%2f&amp;title=On%20lattice%20free%20MMI%20and%20Chain%20models%20in%20Kaldi"
+         target="_blank" rel="noopener">
+        <i class="fa fa-linkedin"></i>
+      </a>
+    </li>
+    <li>
+      <a class="weibo"
+         href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fdesh2608.github.io%2fpost%2fchain%2f&amp;title=On%20lattice%20free%20MMI%20and%20Chain%20models%20in%20Kaldi"
+         target="_blank" rel="noopener">
+        <i class="fa fa-weibo"></i>
+      </a>
+    </li>
+    <li>
+      <a class="email"
+         href="mailto:?subject=On%20lattice%20free%20MMI%20and%20Chain%20models%20in%20Kaldi&amp;body=https%3a%2f%2fdesh2608.github.io%2fpost%2fchain%2f">
+        <i class="fa fa-envelope"></i>
+      </a>
+    </li>
+  </ul>
+</div>
+
+
+  
+
+</div>
+
+
+    <div class="article-style" itemprop="articleBody">
+      
+
+<p>Recently, I came across <a href="https://arxiv.org/pdf/1811.03700.pdf" target="_blank">this paper</a> which compares several sequence discriminative training criteria based on the popular lattice-free MMI (LF-MMI) objective, and concludes that &ldquo;boosted&rdquo; LF-MMI outperforms others consistently. Since I couldn&rsquo;t find the code publicly available, I set out to implement it myself in <a href="http://kaldi-asr.org/" target="_blank">Kaldi</a>. The idea was that even if the claim turned out to be false, this would give me a hands-on experience with C++ level implementations in Kaldi.</p>
+
+<p>On first look, the implementation seems trivial if you already have a LF-MMI (also called the &ldquo;chain&rdquo; model in Kaldi) implementation available. However, there are several tricks used in Kaldi which are worth pointing out. In this article, I start with giving an overview of LF-MMI and its implementation in the chain models, and then talk about how I implemented boosted LF-MMI. The majority of the theory here is based on <a href="https://www.danielpovey.com/files/2016_interspeech_mmi.pdf" target="_blank">this paper which introduced LF-MMI</a> and <a href="http://kaldi-asr.org/doc/chain.html" target="_blank">this doc on chain model</a>.</p>
+
+<h3 id="mmi-a-background">MMI &ndash; a background</h3>
+
+<p>Maximum mutual information, or MMI, is a sequence discriminative training criteria popular in ASR. &ldquo;Sequence&rdquo; means that the objective takes into account the utterance as a whole instead of &ldquo;frame-level&rdquo; objectives like cross-entropy. &ldquo;Discriminative&rdquo; loosely means using an objective function which supposedly optimizes some criteria associated with the task, and then minimizing that objective directly using gradient-based methods. Discriminative training for LVCSR was made popular in <a href="https://www.danielpovey.com/files/phd_2003.pdf" target="_blank">Dan Povey&rsquo;s thesis</a>. Formally, the MMI objective for ASR is written as</p>
+
+<p>$$ F_{MMI}(\lambda) = \sum_{r=1}^R \log \frac{P_{\lambda}(O_r|M_{w_r})P(w_r)}{\sum_{\hat{w}}P_{\lambda}(O_r|M_{\hat{w}})P(\hat{w})}, $$</p>
+
+<p>where $M_w$ is the HMM corresponding to the transcription $w$. As you can see, the objective function considers the log-probability of the whole utterance in the numerator, and normalizes it by dividing with the log-probability of all possible utterances in the denominator.</p>
+
+<p>However, computing the sum in the denominator means summing over an exponentially large number of word sequences, which is not practically feasible. To remedy this, we approximate the sum with either of two methods:</p>
+
+<ol>
+<li><p><strong>N-best list</strong>: This is computed once and used for all utterances. However, this approximation is less used since it is too crude.</p></li>
+
+<li><p><strong>Lattice structure</strong>: This may be word/phone based. A path through the lattice represents a possible word/phone sequence. One limitation with using a lattice is that it requires initialization with a trained model, and usually cross-entropy trained systems are used for this purpose. The older <a href="https://kaldi-asr.org/doc/dnn.html" target="_blank">nnet</a> setups in Kaldi used this approach.</p></li>
+</ol>
+
+<p>With the advent of end-to-end models, such a requirement of a trained system to initialize the lattice comes across as a major drawback of lattice-based MMI. How can we avoid using a lattice?</p>
+
+<h3 id="lattice-free-mmi">Lattice-free MMI</h3>
+
+<p>First proposed in <a href="https://www.danielpovey.com/files/2016_interspeech_mmi.pdf" target="_blank">this paper from Dan Povey</a>, lattice-free MMI is &ldquo;purely sequence trained&rdquo; in the sense that no cross-entropy training is required to initialize, since it does not use a lattice. So how does it approximate the sum in the denominator? Simply put, it does not &ldquo;approximate&rdquo; it &mdash; it computes this sum exactly.</p>
+
+<p>The key idea is that if we represent the denominator as a graph and somehow manage to fit this graph in the GPU, then computation can be performed efficiently. In the manner that it is formalized, the denominator graph cannot be fit into the GPU. To fix this, two major modifications are applied:</p>
+
+<ol>
+<li><p>A phone LM is used instead of a word LM. The number of possible phones is much smaller than the number of possible words, which makes the size of graph for phone LM significantly smaller.</p></li>
+
+<li><p>DNN outputs are computed at one-third the standard frame rate, which means that we now have 3 times fewer outputs to compute for any utterance. This is achieved by setting the frame shift to 30 ms instead of the traditional 10 ms.</p></li>
+</ol>
+
+<p>This reduced frame rate also means that now we cannot use the standard 3-state left-to-right HMM topology that is common in ASR, since we want to traverse the entire HMM in a single frame. Instead, we use an HMM which can emit symbols in the set <code>ab*</code>.</p>
+
+<p>To train such a system according to the MMI objective, we need a way to efficiently compute the objective itself and its derivative. In Kaldi, the numerator and denominator are represented as FSTs (corresponding to the HMMs) and the overall objective function is simply the difference of these in log-space. As such, we need a way to efficiently represent these FSTs and perform forward-backward on them.</p>
+
+<h3 id="the-denominator-and-numerator-fsts">The denominator and numerator FSTs</h3>
+
+<p>Let us start with the denominator FST since it is much more expensive. The process of creating the denominator FST is very similar to the <a href="http://kaldi-asr.org/doc/graph_recipe_test.html" target="_blank">decoding graph creation</a>. The key idea, as in traditional ASR using WFSTs (see <a href="https://cs.nyu.edu/~mohri/pub/hbka.pdf" target="_blank">Mohri&rsquo;s well-known paper</a>), is to have separate FSTs for <code>H</code> (HMM state graph), <code>C</code> (context-dependency), <code>L</code> (the lexicon), and <code>G</code> (the language model), and use WFST composition algorithms to get the final graph, with the exception that since we are using phones instead of words, we don&rsquo;t need the <code>L</code> graph. So our final graph is actually an <code>HCP</code> instead of an <code>HCLG</code>, where <code>P</code> denotes the phone LM.</p>
+
+<p>At this point, I would like to point out some Kaldi specifics. The phone LM <code>P</code> is created in stage <code>-6</code> by calling the function <a href="https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/egs/wsj/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py#L25" target="_blank"><code>create_phone_lm()</code></a>. The denominator FST is created in the stage <code>-5</code> within the <code>train.py</code> script, which internally makes a <a href="https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/egs/wsj/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py#L53" target="_blank">call to the binary <code>chain-make-den-fst</code></a>. The denominator graph is specificied in <a href="https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-den-graph.cc" target="_blank"><code>chain-den-graph.cc</code></a>. It uses the files <code>$dir/tree</code> (the tree) and <code>$dir/0.trans_mdl</code> (the transition model), which correspond to the <code>C</code> and <code>H</code> components, and the phone LM that was created in the previous stage.</p>
+
+<p>The phone LM <code>P</code> is constructed so that the overall size of the graph is minimized. It is a 4-gram with no backoff lower than 3-gram so that triphones not seen in training cannot be generated. The number of states is limited by completely removing low-count 4-gram states.</p>
+
+<p>Once we have the composed graph <code>HCP</code>, a different kind of minimization technique is used, which consists of performing the following operations thrice in a row.</p>
+
+<ol>
+<li><em>Push</em> the weights</li>
+<li><em>Minimize</em> the graph</li>
+<li><em>Reverse</em> the arcs and swap initial and final states.</li>
+</ol>
+
+<p>Another trick used to reduce the size of the denominator FST for training on the GPU is to train on chunks of 1-1.5 seconds, instead of the entire utterance. However, to do this, we would also need to break up the transcript, and 1-second chunks may not coincide with word boundaries. How do we solve this?</p>
+
+<p>Recall that the numerator FST is defined to be utterance-specific, and encodes alternative pronunciations of the transcript of the original utterance. This lattice is turned into an FST that constrains at what time the phones can appear, with an error window of 0.05s from their position in the lattice. This is then processed into an FST whose labels are pdf-ids (neural net outputs). We extract fixed size chunks from this FST for training chunks in the denominator FST.</p>
+
+<p>Another issue associated with chunk-level FSTs is that the initial probabilities are now different. We approximate this by running the HMM for a few iterations and then averaging the probabilities to use as the initial probability of any state. This is a crude approximation but it seems to work. We then call this the <strong>normalization FST</strong>.</p>
+
+<p>The numerator FST is much easier since it just contains the lattice for one utterance, broken into chunks of fixed length. The only point worth mentioning here (and this will be important when we talk about boosted LF-MMI later) is that the numerator FST is composed with the normalization FST. This is done for two reasons.</p>
+
+<ol>
+<li>It ensures that the objective function value is always negative, which makes it easier to interpret.</li>
+<li>It also ensures that the numerator FST does not contain sequences that are not allowed by the denominator (or normalization) FST. This happens since the sum of the overall path weights for such sequences will be dominated by the normalization FST part.</li>
+</ol>
+
+<h3 id="forward-backward-computations">Forward-backward computations</h3>
+
+<p>Again, since the numerator FST is much smaller, its forward and backward computations are performed on CPU (the process is outlined in <a href="https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-numerator.h" target="_blank"><code>chain-numerator.h</code></a>), while those for the denominator FST (outlined in <a href="https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-denominator.h" target="_blank"><code>chain-denominator.h</code></a>) are performed on the GPU.</p>
+
+<p>The basic forward and backward algorithm are the same as well known in literature, and a pseudocode is also given in the extended comments in <code>chain-denominator.h</code>. However, this algorithm is susceptible to numeric overflow and underflow. To avoid this, we multiply the emission probability of the frame with a normalizing factor $\frac{1}{alpha(t)}$ where $alpha(t) = \sum_{i} \alpha_i (t)$. This is also called an &ldquo;arbitrary scale&rdquo; since in principle it can be allowed to be any value and doesn&rsquo;t affect the posterior. However, we do need to add a quantity $\sum_{t=0}^{T-1} \log alpha(t)$ to the final log probability obtained to make it equal to the actual log probability. This &ldquo;arbitrary scaling&rdquo; is used in both the forward and backward computations.</p>
+
+<p>The actual objective function computation is implemented in <a href="https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/src/chain/chain-training.cc#L205" target="_blank"><code>ComputeChainObjfAndDeriv()</code></a> defined in <code>chain-training.cc</code>. There are two Kaldi-specific things I must point out here.</p>
+
+<ol>
+<li><p>The forward-backward computation for the denominator FST in the GPU is not done in the log domain, since computing log several times makes things slower. However, this also means that the objective function values can occasionally become &ldquo;bad&rdquo;. To fix this, the <a href="https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/src/chain/chain-training.cc#L49" target="_blank"><code>PenalizeOutOfRange()</code></a> function is used to encourage the objective to be within the [-30,30] range.</p></li>
+
+<li><p>The denominator computation is performed before the numerator, so as to reduce the maximum memory usage. I am not sure how this is, but it is important to remember this detail as we move to the implementation of boosted LF-MMI.</p></li>
+</ol>
+
+<h3 id="implementing-boosted-lf-mmi">Implementing boosted LF-MMI</h3>
+
+<p>First, what is boosted LF-MMI? It is the same as LF-MMI, except that now we optimize the following objective function.</p>
+
+<p>$$ F_{bMMI}(\lambda) = \sum_{r=1}^R \log \frac{P_{\lambda}(O_r|M_{W_r})P(W_r)}{\sum_{\hat{w}}P_{\lambda}(O_r|M_{\hat{w}})P(\hat{w})e^{-bA(M_{w_r},M_{\hat{w}})}}, $$</p>
+
+<p>where $b$ is the boosting factor and $A(M_{w_r},M_{\hat{w}})$ is the accuracy function which measures the number of matching labels between the reference and hypothesis sequences. My Kaldi implementation for LF-bMMI can be found in <a href="https://github.com/desh2608/kaldi/tree/bmmi" target="_blank">this branch</a>. You may note that most of the changes are cosmetic and only serve to pass the new argument $b$ from the training script to the actual implementation, which is in the function <a href="https://github.com/desh2608/kaldi/blob/2e46097b7e4fcd1a07a7e9c1df6f1aaa062fbc33/src/chain/chain-training.cc#L319" target="_blank"><code>ComputeBoostedChainObjfAndDeriv()</code></a>.</p>
+
+<p>In our implementation, the only change is that in the <a href="https://github.com/desh2608/kaldi/blob/2e46097b7e4fcd1a07a7e9c1df6f1aaa062fbc33/src/chain/chain-training.cc#L369" target="_blank">computation for <code>num_logprob_weighted</code></a>, we subtract from <code>numerator.forward()</code> by a term <code>b * num_seq * frames_per_seq</code>. This might seem weird at first, since in the expression of the objective function, we actually subtract the denominator by this term. However, recall that the numerator FST is composed with the normalization FST, so that this modification will result in the same result as the objective function above.</p>
+
+<p>On trying out LF-bMMI for mini-Librispeech, I found it to be slightly worse than regular LF-MMI (11.86 vs 11.74 WER), and consultation with <a href="http://vimalmanohar.github.io/" target="_blank">Vimal Manohar</a> revealed that he had tried LF-bMMI and LF-SMBR along with <a href="https://hhadian.github.io/" target="_blank">Hossein Hadian</a> last year to similar results.</p>
+
+    </div>
+
+    
+
+
+<div class="article-tags">
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/kaldi/">kaldi</a>
+  
+  <a class="btn btn-primary btn-outline" href="https://desh2608.github.io/tags/chain/">chain</a>
+  
+</div>
+
+
+
+
+    
+    
+
+    
+
+    
+<section id="comments">
+  <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "desh2608-github-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</section>
+
+
+
+  </div>
+</article>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="powered-by">
+
+      &copy; 2018 &middot; 
+
+      Powered by the
+      <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic theme</a> for
+      <a href="https://gohugo.io" target="_blank" rel="noopener">Hugo</a>.
+
+      <span class="pull-right" aria-hidden="true">
+        <a href="#" id="back_to_top">
+          <span class="button_icon">
+            <i class="fa fa-chevron-up fa-2x"></i>
+          </span>
+        </a>
+      </span>
+
+    </p>
+  </div>
+</footer>
+
+
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close btn-large" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Cite</h4>
+      </div>
+      <div>
+        <pre><code class="modal-body tex"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-primary btn-outline js-copy-cite" href="#" target="_blank">
+          <i class="fa fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-primary btn-outline js-download-cite" href="#" target="_blank">
+          <i class="fa fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+    
+    <script id="dsq-count-scr" src="//desh2608-github-io.disqus.com/count.js" async></script>
+    
+
+    
+
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha512-3P8rXCuGJdNZOnUx/03c1jOTnMn3rP63nBip5gOP2qmUh5YAdVAvFZ1E+QLZZbC1rtMrQb+mah3AfYW11RUrWA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.3/imagesloaded.pkgd.min.js" integrity="sha512-umsR78NN0D23AzgoZ11K7raBD+R6hqKojyBZs1w8WvYlsI+QuKRGBx3LFCwhatzBunCjDuJpDHwxD13sLMbpRA==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.4/isotope.pkgd.min.js" integrity="sha512-VDBOIlDbuC4VWxGJNmuFRQ0Li0SKkDpmGyuhAG5LTDLd/dJ/S0WMVxriR2Y+CyPL5gzjpN4f/6iqWVBJlht0tQ==" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" integrity="sha256-X5PoE3KU5l+JcX+w09p/wHl9AzK333C4hJ2I9S5mD4M=" crossorigin="anonymous"></script>
+    
+    
+    <script src="/js/hugo-academic.js"></script>
+    
+
+    
+    
+      
+      
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+      
+
+      
+
+      
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+    
+    
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({ tex2jax: { inlineMath: [['$','$'], ['\\(','\\)']] } });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_CHTML" integrity="sha512-tOav5w1OjvsSJzePRtt2uQPFwBoHt1VZcUq8l8nm5284LEKE9FSJBQryzMBzHxY5P0zRdNqEcpLIRVYFNgu1jw==" crossorigin="anonymous"></script>
+    
+    
+
+  </body>
+</html>
+
