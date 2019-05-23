@@ -11,6 +11,15 @@
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
+      <title>Using ASR methods for OCR</title>
+      <link>https://desh2608.github.io/publication/icdar-19-using/</link>
+      <pubDate>Wed, 22 May 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://desh2608.github.io/publication/icdar-19-using/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>On lattice free MMI and Chain models in Kaldi</title>
       <link>https://desh2608.github.io/post/chain/</link>
       <pubDate>Tue, 21 May 2019 11:49:12 -0400</pubDate>
@@ -2190,146 +2199,6 @@ print(args.accumulate(args.integers))
 &lt;hr /&gt;
 
 &lt;p&gt;&lt;em&gt;I hope these guidelines are useful to some researcher who is just starting out on her first project. Yes, it would take some time to get used to following all these rules, but trust me, your research would only be the better for it in the long run!&lt;/em&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>An Introduction to Speech Recognition using WFSTs</title>
-      <link>https://desh2608.github.io/post/intro-speech-recognition-wfst/</link>
-      <pubDate>Mon, 23 Apr 2018 13:41:31 +0530</pubDate>
-      
-      <guid>https://desh2608.github.io/post/intro-speech-recognition-wfst/</guid>
-      <description>
-
-&lt;p&gt;Until now, all of my blog posts have been about deep learning methods or their application to NLP. Since the last couple of weeks, however, I have started learning about Automatic Speech Recognition (ASR)&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;. Therefore, I will also include speech-related articles in this publication now.&lt;/p&gt;
-
-&lt;p&gt;The ASR logic is very simple (it’s just Bayes rule, like most other things in machine learning). Essentially, given a speech waveform, the objective is to transcribe it, i.e., identify a text which aligns with the waveform. Suppose $Y$ represents the feature vectors obtained from the waveform (Note: this “feature extraction” itself is an involved procedure, and I will describe it in detail in another post), and $\mathbf{w}$ denotes an arbitrary string of words. Then, we have the following.&lt;/p&gt;
-
-&lt;p&gt;$$ \hat{\mathbf{w}} = \text{arg}\max_{\mathbf{w}} { P(\mathbf{w}|Y)} = \text{arg} \max_{\mathbf{w}} {P(Y|\mathbf{w})P(\mathbf{w}) } $$&lt;/p&gt;
-
-&lt;p&gt;The two likelihoods in the term are trained separately. The first component, known as &lt;em&gt;acoustic modeling&lt;/em&gt;, is trained using a parallel corpus of utterances and speech waveforms. The second component, called &lt;em&gt;language modeling&lt;/em&gt;, is trained in an unsupervised fashion from a large corpus of text.&lt;/p&gt;
-
-&lt;p&gt;Although the ASR training appears simple from this abstract level, the implementation is arguably more complex, and is usually done using Weighted Finite State Transducers (WFSTs). In this post, I’ll describe WFSTs, some of their basic algorithms, and give a brief introduction to how they are used for speech recognition.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;weighted-finite-state-transducers-wfsts&#34;&gt;Weighted Finite State Transducers (WFSTs)&lt;/h4&gt;
-
-&lt;p&gt;If you have taken any Theory of Computation course before, you’d probably already be aware what an &lt;em&gt;automata&lt;/em&gt; is. Essentially, a finite automaton accepts a language (which is a set of strings). They are represented by directed graphs as shown below.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/dag.gif&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Each such automaton has a start state, one or more final states, and labeled edges connecting the states. A string is accepted if it ends in a final state after traversing through some path in the graph. For instance in the above DFA (deterministic finite automata), &lt;em&gt;a&lt;/em&gt;, &lt;em&gt;ac&lt;/em&gt;, and &lt;em&gt;ae&lt;/em&gt; are allowed.&lt;/p&gt;
-
-&lt;p&gt;So an &lt;em&gt;acceptor&lt;/em&gt; maps any input string to a binary class {0,1} depending on whether or not the string is accepted. A &lt;em&gt;transducer&lt;/em&gt;, on the other hand, has 2 labels on each edge — an input label, and an output label. Furthermore, a &lt;em&gt;weighted&lt;/em&gt; finite state transducer has weights corresponding to each edge and every final state.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/wfst.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Therefore, a WFST is a mapping from a pair of strings to a weight sum. The pair is formed from the input/output labels along any path of the WFST. For pairs which are not possible in the graph, the corresponding weight is infinite.&lt;/p&gt;
-
-&lt;p&gt;In practice, there are libraries available in every language to implement WFSTs. For C++, &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/WebHome&#34; target=&#34;_blank&#34;&gt;OpenFST&lt;/a&gt; is a popular library, which is also used in the &lt;a href=&#34;http://kaldi-asr.org/&#34; target=&#34;_blank&#34;&gt;Kaldi speech recognition toolkit&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;In principle, it is possible to implement speech recognition algorithms without using WFSTs. However, these data structures have &lt;a href=&#34;https://cs.nyu.edu/~mohri/pub/csl01.pdf&#34; target=&#34;_blank&#34;&gt;several proven results&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; and algorithms which can directly be used in ASRs without having to worry about correctness and complexity. These advantages have made WFSTs almost omniscient in speech recognition. I’ll now summarize some algorithms on WFSTs.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;some-basic-algorithms-on-wfsts&#34;&gt;Some basic algorithms on WFSTs&lt;/h3&gt;
-
-&lt;h4 id=&#34;composition&#34;&gt;Composition&lt;/h4&gt;
-
-&lt;p&gt;Composition, as the name suggests, refers to the process of combining 2 WFSTs to form a single WFST. If we have transducers for pronunciation and word-level grammar, such an algorithm would enable us to form a phone-to-word level system easily.&lt;/p&gt;
-
-&lt;p&gt;Composition is done using 3 rules:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Initial state in the new WFST are formed by combining the initial states of the old WFSTs into pairs.&lt;/li&gt;
-&lt;li&gt;Similarly, final states are combined into pairs.&lt;/li&gt;
-&lt;li&gt;For every pair of edges such that the o-label of the first WFST is the i-label of the second, we add an edge from the source pair to the destination pair. The edge weight is summed using the sum rules.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;An example of composition is shown below.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/composition.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;At this point, it may be important to define what &amp;ldquo;sum&amp;rdquo; means for edge weights. Formally, the &amp;ldquo;languages&amp;rdquo; accepted by WFSTs are generalized through the notion of &lt;a href=&#34;https://en.wikipedia.org/wiki/Semiring&#34; target=&#34;_blank&#34;&gt;semirings&lt;/a&gt;. Basically, it is a set of elements with 2 operators, namely $\oplus$ and $\otimes$. Depending on the type of semiring, these operators can take on different definitions. For example, in a tropical semiring, $\oplus$ denotes &lt;strong&gt;$\min$&lt;/strong&gt;, and $\otimes$ denotes &lt;strong&gt;sum&lt;/strong&gt;. Furthermore, in any WFST, weights are $\otimes$-multiplied along paths (Note: here “multiplied” would mean summed for a tropical semiring) and $\oplus$-summed over paths with identical symbol sequence.&lt;/p&gt;
-
-&lt;p&gt;See &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/ComposeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; for OpenFST implementation of composition.&lt;/p&gt;
-
-&lt;h4 id=&#34;determinization&#34;&gt;Determinization&lt;/h4&gt;
-
-&lt;p&gt;A deterministic automaton is one in which there is only one transition for each label in every state. By such a formulation, a deterministic WFST removes all redundancy and greatly reduces the complexity of the underlying grammar. But, are all WFSTs determinizable?&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;The Twins Property:&lt;/em&gt; Let us consider an automaton A. Two states &lt;em&gt;p&lt;/em&gt; and &lt;em&gt;q&lt;/em&gt; in A are said to be siblings if both can be reached by string &lt;em&gt;x&lt;/em&gt; and both have cycles with label &lt;em&gt;y&lt;/em&gt;. Essentially, siblings are twins if the total weight for the paths until the states, as well as that including the cycle, are equal for both.&lt;/p&gt;
-
-&lt;blockquote&gt;
-&lt;p&gt;A WFST is determinizable if all its siblings are twins.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;This is an example of what I said earlier regarding WFSTs being an efficient implementation of the algorithms used in ASR. There are several methods to determinize a WFST. One such algorithm is shown below.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/determinization.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
-
-&lt;p&gt;In simpler steps, this algorithm does the following:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;At each state, for every outgoing label, if there are multiple outgoing edges for that label, replace them with a single edge with weight as the $\otimes$-sum of all edge weights containing that label.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Since this is a local algorithm, it can be efficiently implemented in-memory. To see how to perform determinization in OpenFST, see &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/DeterminizeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h4 id=&#34;minimization&#34;&gt;Minimization&lt;/h4&gt;
-
-&lt;p&gt;Although minimization is not as essential as determinization, it is still a nice optimization technique. It refers to minimizing the number of states and transitions in a deterministic WFST.&lt;/p&gt;
-
-&lt;p&gt;Minimization is carried out in 2 steps:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Weight pushing: All weights are pushed towards the start state. See the following example.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/pushing.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;After this is done, we combine those states which have identical paths to any final state. For example in the above WFST, states 1 and 2 have become identical after weight pushing, so they are combined into one state.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;In OpenFST, the implementation details for minimization can be found &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/MinimizeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;The following&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; shows the complete pipeline for a WFST reduction.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/pipeline.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h4 id=&#34;wfsts-in-speech-recognition&#34;&gt;WFSTs in speech recognition&lt;/h4&gt;
-
-&lt;p&gt;Several WFSTs are composed in sequence for use in speech recognition. These are:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Grammar (&lt;strong&gt;G&lt;/strong&gt;): This is the language model trained on large text corpus.&lt;/li&gt;
-&lt;li&gt;Lexicon (&lt;strong&gt;L&lt;/strong&gt;): This encodes information about the likelihood of phones without context.&lt;/li&gt;
-&lt;li&gt;Context-dependent phonetics (&lt;strong&gt;C&lt;/strong&gt; ): This is similar to n-gram language modeling, except that it is for phones.&lt;/li&gt;
-&lt;li&gt;HMM structure (&lt;strong&gt;H&lt;/strong&gt;): This is the model for the waveform.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;In general, the composed transducer &lt;strong&gt;H&lt;/strong&gt;o&lt;strong&gt;C&lt;/strong&gt;o&lt;strong&gt;L&lt;/strong&gt;o&lt;strong&gt;G&lt;/strong&gt; represents the entire pipeline of speech recognition. Each of the components can individually be improved, so that the entire ASR system gets improved.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;&lt;em&gt;This was just a brief introduction to WFSTs which are an important component in ASR systems. In further posts on speech, I hope to discuss things such as feature extraction, popular GMM-HMM models, and latest deep learning advances. I am also reading papers mentioned &lt;a href=&#34;http://jrmeyer.github.io/asr/2017/04/05/seminal-asr-papers.html&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; to get a good overview of how ASR has progressed over the years.&lt;/em&gt;&lt;/p&gt;
-&lt;div class=&#34;footnotes&#34;&gt;
-
-&lt;hr /&gt;
-
-&lt;ol&gt;
-&lt;li id=&#34;fn:1&#34;&gt;Gales, Mark, and Steve Young. &amp;ldquo;The application of hidden Markov models in speech recognition.&amp;rdquo; Foundations and Trends in Signal Processing 1.3 (2008): 195–304.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:2&#34;&gt;Mohri, Mehryar, Fernando Pereira, and Michael Riley. &amp;ldquo;Weighted finite-state transducers in speech recognition.&amp;rdquo; Computer Speech &amp;amp; Language 16.1 (2002): 69–88.
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li id=&#34;fn:3&#34;&gt;&lt;a href=&#34;https://wiki.eecs.yorku.ca/course_archive/2011-12/W/6328/_media/wfst-tutorial.pdf&#34; target=&#34;_blank&#34;&gt;Lecture slides&lt;/a&gt; from Prof. Hui Jiang (York University)
- &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
 </description>
     </item>
     
