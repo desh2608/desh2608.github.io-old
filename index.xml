@@ -269,6 +269,7 @@
 &lt;li&gt;&lt;a href=&#34;#sum-append&#34;&gt;About &lt;code&gt;Sum()&lt;/code&gt; and &lt;code&gt;Append()&lt;/code&gt; in Kaldi xconfig&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#train-logs&#34;&gt;Checking training logs&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#convert&#34;&gt;Converting between FV and FM types&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#epochs&#34;&gt;Number of epochs in Kaldi&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;hr /&gt;
@@ -365,6 +366,30 @@ LOG (nnet3-chain-train[5.5.103~1-34cc4e]:PrintTotalStats():nnet-training.cc:348)
 &lt;pre&gt;&lt;code&gt;copy-matrix --binary=false scp:exp/ivectors/ivector.scp ark,t:- | \
   copy-vector ark,t:- ark,scp:exp/ivectors/ivector_vec.ark,exp/ivectors/ivector_vec.scp
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a name=&#34;epochs&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;number-of-epochs-in-kaldi&#34;&gt;Number of epochs in Kaldi&lt;/h3&gt;
+
+&lt;p&gt;This is borrowed directly from &lt;a href=&#34;https://groups.google.com/d/msg/kaldi-help/7OrqJI2Szvg/vk3P8qKWAwAJ&#34; target=&#34;_blank&#34;&gt;Dan&amp;rsquo;s reply&lt;/a&gt; in a &lt;code&gt;kaldi-help&lt;/code&gt; Google Group post.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;A few of the reasons we use relatively few epochs in Kaldi are as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;We actually count epochs &lt;em&gt;after&lt;/em&gt; augmentation, and with a system that has frame-subsampling-factor of 3 we separately train on the data shifted by -1, 0 and 1 and count that all as one epoch.  So for 3-fold augmentation and frame-subsampling-factor=3, each &amp;ldquo;epoch&amp;rdquo; actually ends up seeing the data 9 times.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Kaldi uses natural gradient, which has better convergence properties than regular SGD and allows you to train with larger learning rates; this might allow you to reduce the num-epochs by at least a factor of 1.5 or 2 versus what you&amp;rsquo;d use with normal SGD.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;We do model averaging at the end&amp;ndash; averaging over the last few iterations of training (an iteration is an interval of usually a couple minutes&amp;rsquo; training time).  This allows us to use relatively large learning rates at the end and not worry too much about the added noise; and it allows us to use relatively high learning rates at the end, which further decreases the training time.  This wouldn&amp;rsquo;t work without the natural gradient; the natural gradient stops the model from moving too far in the more important directions within parameter space.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;We start with aligments learned from a GMM system, so the nnet doesn&amp;rsquo;t have to do all the work of figuring out the alignments&amp;ndash; i.e. it&amp;rsquo;s not training from a completely uninformed start.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So supposing we say we are using 5 epochs, we are really seeing the data more like 50 times, and if we didn&amp;rsquo;t have those tricks (NG, model averaging) that might have to be more like 100 or 150 epochs, and without knowing the alignments, maybe 200 or 300 epochs.&lt;/p&gt;
+&lt;/blockquote&gt;
 </description>
     </item>
     

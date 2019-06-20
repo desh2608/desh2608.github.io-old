@@ -19,7 +19,7 @@
   
   <meta name="description" content="This is a regularly updated post on some tips and tricks for working with Kaldi.
 List of contents:
- How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig Checking training logs Converting between FV and FM types  
+ How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig Checking training logs Converting between FV and FM types Number of epochs in Kaldi  
 How to stop training mid-way and decode using last trained stage In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe).">
 
   
@@ -98,7 +98,7 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
   <meta property="og:title" content="Some Kaldi Things | Desh Raj">
   <meta property="og:description" content="This is a regularly updated post on some tips and tricks for working with Kaldi.
 List of contents:
- How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig Checking training logs Converting between FV and FM types  
+ How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig Checking training logs Converting between FV and FM types Number of epochs in Kaldi  
 How to stop training mid-way and decode using last trained stage In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe).">
   <meta property="og:locale" content="en-us">
   
@@ -252,7 +252,7 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    4 min read
+    6 min read
   </span>
   
 
@@ -326,6 +326,7 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
 <li><a href="#sum-append">About <code>Sum()</code> and <code>Append()</code> in Kaldi xconfig</a></li>
 <li><a href="#train-logs">Checking training logs</a></li>
 <li><a href="#convert">Converting between FV and FM types</a></li>
+<li><a href="#epochs">Number of epochs in Kaldi</a></li>
 </ol>
 
 <hr />
@@ -422,6 +423,30 @@ LOG (nnet3-chain-train[5.5.103~1-34cc4e]:PrintTotalStats():nnet-training.cc:348)
 <pre><code>copy-matrix --binary=false scp:exp/ivectors/ivector.scp ark,t:- | \
   copy-vector ark,t:- ark,scp:exp/ivectors/ivector_vec.ark,exp/ivectors/ivector_vec.scp
 </code></pre>
+
+<hr />
+
+<p><a name="epochs"></a></p>
+
+<h3 id="number-of-epochs-in-kaldi">Number of epochs in Kaldi</h3>
+
+<p>This is borrowed directly from <a href="https://groups.google.com/d/msg/kaldi-help/7OrqJI2Szvg/vk3P8qKWAwAJ" target="_blank">Dan&rsquo;s reply</a> in a <code>kaldi-help</code> Google Group post.</p>
+
+<blockquote>
+<p>A few of the reasons we use relatively few epochs in Kaldi are as follows:</p>
+
+<ul>
+<li><p>We actually count epochs <em>after</em> augmentation, and with a system that has frame-subsampling-factor of 3 we separately train on the data shifted by -1, 0 and 1 and count that all as one epoch.  So for 3-fold augmentation and frame-subsampling-factor=3, each &ldquo;epoch&rdquo; actually ends up seeing the data 9 times.</p></li>
+
+<li><p>Kaldi uses natural gradient, which has better convergence properties than regular SGD and allows you to train with larger learning rates; this might allow you to reduce the num-epochs by at least a factor of 1.5 or 2 versus what you&rsquo;d use with normal SGD.</p></li>
+
+<li><p>We do model averaging at the end&ndash; averaging over the last few iterations of training (an iteration is an interval of usually a couple minutes&rsquo; training time).  This allows us to use relatively large learning rates at the end and not worry too much about the added noise; and it allows us to use relatively high learning rates at the end, which further decreases the training time.  This wouldn&rsquo;t work without the natural gradient; the natural gradient stops the model from moving too far in the more important directions within parameter space.</p></li>
+
+<li><p>We start with aligments learned from a GMM system, so the nnet doesn&rsquo;t have to do all the work of figuring out the alignments&ndash; i.e. it&rsquo;s not training from a completely uninformed start.</p></li>
+</ul>
+
+<p>So supposing we say we are using 5 epochs, we are really seeing the data more like 50 times, and if we didn&rsquo;t have those tricks (NG, model averaging) that might have to be more like 100 or 150 epochs, and without knowing the alignments, maybe 200 or 300 epochs.</p>
+</blockquote>
 
     </div>
 
