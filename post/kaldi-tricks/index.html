@@ -19,7 +19,7 @@
   
   <meta name="description" content="This is a regularly updated post on some tips and tricks for working with Kaldi.
 List of contents:
- How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig Checking training logs  
+ How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig Checking training logs Converting between FV and FM types  
 How to stop training mid-way and decode using last trained stage In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe).">
 
   
@@ -98,7 +98,7 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
   <meta property="og:title" content="Some Kaldi Things | Desh Raj">
   <meta property="og:description" content="This is a regularly updated post on some tips and tricks for working with Kaldi.
 List of contents:
- How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig Checking training logs  
+ How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig Checking training logs Converting between FV and FM types  
 How to stop training mid-way and decode using last trained stage In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe).">
   <meta property="og:locale" content="en-us">
   
@@ -252,7 +252,7 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    3 min read
+    4 min read
   </span>
   
 
@@ -325,6 +325,7 @@ How to stop training mid-way and decode using last trained stage In the Kaldi ch
 <li><a href="#stop-train">How to stop training mid-way and decode using last trained stage</a></li>
 <li><a href="#sum-append">About <code>Sum()</code> and <code>Append()</code> in Kaldi xconfig</a></li>
 <li><a href="#train-logs">Checking training logs</a></li>
+<li><a href="#convert">Converting between FV and FM types</a></li>
 </ol>
 
 <hr />
@@ -401,6 +402,26 @@ LOG (nnet3-chain-train[5.5.103~1-34cc4e]:PrintTotalStats():nnet-training.cc:348)
 </code></pre>
 
 <p>Usually, the relative parameter differences are close to the learning rate.</p>
+
+<hr />
+
+<p><a name="convert"></a></p>
+
+<h3 id="converting-between-fm-and-fv-types">Converting between FM and FV types</h3>
+
+<p>Kaldi has two major types: Matrix and Vector. As such, features are often stored in one of these two file types. For instance, when you extract i-vectors, they are stored as a matrix of floats (FM) and if you extract x-vectors, they are stored as vectors of float (FV). Often it may be required to convert features stored as FV to FM and vice-versa.</p>
+
+<p>Although there is no dedicated Kaldi binary to perform this conversion, we can leverage the fact that the underlying text format for both these types is the same and use this as an intermediate for the conversion. For example, to convert from FV to FM:</p>
+
+<pre><code>copy-vector --binary=false scp:exp/xvectors/xvector.scp ark,t:- | \
+  copy-matrix ark,t:- ark,scp:exp/xvectors/xvector_mat.ark,exp/xvectors/xvector_mat.scp
+</code></pre>
+
+<p>Similarly, to convert from FM to FV:</p>
+
+<pre><code>copy-matrix --binary=false scp:exp/ivectors/ivector.scp ark,t:- | \
+  copy-vector ark,t:- ark,scp:exp/ivectors/ivector_vec.ark,exp/ivectors/ivector_vec.scp
+</code></pre>
 
     </div>
 

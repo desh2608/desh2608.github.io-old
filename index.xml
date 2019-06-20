@@ -268,6 +268,7 @@
 &lt;li&gt;&lt;a href=&#34;#stop-train&#34;&gt;How to stop training mid-way and decode using last trained stage&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#sum-append&#34;&gt;About &lt;code&gt;Sum()&lt;/code&gt; and &lt;code&gt;Append()&lt;/code&gt; in Kaldi xconfig&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;#train-logs&#34;&gt;Checking training logs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#convert&#34;&gt;Converting between FV and FM types&lt;/a&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;hr /&gt;
@@ -344,6 +345,26 @@ LOG (nnet3-chain-train[5.5.103~1-34cc4e]:PrintTotalStats():nnet-training.cc:348)
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Usually, the relative parameter differences are close to the learning rate.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a name=&#34;convert&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;converting-between-fm-and-fv-types&#34;&gt;Converting between FM and FV types&lt;/h3&gt;
+
+&lt;p&gt;Kaldi has two major types: Matrix and Vector. As such, features are often stored in one of these two file types. For instance, when you extract i-vectors, they are stored as a matrix of floats (FM) and if you extract x-vectors, they are stored as vectors of float (FV). Often it may be required to convert features stored as FV to FM and vice-versa.&lt;/p&gt;
+
+&lt;p&gt;Although there is no dedicated Kaldi binary to perform this conversion, we can leverage the fact that the underlying text format for both these types is the same and use this as an intermediate for the conversion. For example, to convert from FV to FM:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;copy-vector --binary=false scp:exp/xvectors/xvector.scp ark,t:- | \
+  copy-matrix ark,t:- ark,scp:exp/xvectors/xvector_mat.ark,exp/xvectors/xvector_mat.scp
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Similarly, to convert from FM to FV:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;copy-matrix --binary=false scp:exp/ivectors/ivector.scp ark,t:- | \
+  copy-vector ark,t:- ark,scp:exp/ivectors/ivector_vec.ark,exp/ivectors/ivector_vec.scp
+&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
