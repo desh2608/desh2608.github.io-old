@@ -371,6 +371,8 @@ relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(tdnn3l,tdnn2l)
 relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(noop1,tdnn2l)
 </code></pre>
 
+<p>Similarly, a <code>Scale()</code> outputs a <code>&lt;fwd-descriptor&gt;</code> while a <code>Sum()</code> expects a <code>&lt;sum-descriptor&gt;</code>, so to use <code>Scale()</code> inside <code>Sum()</code> we first have to pass it through a <code>no-op-component</code>.</p>
+
 <hr />
 
 <p><a name="train-logs"></a></p>

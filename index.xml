@@ -314,6 +314,8 @@ relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(tdnn3l,tdnn2l)
 relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(noop1,tdnn2l)
 &lt;/code&gt;&lt;/pre&gt;
 
+&lt;p&gt;Similarly, a &lt;code&gt;Scale()&lt;/code&gt; outputs a &lt;code&gt;&amp;lt;fwd-descriptor&amp;gt;&lt;/code&gt; while a &lt;code&gt;Sum()&lt;/code&gt; expects a &lt;code&gt;&amp;lt;sum-descriptor&amp;gt;&lt;/code&gt;, so to use &lt;code&gt;Scale()&lt;/code&gt; inside &lt;code&gt;Sum()&lt;/code&gt; we first have to pass it through a &lt;code&gt;no-op-component&lt;/code&gt;.&lt;/p&gt;
+
 &lt;hr /&gt;
 
 &lt;p&gt;&lt;a name=&#34;train-logs&#34;&gt;&lt;/a&gt;&lt;/p&gt;
