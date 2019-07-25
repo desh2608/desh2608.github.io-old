@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Maxent on Desh Raj</title>
+    <title>maxent on Desh Raj</title>
     <link>https://desh2608.github.io/tags/maxent/</link>
-    <description>Recent content in Maxent on Desh Raj</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <description>Recent content in maxent on Desh Raj</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
-    <copyright>&amp;copy; 2018</copyright>
+    <copyright>&amp;copy; 2019</copyright>
     <lastBuildDate>Mon, 10 Dec 2018 11:29:31 -0500</lastBuildDate>
     
-	<atom:link href="https://desh2608.github.io/tags/maxent/index.xml" rel="self" type="application/rss+xml" />
+	    <atom:link href="https://desh2608.github.io/tags/maxent/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -18,7 +18,84 @@
       <pubDate>Mon, 10 Dec 2018 11:29:31 -0500</pubDate>
       
       <guid>https://desh2608.github.io/post/iterative-scaling-coordinate-descent/</guid>
-      <description>Recently, I was reading a paper on language model adaptation, which used an optimization technique called Generalized Iterative Scaling (GIS). Having no idea what the method was, I sought out the first paper which proposed it, but since the paper is from 1972, and I am not a pure math guy, I found it difficult to follow. After some more looking around, I chanced upon this lucid JMLR&amp;rsquo;10 paper from Chih-Jen Lin: Iterative Scaling and Coordinate Descent Methods for Maximum Entropy Models.</description>
+      <description>
+
+&lt;p&gt;Recently, I was reading a paper on language model adaptation, which used an optimization technique called Generalized Iterative Scaling (GIS). Having no idea what the method was, I sought out &lt;a href=&#34;https://www.jstor.org/stable/2240069?seq=1#metadata_info_tab_contents&#34; target=&#34;_blank&#34;&gt;the first paper&lt;/a&gt; which proposed it, but since the paper is from 1972, and I am not a pure math guy, I found it difficult to follow. After some more looking around, I chanced upon this lucid JMLR&amp;rsquo;10 paper from &lt;a href=&#34;https://www.csie.ntu.edu.tw/~cjlin/&#34; target=&#34;_blank&#34;&gt;Chih-Jen Lin&lt;/a&gt;: &lt;a href=&#34;http://www.jmlr.org/papers/volume11/huang10a/huang10a.pdf&#34; target=&#34;_blank&#34;&gt;Iterative Scaling and Coordinate Descent Methods for Maximum Entropy Models&lt;/a&gt;. In this post, I will summarize the ideas in the paper, primarily the discussion about a unified framework for &lt;strong&gt;Iterative Scaling&lt;/strong&gt; (IS) and &lt;strong&gt;Coordinate Descent&lt;/strong&gt; (CD) methods, and how each particular technique is derived from this general framework.&lt;/p&gt;
+
+&lt;h2 id=&#34;the-general-framework&#34;&gt;The General Framework&lt;/h2&gt;
+
+&lt;p&gt;Iterative Scaling (IS) and Coordinate Descent (CD) are methods used to optimize maximum entropy (maxent) models. &lt;em&gt;What is a maxent model?&lt;/em&gt; Given a sequence $x$, a maxent model predicts the label sequence $y$ with maximal probability. It is discriminatively trained by modeling the conditional probability&lt;/p&gt;
+
+&lt;p&gt;$$ P_{\mathbf{w}}(y|x) = \frac{S_{\mathbf{w}}(x,y)}{T_{\mathbf{w}}(x)}, $$&lt;/p&gt;
+
+&lt;p&gt;where $S_{\mathbf{w}}(x,y) = \exp(\sum_t w_t f_t(x,y))$ and $T_{\mathbf{w}}(x) = \sum_y S_{\mathbf{w}}(x,y)$.&lt;/p&gt;
+
+&lt;p&gt;Note that each of the $f_t$ are features which can be defined arbitrarily with the sole constraint that they must be non-negative. Each $f_t$ has a corresponding weight $w_t$ which needs to be estimated. IS and CD methods do this estimation by iterating over all the $w_t$&amp;rsquo;s, either sequentially or in parallel. Based on the above conditional probability, we can define an objective function by taking the log of the probability and adding an L2-regularization term to it as&lt;/p&gt;
+
+&lt;p&gt;$$ \text{min}_{\mathbf{w}} L(\mathbf{w}) \equiv \text{min}_{\mathbf{w}} \sum_x \tilde{P}(x) \log T_{\mathbf{w}}(x) - \sum_t w_t \tilde{P}(f_t) + \frac{1}{2\sigma^2}\sum_t w_t^2. $$&lt;/p&gt;
+
+&lt;p&gt;Here, $\tilde{P}(x) = \sum_y \tilde{P}(x,y),$ where $\tilde{P}(x,y)$ is the empirical distribution, and $\tilde{P}(f_t)$ is the expected value of $f_t(x,y)$. The log-likelihood itself (without regularization) is convex, but adding the regularization term makes it strictly convex, and it can also be shown that this objective function has a unique global minima.&lt;/p&gt;
+
+&lt;p&gt;If we update our weights (either in parallel or in sequence), after one such iteration of updation, we change our objective function from $L(\mathbf{w})$ to $L(\mathbf{w}+\mathbf{z})$, where $\mathbf{z}$ si the update made to the weights. Each such iteration can be written as a subproblem which we need to solve, i.e.&lt;/p&gt;
+
+&lt;p&gt;$$ A(\mathbf{z}) \leq L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}).$$&lt;/p&gt;
+
+&lt;p&gt;In addition, if we have $A(0) = 0$, this implies that $L$ decreases with every update. Let us now expand the RHS in the above equation. We have&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) &amp;amp;= \sum_x \tilde{P}(x) \log T_{\mathbf{w}+\mathbf{z}}(x) - \sum_t w_t \tilde{P}(f_t) + \frac{1}{2\sigma^2}\sum_t (w_t+z_t)^2 \\\ &amp;amp; - \sum_x \tilde{P}(x) \log T_{\mathbf{w}}(x) + \sum_t w_t \tilde{P}(f_t) - \frac{1}{2\sigma^2}\sum_t w_t^2 \\\ &amp;amp;= \sum_x \tilde{P}(x) \log \frac{T_{\mathbf{w}+\mathbf{z}}(x)}{T_{\mathbf{w}}(x)} + \sum_t Q_t (z_t) \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;where $Q_t(z_t) \equiv \frac{2w_tz_t + z_t^2}{2\sigma^2} - z_t \tilde{P}(f_t)$. Further, the ratio in the log term can be simplified as&lt;/p&gt;
+
+&lt;p&gt;$$ \frac{T_{\mathbf{w}+\mathbf{z}}(x)}{T_{\mathbf{w}}(x)} = \sum_y P_{\mathbf{w}}(y|x)e^{\sum_t z_t f_t(x,y)}. $$&lt;/p&gt;
+
+&lt;p&gt;This is the general overview of the problem that all IS and CD methods solve. The difference is in how this function is minimized. Let us look at each of the methods and how they build upon this general framework.&lt;/p&gt;
+
+&lt;h3 id=&#34;coordinate-descent&#34;&gt;Coordinate Descent&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://link.springer.com/article/10.1007%2Fs10107-015-0892-3&#34; target=&#34;_blank&#34;&gt;CD&lt;/a&gt; solves the exact problem without any approximation, i.e., the subproblem is&lt;/p&gt;
+
+&lt;p&gt;$$ A(\mathbf{z}) = L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) $$&lt;/p&gt;
+
+&lt;p&gt;This then leads to the subproblem be exactly equal to as derived above. This has an advantage and a limitation.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Since $A(\mathbf{z})$ here is the maximum possible decrement in any iteration, the convergence requires the least number of steps out of all possible approximations of $A(\mathbf{z})$.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Because of the presence of the log term in the objective function, there is no closed form solution, and so every iteration must solve an optimization problem using the Newton method.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In practice, the Newton optimization at each step overshadows any gain due to fewer iterations till convergence, so that CD takes more time to converge than IS methods which approximate $A(\mathbf{z})$.&lt;/p&gt;
+
+&lt;h3 id=&#34;generalized-is-gis-and-sequential-conditional-gis-sc-gis&#34;&gt;Generalized IS (GIS) and Sequential Conditional GIS (SC-GIS)&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.jstor.org/stable/2240069?seq=1#metadata_info_tab_contents&#34; target=&#34;_blank&#34;&gt;GIS&lt;/a&gt; and &lt;a href=&#34;http://www.aclweb.org/anthology/P02-1002&#34; target=&#34;_blank&#34;&gt;SC-GIS&lt;/a&gt; use the approximation $\log \alpha \leq \alpha -1$ to get&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) &amp;amp;\leq \sum_t Q_t (z_t) + \sum_x \tilde{P}(x)       (\sum_y P_{\mathbf{w}}(y|x) e^{\sum_t z_t f_t(x,y)} - 1) \\\ &amp;amp;= \sum_t Q_t (z_t) + \sum_{x,y} \tilde{P}(x) (P_{\mathbf{w}}(y|x)e^{\sum_t z_t f_t(x,y)} - 1)   \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;Define $f^{\#}(x,y) = \sum_t f_t(x,y)$ and $f^{\#}=\text{max}_{x,y}(f^{\#}(x,y))$. We can then use Jensen&amp;rsquo;s inequality to upper bound the exponential term in the above inequality. GIS is a parallel update method, i.e., all the $w_t$&amp;rsquo;s are updated simultaneously, which means that we can use $f^{\#}$ to bound the exponential terms. On the contrary, SC-GIS is a sequential method, which means we can only use $f_t^{\#}$ to get this bound, where $f_t^{\#} \equiv \text{max}_{x,y}f_t(x,y)$. Finally, the subproblems can be written as&lt;/p&gt;
+
+&lt;p&gt;$$ A_t^{GIS}(z_t) = Q_t (z_t) + \frac{e^{z_t f^{\#}}-1}{f^{\#}}\sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y)  $$&lt;/p&gt;
+
+&lt;p&gt;$$ A_t^{SC-GIS}(z_t) = Q_t (z_t) + \frac{e^{z_t f_t^{\#}}-1}{f_t^{\#}}\sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y) $$&lt;/p&gt;
+
+&lt;h3 id=&#34;improved-is-iis&#34;&gt;Improved IS (IIS)&lt;/h3&gt;
+
+&lt;p&gt;A problem with bounding in terms of $f^{\#}$ as done in GIS is that $f^{\#}$ can be too large even if one of the $(x,y)$ pairs has a large value of $f^{\#}(x,y)$. This would cause the subproblem to be very small, similar to the issue of small learning rates in gradient-based optimization. To remedy this, we can bound in terms of $f^{\#}(x,y)$, although in that case we the term cannot be taken out of the summation. This is what is done in IIS, and this gives the following definition of the subproblem.&lt;/p&gt;
+
+&lt;p&gt;$$ A_t^{IIS}(z_t) = Q_t (z_t) + \sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y)\frac{e^{z_t f^{\#}(x,y)}-1}{f^{\#}(x,y)} $$&lt;/p&gt;
+
+&lt;h2 id=&#34;key-points&#34;&gt;Key points&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Iterative scaling and coordinate descent methods have provably linear convergence.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;However, the time complexity of solving each subproblem is key in choosing which method to use for optimization.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;GIS and SC-GIS have closed form solutions for the subproblems, which makes it $\mathcal{O}(1)$ to solve each iteration.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Although CD and IIS need Newton optimization for each subproblem, the authors propose a fast CD method which performs only 1 update in later iterations. This is because it is empirically observed that a single update is enough to update the weight sufficiently in later stages.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
     </item>
     
   </channel>

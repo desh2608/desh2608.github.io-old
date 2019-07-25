@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Fuzzy on Desh Raj</title>
+    <title>fuzzy on Desh Raj</title>
     <link>https://desh2608.github.io/tags/fuzzy/</link>
-    <description>Recent content in Fuzzy on Desh Raj</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <description>Recent content in fuzzy on Desh Raj</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
-    <copyright>&amp;copy; 2018</copyright>
+    <copyright>&amp;copy; 2019</copyright>
     <lastBuildDate>Mon, 15 Jan 2018 15:02:35 +0530</lastBuildDate>
     
-	<atom:link href="https://desh2608.github.io/tags/fuzzy/index.xml" rel="self" type="application/rss+xml" />
+	    <atom:link href="https://desh2608.github.io/tags/fuzzy/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -36,8 +36,16 @@
       <pubDate>Wed, 22 Jul 2015 17:01:05 +0530</pubDate>
       
       <guid>https://desh2608.github.io/project/fuzzy-wmbs/</guid>
-      <description>The objective of the project was to propose guidelines for selecting fuzzy membership functions to represent several data sets. In general, the accuracy of representation increases with increasing complexity, which makes it a trade-off. My contributions are listed below.
- Analyzed various multidimensional fuzzy membership functions and compared similarity of data sets using Wilcoxons nonparametric tests. Established guidelines for selecting appropriate MFs based on data set and application requirements. Recently extended the proposed method for high-dimensional data using dimensionality reduction approaches like PCA, kernel PCA, probabilistic PCA, and t-SNE.</description>
+      <description>&lt;p&gt;The objective of the project was to propose guidelines for selecting fuzzy membership functions to represent several data sets. In general, the accuracy of representation increases with increasing complexity, which makes it a trade-off. My contributions are listed below.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Analyzed various multidimensional fuzzy membership functions and compared similarity of data sets using Wilcoxons nonparametric tests.&lt;/li&gt;
+&lt;li&gt;Established guidelines for selecting appropriate MFs based on data set and application requirements.&lt;/li&gt;
+&lt;li&gt;Recently extended the proposed method for high-dimensional data using dimensionality reduction approaches like PCA, kernel PCA, probabilistic PCA, and t-SNE.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We proposed a new log-time algorithm which makes use of Wilcoxon&amp;rsquo;s nonparametric tests to compare similarity between the original data and the synthetic data generated using the fuzzy MFs. The returned similarity score guides the choice of membership function.&lt;/p&gt;
+</description>
     </item>
     
   </channel>

@@ -1,16 +1,389 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Machine-learning on Desh Raj</title>
+    <title>machine learning on Desh Raj</title>
     <link>https://desh2608.github.io/tags/machine-learning/</link>
-    <description>Recent content in Machine-learning on Desh Raj</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <description>Recent content in machine learning on Desh Raj</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
-    <copyright>&amp;copy; 2018</copyright>
-    <lastBuildDate>Mon, 23 Apr 2018 13:41:31 +0530</lastBuildDate>
+    <copyright>&amp;copy; 2019</copyright>
+    <lastBuildDate>Mon, 10 Dec 2018 11:29:31 -0500</lastBuildDate>
     
-	<atom:link href="https://desh2608.github.io/tags/machine-learning/index.xml" rel="self" type="application/rss+xml" />
+	    <atom:link href="https://desh2608.github.io/tags/machine-learning/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Iterative Scaling and Coordinate Descent</title>
+      <link>https://desh2608.github.io/post/iterative-scaling-coordinate-descent/</link>
+      <pubDate>Mon, 10 Dec 2018 11:29:31 -0500</pubDate>
+      
+      <guid>https://desh2608.github.io/post/iterative-scaling-coordinate-descent/</guid>
+      <description>
+
+&lt;p&gt;Recently, I was reading a paper on language model adaptation, which used an optimization technique called Generalized Iterative Scaling (GIS). Having no idea what the method was, I sought out &lt;a href=&#34;https://www.jstor.org/stable/2240069?seq=1#metadata_info_tab_contents&#34; target=&#34;_blank&#34;&gt;the first paper&lt;/a&gt; which proposed it, but since the paper is from 1972, and I am not a pure math guy, I found it difficult to follow. After some more looking around, I chanced upon this lucid JMLR&amp;rsquo;10 paper from &lt;a href=&#34;https://www.csie.ntu.edu.tw/~cjlin/&#34; target=&#34;_blank&#34;&gt;Chih-Jen Lin&lt;/a&gt;: &lt;a href=&#34;http://www.jmlr.org/papers/volume11/huang10a/huang10a.pdf&#34; target=&#34;_blank&#34;&gt;Iterative Scaling and Coordinate Descent Methods for Maximum Entropy Models&lt;/a&gt;. In this post, I will summarize the ideas in the paper, primarily the discussion about a unified framework for &lt;strong&gt;Iterative Scaling&lt;/strong&gt; (IS) and &lt;strong&gt;Coordinate Descent&lt;/strong&gt; (CD) methods, and how each particular technique is derived from this general framework.&lt;/p&gt;
+
+&lt;h2 id=&#34;the-general-framework&#34;&gt;The General Framework&lt;/h2&gt;
+
+&lt;p&gt;Iterative Scaling (IS) and Coordinate Descent (CD) are methods used to optimize maximum entropy (maxent) models. &lt;em&gt;What is a maxent model?&lt;/em&gt; Given a sequence $x$, a maxent model predicts the label sequence $y$ with maximal probability. It is discriminatively trained by modeling the conditional probability&lt;/p&gt;
+
+&lt;p&gt;$$ P_{\mathbf{w}}(y|x) = \frac{S_{\mathbf{w}}(x,y)}{T_{\mathbf{w}}(x)}, $$&lt;/p&gt;
+
+&lt;p&gt;where $S_{\mathbf{w}}(x,y) = \exp(\sum_t w_t f_t(x,y))$ and $T_{\mathbf{w}}(x) = \sum_y S_{\mathbf{w}}(x,y)$.&lt;/p&gt;
+
+&lt;p&gt;Note that each of the $f_t$ are features which can be defined arbitrarily with the sole constraint that they must be non-negative. Each $f_t$ has a corresponding weight $w_t$ which needs to be estimated. IS and CD methods do this estimation by iterating over all the $w_t$&amp;rsquo;s, either sequentially or in parallel. Based on the above conditional probability, we can define an objective function by taking the log of the probability and adding an L2-regularization term to it as&lt;/p&gt;
+
+&lt;p&gt;$$ \text{min}_{\mathbf{w}} L(\mathbf{w}) \equiv \text{min}_{\mathbf{w}} \sum_x \tilde{P}(x) \log T_{\mathbf{w}}(x) - \sum_t w_t \tilde{P}(f_t) + \frac{1}{2\sigma^2}\sum_t w_t^2. $$&lt;/p&gt;
+
+&lt;p&gt;Here, $\tilde{P}(x) = \sum_y \tilde{P}(x,y),$ where $\tilde{P}(x,y)$ is the empirical distribution, and $\tilde{P}(f_t)$ is the expected value of $f_t(x,y)$. The log-likelihood itself (without regularization) is convex, but adding the regularization term makes it strictly convex, and it can also be shown that this objective function has a unique global minima.&lt;/p&gt;
+
+&lt;p&gt;If we update our weights (either in parallel or in sequence), after one such iteration of updation, we change our objective function from $L(\mathbf{w})$ to $L(\mathbf{w}+\mathbf{z})$, where $\mathbf{z}$ si the update made to the weights. Each such iteration can be written as a subproblem which we need to solve, i.e.&lt;/p&gt;
+
+&lt;p&gt;$$ A(\mathbf{z}) \leq L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}).$$&lt;/p&gt;
+
+&lt;p&gt;In addition, if we have $A(0) = 0$, this implies that $L$ decreases with every update. Let us now expand the RHS in the above equation. We have&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) &amp;amp;= \sum_x \tilde{P}(x) \log T_{\mathbf{w}+\mathbf{z}}(x) - \sum_t w_t \tilde{P}(f_t) + \frac{1}{2\sigma^2}\sum_t (w_t+z_t)^2 \\\ &amp;amp; - \sum_x \tilde{P}(x) \log T_{\mathbf{w}}(x) + \sum_t w_t \tilde{P}(f_t) - \frac{1}{2\sigma^2}\sum_t w_t^2 \\\ &amp;amp;= \sum_x \tilde{P}(x) \log \frac{T_{\mathbf{w}+\mathbf{z}}(x)}{T_{\mathbf{w}}(x)} + \sum_t Q_t (z_t) \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;where $Q_t(z_t) \equiv \frac{2w_tz_t + z_t^2}{2\sigma^2} - z_t \tilde{P}(f_t)$. Further, the ratio in the log term can be simplified as&lt;/p&gt;
+
+&lt;p&gt;$$ \frac{T_{\mathbf{w}+\mathbf{z}}(x)}{T_{\mathbf{w}}(x)} = \sum_y P_{\mathbf{w}}(y|x)e^{\sum_t z_t f_t(x,y)}. $$&lt;/p&gt;
+
+&lt;p&gt;This is the general overview of the problem that all IS and CD methods solve. The difference is in how this function is minimized. Let us look at each of the methods and how they build upon this general framework.&lt;/p&gt;
+
+&lt;h3 id=&#34;coordinate-descent&#34;&gt;Coordinate Descent&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://link.springer.com/article/10.1007%2Fs10107-015-0892-3&#34; target=&#34;_blank&#34;&gt;CD&lt;/a&gt; solves the exact problem without any approximation, i.e., the subproblem is&lt;/p&gt;
+
+&lt;p&gt;$$ A(\mathbf{z}) = L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) $$&lt;/p&gt;
+
+&lt;p&gt;This then leads to the subproblem be exactly equal to as derived above. This has an advantage and a limitation.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Since $A(\mathbf{z})$ here is the maximum possible decrement in any iteration, the convergence requires the least number of steps out of all possible approximations of $A(\mathbf{z})$.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Because of the presence of the log term in the objective function, there is no closed form solution, and so every iteration must solve an optimization problem using the Newton method.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In practice, the Newton optimization at each step overshadows any gain due to fewer iterations till convergence, so that CD takes more time to converge than IS methods which approximate $A(\mathbf{z})$.&lt;/p&gt;
+
+&lt;h3 id=&#34;generalized-is-gis-and-sequential-conditional-gis-sc-gis&#34;&gt;Generalized IS (GIS) and Sequential Conditional GIS (SC-GIS)&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.jstor.org/stable/2240069?seq=1#metadata_info_tab_contents&#34; target=&#34;_blank&#34;&gt;GIS&lt;/a&gt; and &lt;a href=&#34;http://www.aclweb.org/anthology/P02-1002&#34; target=&#34;_blank&#34;&gt;SC-GIS&lt;/a&gt; use the approximation $\log \alpha \leq \alpha -1$ to get&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} L(\mathbf{w}+\mathbf{z}) - L(\mathbf{w}) &amp;amp;\leq \sum_t Q_t (z_t) + \sum_x \tilde{P}(x)       (\sum_y P_{\mathbf{w}}(y|x) e^{\sum_t z_t f_t(x,y)} - 1) \\\ &amp;amp;= \sum_t Q_t (z_t) + \sum_{x,y} \tilde{P}(x) (P_{\mathbf{w}}(y|x)e^{\sum_t z_t f_t(x,y)} - 1)   \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;Define $f^{\#}(x,y) = \sum_t f_t(x,y)$ and $f^{\#}=\text{max}_{x,y}(f^{\#}(x,y))$. We can then use Jensen&amp;rsquo;s inequality to upper bound the exponential term in the above inequality. GIS is a parallel update method, i.e., all the $w_t$&amp;rsquo;s are updated simultaneously, which means that we can use $f^{\#}$ to bound the exponential terms. On the contrary, SC-GIS is a sequential method, which means we can only use $f_t^{\#}$ to get this bound, where $f_t^{\#} \equiv \text{max}_{x,y}f_t(x,y)$. Finally, the subproblems can be written as&lt;/p&gt;
+
+&lt;p&gt;$$ A_t^{GIS}(z_t) = Q_t (z_t) + \frac{e^{z_t f^{\#}}-1}{f^{\#}}\sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y)  $$&lt;/p&gt;
+
+&lt;p&gt;$$ A_t^{SC-GIS}(z_t) = Q_t (z_t) + \frac{e^{z_t f_t^{\#}}-1}{f_t^{\#}}\sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y) $$&lt;/p&gt;
+
+&lt;h3 id=&#34;improved-is-iis&#34;&gt;Improved IS (IIS)&lt;/h3&gt;
+
+&lt;p&gt;A problem with bounding in terms of $f^{\#}$ as done in GIS is that $f^{\#}$ can be too large even if one of the $(x,y)$ pairs has a large value of $f^{\#}(x,y)$. This would cause the subproblem to be very small, similar to the issue of small learning rates in gradient-based optimization. To remedy this, we can bound in terms of $f^{\#}(x,y)$, although in that case we the term cannot be taken out of the summation. This is what is done in IIS, and this gives the following definition of the subproblem.&lt;/p&gt;
+
+&lt;p&gt;$$ A_t^{IIS}(z_t) = Q_t (z_t) + \sum_{x,y} \tilde{P}(x) P_{\mathbf{w}}(y|x)f_t(x,y)\frac{e^{z_t f^{\#}(x,y)}-1}{f^{\#}(x,y)} $$&lt;/p&gt;
+
+&lt;h2 id=&#34;key-points&#34;&gt;Key points&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Iterative scaling and coordinate descent methods have provably linear convergence.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;However, the time complexity of solving each subproblem is key in choosing which method to use for optimization.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;GIS and SC-GIS have closed form solutions for the subproblems, which makes it $\mathcal{O}(1)$ to solve each iteration.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Although CD and IIS need Newton optimization for each subproblem, the authors propose a fast CD method which performs only 1 update in later iterations. This is because it is empirically observed that a single update is enough to update the weight sufficiently in later stages.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Experiments with Subword Modeling</title>
+      <link>https://desh2608.github.io/post/subword-segmentation/</link>
+      <pubDate>Thu, 22 Nov 2018 11:27:15 -0500</pubDate>
+      
+      <guid>https://desh2608.github.io/post/subword-segmentation/</guid>
+      <description>
+
+&lt;p&gt;Think about tasks such as machine translation (MT), automatic speech recognition (ASR), or handwriting recognition (HWR). While these appear very distinct, on abstraction they share the same pipeline wherein given an input signal, we are required to predict some text. The difference only lies in the form of the input signal - it is a piece of text, a sound wave, or a line image, in the case of MT, ASR, and HWR, respectively.&lt;/p&gt;
+
+&lt;p&gt;In all of these tasks, OOV words are a major source of nuisance. &lt;em&gt;What is an OOV word?&lt;/em&gt; Simply put, these are those words in the test dataset which are not seen in the training data, and as such, not present in the vocabulary - hence the name &amp;ldquo;out of vocabulary&amp;rdquo;. Even if the training vocabulary is very large (in fact, the name Large Vocabulary ASR is very common), the test data may still have words which were never seen before, for instance, names of people, places, or organizations.&lt;/p&gt;
+
+&lt;p&gt;A crude way of dealing with such OOV words may be to simply predict a special token &lt;code&gt;&amp;lt;UNK&amp;gt;&lt;/code&gt; whenever they are encountered. However, this would lead to severe information loss, especially when all new names are replaced by the special token. This is where subwords come into the picture.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Subwords are smaller units that comprise words. They may be a single character, or even entire words.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;For example, suppose our training vocabulary consists of just 2 words {&amp;lsquo;speech&amp;rsquo;,&amp;lsquo;processing&amp;rsquo;}. If our language model is trained on word-level, we would only be able to predict these 2 words, and nothing else. So while testing, if we are required to predict the phrase &amp;ldquo;&lt;em&gt;he sings in a choir&lt;/em&gt;&amp;rdquo;, our model would fail miserably. However, if we had trained on a subword-level (say, character level), we have a non-zero chance of predicting the phrase since all the characters are seen in the training. This provides sufficient motivation for using subwords in these tasks.&lt;/p&gt;
+
+&lt;p&gt;Traditionally, in ASR, subwords have been modeled using information from phonemes (distinct sound units), such that a subword corresponds to a phoneme unit. The intuition is that at test time, any new word can only be formed using phonemes of the language. However, this requires considerable domain knowledge, and even still, variations in accent or speaker can greatly affect test-time performance.&lt;/p&gt;
+
+&lt;p&gt;In MT, subwords first came into limelight with &lt;a href=&#34;http://www.aclweb.org/anthology/P16-1162&#34; target=&#34;_blank&#34;&gt;this popular paper&lt;/a&gt; from Seinrich and Haddow at the University of Edinburgh. They used a simple but effective &lt;a href=&#34;https://en.wikipedia.org/wiki/Byte_pair_encoding&#34; target=&#34;_blank&#34;&gt;Byte Pair Encoding (BPE)&lt;/a&gt; based approach to identify subword units in the text. The summary of their method is as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Fix a vocabulary size &lt;em&gt;V&lt;/em&gt; according to your total data size.&lt;/li&gt;
+&lt;li&gt;Separate all the characters in all the words.&lt;/li&gt;
+&lt;li&gt;Merge the most frequent bigram into one token and add it to the vocabulary.&lt;/li&gt;
+&lt;li&gt;Perform &lt;em&gt;V&lt;/em&gt; such merge operations to get the final vocabulary.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This simple method performs extremely well in practice, and the authors were able to get improvements of about 1.1 BLEU points on an English to German translation task.&lt;/p&gt;
+
+&lt;p&gt;I was recently working on an HWR task which required similar subword modeling for OOV word recognition, and the remainder of this article is about the methods used and their performance.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;towards-a-likelihood-based-model&#34;&gt;Towards a likelihood-based model&lt;/h2&gt;
+
+&lt;p&gt;The first method we tried was the BPE-based approach, and it gave improvements on the word-error rate (WER) over the word-based model. However, BPE is constrained in the sense that it is a deterministic technique. Once you have fixed the training vocabulary, every string can only be segmented in a specific way. This may hint at a loss of modeling power, and so our first hypothesis is that a probabilistic segmentation technique may perform better.&lt;/p&gt;
+
+&lt;p&gt;On further investigation, I found a &lt;a href=&#34;https://arxiv.org/abs/1804.10959&#34; target=&#34;_blank&#34;&gt;recent paper&lt;/a&gt; which proposes a technique known as &amp;ldquo;subword regularization&amp;rdquo; for MT. The method consists of two parts: vocabulary learning, and subword sampling.&lt;/p&gt;
+
+&lt;h3 id=&#34;vocabulary-learning&#34;&gt;Vocabulary learning&lt;/h3&gt;
+
+&lt;p&gt;Similar to the BPE-based technique, we start with all the characters distinct in every word, and merge until we reach the desired vocabulary size &lt;em&gt;V&lt;/em&gt;. However, while BPE used the metric of most frequent bigram, the Unigram SR method ranks all subwords according to the likelihood reduction on removing the subword from the vocabulary. The top 80% of these are retained and the rest are discarded. Once this phase is over, we can now obtain the likelihood of observing a subword sequence given any string (sentence).&lt;/p&gt;
+
+&lt;h3 id=&#34;subword-sampling&#34;&gt;Subword sampling&lt;/h3&gt;
+
+&lt;p&gt;We choose the top-k segmentations based on the likelihood, and then model them as a multinomial distribution $P(x_i | X) = \frac{P(x_i)^{\alpha}}{\sum_l P(x_i)^{\alpha}}$, where $\alpha$ is a smoothing hyperparameter. A smaller $\alpha$ leads to a more uniform distribution, while a larger $\alpha$ leads to Viterbi sampling (i.e., selection of the best segmentation).&lt;/p&gt;
+
+&lt;p&gt;The idea behind this method is &amp;ldquo;regularization by noise&amp;rdquo;. This means that the algorithm is expected to generalize well since we are now training it with some added noise by selecting several different segmentation candidates for any word, and so the model sees a wider variety of subwords during training.&lt;/p&gt;
+
+&lt;p&gt;For implementation, we used Google&amp;rsquo;s &lt;code&gt;sentencepiece&lt;/code&gt; library, which is also the official code of the paper linked above, and integrated it in our Kaldi-based pipeline (&lt;a href=&#34;https://github.com/desh2608/kaldi/blob/iam_sr/egs/wsj/s5/utils/lang/bpe/learn_unigram_sr.py&#34; target=&#34;_blank&#34;&gt;see here&lt;/a&gt;). While the method supposedly performed well in MT, we didn&amp;rsquo;t obtain the same performance improvements in the HWR task. A top-1 (deterministic) sampler gave similar results as BPE, but a top-5 sampler performed worse, which hinted that probabilstic sampling may not necessarily be the best suited option for our task.&lt;/p&gt;
+
+&lt;p&gt;For further analysis, I looked at the frequency of different subword lengths learned by the two methods for the same total vocabulary size.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/bpe.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/uni.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;It turns out that the unigram method learns several &amp;ldquo;longer&amp;rdquo; subwords than BPE, which may give us some idea about the poorer performance. This suggested that if we somehow put a constraint on the lengths of the learned subwords while keeping the probabilistic sampling, we might get the best of both worlds.&lt;/p&gt;
+
+&lt;h2 id=&#34;digression-the-morfessor-tool&#34;&gt;Digression - The Morfessor tool&lt;/h2&gt;
+
+&lt;p&gt;Readers familiar with linguistics (or morphology in particular) would have heard about (or used) the  Morfessor tool, which provides an unsupervised technique for morpheme recognition. Morphemes, in a crude sense, are essentially subword units which are self-contained in meaning. Interestingly, &lt;a href=&#34;http://www.aclweb.org/anthology/W02-0603&#34; target=&#34;_blank&#34;&gt;the first Morfessor paper&lt;/a&gt; proposed a technique which is very similar to the likelihood-based subword modeling in the unigram SR paper (although the author does not seem to be aware of this). Additionally, they also proposed a minimum description length (MDL) based approach which added the subword lengths as a cost in the objective function, and therefore penalized longer subwords. Empirically, they found that the MDL technique outperformed the likelihood based method, and this further reinforced my belief that a subword length constraint would prove beneficial for the task.&lt;/p&gt;
+
+&lt;h2 id=&#34;lzw-based-subword-modeling&#34;&gt;LZW-based subword modeling&lt;/h2&gt;
+
+&lt;p&gt;In an &lt;a href=&#34;https://pdfs.semanticscholar.org/dfcd/6bb8dcbcf828f8414c494fa56e96f8169a7b.pdf&#34; target=&#34;_blank&#34;&gt;Interspeech 2005 paper&lt;/a&gt;, a new subword modeling algorithm was presented which supposedly correlated strongly with syllables of a language. The method is based on the popular &lt;a href=&#34;https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Welch&#34; target=&#34;_blank&#34;&gt;LZW compression technique&lt;/a&gt; (which is also used in the Unix &lt;code&gt;compress&lt;/code&gt; utility). In the context of strings, the LZW method finds a set of prefix-free substrings to encode the given string. The authors of the paper further used subword length tables to keep track of how many times each such subword was called during training, and thus ranked them within the tables. The test-time segmentation was determined by computing the average rank of all the segmentation candidates in this tree traversal.&lt;/p&gt;
+
+&lt;p&gt;In our implementation, we further integrated the probabilistic sampling method from the unigram SR, and used memoization to make the tree traversal computationally efficient. The implementation for learning and applying the model can be found &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/iam_sr/egs/wsj/s5/utils/lang/learn_lzw.py&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; and &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/iam_sr/egs/wsj/s5/utils/lang/apply_lzw.py&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;, respectively.&lt;/p&gt;
+
+&lt;p&gt;Perhaps the most critical segments of the implementation are the following:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;def learn_subwords_from_word(word, tab_seqlen, tab_pos, max_subword_length):
+    w = &amp;quot;&amp;quot;
+    pos = 0
+    for i,c in enumerate(word):
+        if (i == len(word) - 1):
+            pos = 2
+        wc = w + c
+        if (len(wc) &amp;gt; max_subword_length):
+            wc = c
+        
+        if wc in tab_seqlen[len(wc)-1]:
+            w = wc
+            tab_seqlen[len(wc)-1][wc] += 1
+        else:
+            tab_seqlen[len(wc)-1][wc] = 1
+            w = c
+        if wc in tab_pos[pos]:
+            w = wc
+            tab_pos[pos][wc] += 1
+            i -= 1
+        else:
+            tab_pos[pos][wc] = 1
+            w = c
+            pos = min(i,1)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;def compute_segment_scores(word, tab_seqlen, tab_pos, scores):
+    if (len(word) == 0):
+        return ([])
+    max_subword_length = len(tab_seqlen)
+    seg_scores = []
+    for i in range(max_subword_length):
+        if(i &amp;lt; len(word)):
+            subword = word[:i+1]
+            if subword in tab_seqlen[i]:
+                other_scores = []
+                subword_score = float(tab_seqlen[i][subword][1]/(((i+1)**max_subword_length)*len(tab_seqlen[i])))
+                if (word[i+1:] in scores):
+                    other_scores = copy.deepcopy(scores[word[i+1:]])
+                else:
+                    other_scores = copy.deepcopy(compute_segment_scores(word[i+1:], tab_seqlen, tab_pos, scores))
+                if (len(other_scores) == 0):
+                    seg_scores.append(([subword],subword_score))
+                else:
+                    for j,segment in enumerate(other_scores):
+                        other_scores[j] = ([subword]+segment[0],subword_score+segment[1])
+                    seg_scores += other_scores
+    seg_scores = sorted(seg_scores, key=lambda item: item[1])
+    scores[word] = seg_scores
+    return seg_scores
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It may be noted here that the score of a segmentation candidate is calculated as the sum of the scores for all the subwords in that segmentation, where the score of subword $\sigma_w$ is defined as&lt;/p&gt;
+
+&lt;p&gt;$$ \sigma_w = w \times \text{relative rank of subword in its table}$$&lt;/p&gt;
+
+&lt;p&gt;Here, $w = \left(\frac{1}{|w|}\right)^{\max_w{|w|}}$. This score empirically gives subword lengths which correspond closely with the distribution of syllable lengths in English. It is a variation of the scoring scheme proposed in the original paper.&lt;/p&gt;
+
+&lt;p&gt;An analysis of the subword length frequencies obtained using this method reveals the following.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/lzw1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As expected, it produces more subwords of shorter lengths. A log-scale graph reveals further details about frequencies of longer subwords.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/lzw2.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For higher lengths, LZW corresponds strongly with BPE, while unigram SR is nowhere close.&lt;/p&gt;
+
+&lt;p&gt;However, in the actual task, the method performs worse than both BPE and unigram, and this further strengthed my belief that probabilistic sampling, while useful for MT, does not quite fit in this particular HWR dataset.&lt;/p&gt;
+
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;While BPE seems like an ad-hoc technique for modeling subword units, it actually performs exceptionally well in practice. This, combined with its simplicity of implementation and low time complexity, makes it a great candidate for the task.&lt;/p&gt;
+
+&lt;p&gt;However, I believe that if a subword model were informed by the grapheme units (for HWR), as early techniques for ASR were informed by phonemes, it might perform well on the task. This seems like an interesting direction for exploration.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Award-winning classic papers in ML and NLP</title>
+      <link>https://desh2608.github.io/post/classic-papers/</link>
+      <pubDate>Thu, 30 Aug 2018 19:57:44 -0400</pubDate>
+      
+      <guid>https://desh2608.github.io/post/classic-papers/</guid>
+      <description>
+
+&lt;p&gt;I was trying to find a consolidated list of papers in machine learning (ICML, NIPS, AAAI, SIGIR) and natural language processing (ACL, EMNLP, NAACL) published after 2000, which are held in some regard, perhaps by winning prizes such as Test-of-time paper at these major conferences. However, there seems to be no such list, or if it is, it&amp;rsquo;s hidden too deep and it may just be quicker to prepare a similar list of my own. I will add the papers in reverse chronological order of their publication year.&lt;/p&gt;
+
+&lt;h2 id=&#34;2009&#34;&gt;2009&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/E/E09/E09-1081.pdf&#34; target=&#34;_blank&#34;&gt;A General, Abstract Model of Incremental Dialogue Processing&lt;/a&gt;. David Schlangen and Gabriel Skantze. EACL 2009. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2008&#34;&gt;2008&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://ronan.collobert.com/pub/matos/2008_nlp_icml.pdf&#34; target=&#34;_blank&#34;&gt;A unified architecture for natural language processing: deep neural networks with multitask learning&lt;/a&gt;. Ronan Collobert and Jason Weston. ICML 2008. &lt;em&gt;Test-of-time award at ICML 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/D08-1027&#34; target=&#34;_blank&#34;&gt;Cheap and Fast—But is it Good?: Evaluating Non-Expert Annotations for Natural Language Tasks&lt;/a&gt;. Snow, O&amp;rsquo;Connor, Jurafsky, and Ng. EMNLP 2008. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/J/J08/J08-1001.pdf&#34; target=&#34;_blank&#34;&gt;Modeling Local Coherence: An entity-based approach&lt;/a&gt;. Regina Barzilay and Mirella Lapata. Transactions of ACL (2008). &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2007&#34;&gt;2007&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://people.eecs.berkeley.edu/~brecht/papers/07.rah.rec.nips.pdf&#34; target=&#34;_blank&#34;&gt;Random features for large scale kernel machines&lt;/a&gt;. Ali Rahimi and Ben Recht. NIPS 2007. &lt;em&gt;Test-of-time award at NIPS 2017&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www0.cs.ucl.ac.uk/staff/d.silver/web/Applications_files/combining_uct.pdf&#34; target=&#34;_blank&#34;&gt;Combining Online and Offline Knowledge in UCT&lt;/a&gt;. Sylvain Gelly and David Silver. ICML 2007. &lt;em&gt;Test-of-time award at ICML 2017&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://ttic.uchicago.edu/~nati/Publications/PegasosMPB.pdf&#34; target=&#34;_blank&#34;&gt;Pegasos: Primal estimated sub-gradient solver for SVM&lt;/a&gt;. Shalev-Shwartz et al. ICML 2007. &lt;em&gt;Honorable mention at ICML 2017&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.83.719&amp;amp;rep=rep1&amp;amp;type=pdf&#34; target=&#34;_blank&#34;&gt;A Bound on the Label Complexity of Agnostic Active Learning&lt;/a&gt;. Steve Hanneke. ICML 2007. &lt;em&gt;Honorable mention at ICML 2017&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://aclweb.org/anthology/J/J09/J09-4008.pdf&#34; target=&#34;_blank&#34;&gt;An Investigation into the Validity of Some Metrics for Automatically Evaluating Natural Language Generation Systems&lt;/a&gt;. Ehud Reiter and Anja Belz. Transactions of ACL 2009. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/P07-1033&#34; target=&#34;_blank&#34;&gt;Frustratingly Easy Domain Adaptation&lt;/a&gt;. Hal Daume III. ACL 2007. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2006&#34;&gt;2006&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://icml.cc/2016/awards/dtm.pdf&#34; target=&#34;_blank&#34;&gt;Dynamic topic models&lt;/a&gt;. David Blei and John Lafferty. ICML 2006. &lt;em&gt;Test-of-time award at ICML 2016&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://dl.acm.org/citation.cfm?id=1148177&#34; target=&#34;_blank&#34;&gt;Improving web search ranking by incorporating user behavior information&lt;/a&gt;. Agichtein et al. SIGIR 2006. &lt;em&gt;Test-of-time award at SIGIR 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2005&#34;&gt;2005&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://icml.cc/2015/wp-content/uploads/2015/06/icml_ranking.pdf&#34; target=&#34;_blank&#34;&gt;Learning to Rank Using Gradient Descent&lt;/a&gt;. Burges et al. ICML 2005. &lt;em&gt;Test-of-time award at ICML 2015&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/H/H05/H05-1044.pdf&#34; target=&#34;_blank&#34;&gt;Recognizing Contextual Polarity in Phrase-Level Sentiment Analysis&lt;/a&gt;. Wilson, Weibi, and Hoffman. EMNLP 2005. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2004&#34;&gt;2004&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://www.di.ens.fr/~fbach/skm_icml.pdf&#34; target=&#34;_blank&#34;&gt;Multiple kernel learning, conic duality, and the SMO algorithm&lt;/a&gt;. Michael Jordan&amp;rsquo;s group. ICML 2004. &lt;em&gt;10 year paper award at ICML 2014&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://l2r.cs.uiuc.edu/~danr/Papers/RothYi04.pdf&#34; target=&#34;_blank&#34;&gt;A Linear Programming Formulation for Global Inference in Natural Language Tasks&lt;/a&gt;. Dan Roth and Wen-tau Yih. CoNLL 2004. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.cs.columbia.edu/~ani/papers/pyramid.pdf&#34; target=&#34;_blank&#34;&gt;Evaluating Content Selection in Summarization: The Pyramid Method&lt;/a&gt;. Ani Nenkova and Rebecca Passonneau. NAACL 2004. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/W/W04/W04-3252.pdf&#34; target=&#34;_blank&#34;&gt;TextRank: Bringing Order into Texts&lt;/a&gt;. Rada Mihalcea and Paul Tarau. EMNLP 2004. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/P/P04/P04-1011.pdf&#34; target=&#34;_blank&#34;&gt;Trainable sentence planning for complex information presentation in spoken dialog systems&lt;/a&gt;. Stent, Prasad, and Walker. ACL 2004. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2003&#34;&gt;2003&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://mlg.eng.cam.ac.uk/zoubin/papers/zgl.pdf&#34; target=&#34;_blank&#34;&gt;Semi-Supervised Learning Using Gaussian Fields and Harmonic Functions&lt;/a&gt;. Zhu, Ghahramani, and Lafferty. ICML 2003. &lt;em&gt;Classic paper prize at ICML 2013&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://people.eecs.berkeley.edu/~brecht/cs294docs/week1/03.Zinkevich.pdf&#34; target=&#34;_blank&#34;&gt;Online Convex Programming and Generalized Infinitesimal Gradient Ascent&lt;/a&gt;. Martin Zinkevich. ICML 2003. &lt;em&gt;Classic paper prize at ICML 2013&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/J/J03/J03-4002.pdf&#34; target=&#34;_blank&#34;&gt;Anaphora and Discourse Structure&lt;/a&gt;. Webber et al. Computational Linguistics (2003). &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/P03-1021&#34; target=&#34;_blank&#34;&gt;Minimum Error Rate Training In Statistical Machine Translation&lt;/a&gt;. Franz Och. ACL 2003. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/P03-1069&#34; target=&#34;_blank&#34;&gt;Probabilistic Text Structuring: Experiments with Sentence Ordering&lt;/a&gt;. Mirella Lapata. ACL 2003. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/N/N03/N03-1030.pdf&#34; target=&#34;_blank&#34;&gt;Sentence Level Discourse Parsing using Syntactic and Lexical Information&lt;/a&gt;. Radu Soricut and Daniel Marcu. NAACL 2003. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2002&#34;&gt;2002&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/P02-1033&#34; target=&#34;_blank&#34;&gt;An Unsupervised Method for Word Sense Tagging using Parallel Corpora&lt;/a&gt;. Mona Diab and Philip Resnik. ACL 2002. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://www.aclweb.org/anthology/P02-1040.pdf&#34; target=&#34;_blank&#34;&gt;BLEU: a Method for Automatic Evaluation of Machine Translation&lt;/a&gt;. Papineni et al. ACL 2002. &lt;em&gt;Test-of-time award at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/W02-1001&#34; target=&#34;_blank&#34;&gt;Discriminative Training Methods for Hidden Markov Models: Theory and Experiments with Perceptron Algorithms&lt;/a&gt;. Michael Collins. EMNLP 2002. &lt;em&gt;Test-of-time award at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/W02-1011&#34; target=&#34;_blank&#34;&gt;Thumbs up?: Sentiment Classification using Machine Learning Techniques&lt;/a&gt;. Pang, Lee, and Vaithyanathan. EMNLP 2002. &lt;em&gt;Test-of-time award at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/W/W02/W02-0603.pdf&#34; target=&#34;_blank&#34;&gt;Unsupervised Discovery of Morphemes&lt;/a&gt;. Mathia Creutz and Krista Laguz. SIGPHON 2002. &lt;em&gt;Honorable mention at NAACL 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;2001&#34;&gt;2001&lt;/h2&gt;
+
+&lt;h2 id=&#34;2000&#34;&gt;2000&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://papers.nips.cc/paper/1861-algorithms-for-non-negative-matrix-factorization.pdf&#34; target=&#34;_blank&#34;&gt;Algorithms for non-negative matrix factorization&lt;/a&gt;. Daniel Lee and H. Sebastian Seung. NIPS 2000. &lt;em&gt;Classic paper award at NIPS 2013&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;http://www.jmlr.org/papers/volume1/allwein00a/allwein00a.pdf&#34; target=&#34;_blank&#34;&gt;Reducing Multiclass to Binary: A Unifying Approach for Margin Classifiers&lt;/a&gt;. Erin Allwein, Robert Schapire, and Yoram Singer. ICML 2000. &lt;em&gt;Best 10 year paper award at ICML 2000&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;a href=&#34;https://www.aaai.org/Papers/AAAI/2000/AAAI00-069.pdf&#34; target=&#34;_blank&#34;&gt;PROMPT: Algorithm and Tool for Automated Ontology Merging and Alignment&lt;/a&gt;. Natalya Roy and Mark Musen. AAAI 2000. &lt;em&gt;Classic paper award at AAAI 2018&lt;/em&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Some random observations:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;NLP venues didn&amp;rsquo;t really have a classic paper section until this year&amp;rsquo;s NAACL, which is probably why so many papers were nominated.&lt;/li&gt;
+&lt;li&gt;2001 seems to have been a dismal year for NLP, with no good papers in the long run. By contrast, the community appears to have bounced back next year, with all 3 NAACL 2018 test-of-time awards given to papers from 2002.&lt;/li&gt;
+&lt;li&gt;I have no idea why BLEU won. It was supposed to be an &amp;ldquo;understudy,&amp;rdquo; which is pretty clear from its name. The fact that it is still being used as an evaluation metric speaks more of a general failure to construct better metrics than of its strength.&lt;/li&gt;
+&lt;li&gt;Since the papers are from before 2010, deep learning is conspicuous by its absence. In fact, Collobert and Weston&amp;rsquo;s ICML&amp;rsquo;08 paper on a unified architecture for language is the only such paper.&lt;/li&gt;
+&lt;li&gt;Ali Rahimi&amp;rsquo;s &lt;a href=&#34;https://www.livescience.com/62495-rahimi-machine-learning-ai-alchemy.html&#34; target=&#34;_blank&#34;&gt;&amp;ldquo;ML is alchemy&amp;rdquo; talk at NIPS&amp;rsquo;17&lt;/a&gt; got a lot of attention, probably much more than his paper on random features.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;other-similar-lists&#34;&gt;Other similar lists&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://jeffhuang.com/best_paper_awards.html&#34; target=&#34;_blank&#34;&gt;Best paper award winners in Computer Science&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
     
     <item>
       <title>An Introduction to Speech Recognition using WFSTs</title>
@@ -18,8 +391,138 @@
       <pubDate>Mon, 23 Apr 2018 13:41:31 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/intro-speech-recognition-wfst/</guid>
-      <description>Until now, all of my blog posts have been about deep learning methods or their application to NLP. Since the last couple of weeks, however, I have started learning about Automatic Speech Recognition (ASR)1. Therefore, I will also include speech-related articles in this publication now.
-The ASR logic is very simple (it’s just Bayes rule, like most other things in machine learning). Essentially, given a speech waveform, the objective is to transcribe it, i.</description>
+      <description>
+
+&lt;p&gt;Until now, all of my blog posts have been about deep learning methods or their application to NLP. Since the last couple of weeks, however, I have started learning about Automatic Speech Recognition (ASR)&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;. Therefore, I will also include speech-related articles in this publication now.&lt;/p&gt;
+
+&lt;p&gt;The ASR logic is very simple (it’s just Bayes rule, like most other things in machine learning). Essentially, given a speech waveform, the objective is to transcribe it, i.e., identify a text which aligns with the waveform. Suppose $Y$ represents the feature vectors obtained from the waveform (Note: this “feature extraction” itself is an involved procedure, and I will describe it in detail in another post), and $\mathbf{w}$ denotes an arbitrary string of words. Then, we have the following.&lt;/p&gt;
+
+&lt;p&gt;$$ \hat{\mathbf{w}} = \text{arg}\max_{\mathbf{w}} { P(\mathbf{w}|Y)} = \text{arg} \max_{\mathbf{w}} {P(Y|\mathbf{w})P(\mathbf{w}) } $$&lt;/p&gt;
+
+&lt;p&gt;The two likelihoods in the term are trained separately. The first component, known as &lt;em&gt;acoustic modeling&lt;/em&gt;, is trained using a parallel corpus of utterances and speech waveforms. The second component, called &lt;em&gt;language modeling&lt;/em&gt;, is trained in an unsupervised fashion from a large corpus of text.&lt;/p&gt;
+
+&lt;p&gt;Although the ASR training appears simple from this abstract level, the implementation is arguably more complex, and is usually done using Weighted Finite State Transducers (WFSTs). In this post, I’ll describe WFSTs, some of their basic algorithms, and give a brief introduction to how they are used for speech recognition.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;weighted-finite-state-transducers-wfsts&#34;&gt;Weighted Finite State Transducers (WFSTs)&lt;/h4&gt;
+
+&lt;p&gt;If you have taken any Theory of Computation course before, you’d probably already be aware what an &lt;em&gt;automata&lt;/em&gt; is. Essentially, a finite automaton accepts a language (which is a set of strings). They are represented by directed graphs as shown below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/dag.gif&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Each such automaton has a start state, one or more final states, and labeled edges connecting the states. A string is accepted if it ends in a final state after traversing through some path in the graph. For instance in the above DFA (deterministic finite automata), &lt;em&gt;a&lt;/em&gt;, &lt;em&gt;ac&lt;/em&gt;, and &lt;em&gt;ae&lt;/em&gt; are allowed.&lt;/p&gt;
+
+&lt;p&gt;So an &lt;em&gt;acceptor&lt;/em&gt; maps any input string to a binary class {0,1} depending on whether or not the string is accepted. A &lt;em&gt;transducer&lt;/em&gt;, on the other hand, has 2 labels on each edge — an input label, and an output label. Furthermore, a &lt;em&gt;weighted&lt;/em&gt; finite state transducer has weights corresponding to each edge and every final state.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/wfst.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Therefore, a WFST is a mapping from a pair of strings to a weight sum. The pair is formed from the input/output labels along any path of the WFST. For pairs which are not possible in the graph, the corresponding weight is infinite.&lt;/p&gt;
+
+&lt;p&gt;In practice, there are libraries available in every language to implement WFSTs. For C++, &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/WebHome&#34; target=&#34;_blank&#34;&gt;OpenFST&lt;/a&gt; is a popular library, which is also used in the &lt;a href=&#34;http://kaldi-asr.org/&#34; target=&#34;_blank&#34;&gt;Kaldi speech recognition toolkit&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In principle, it is possible to implement speech recognition algorithms without using WFSTs. However, these data structures have &lt;a href=&#34;https://cs.nyu.edu/~mohri/pub/csl01.pdf&#34; target=&#34;_blank&#34;&gt;several proven results&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; and algorithms which can directly be used in ASRs without having to worry about correctness and complexity. These advantages have made WFSTs almost omniscient in speech recognition. I’ll now summarize some algorithms on WFSTs.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;some-basic-algorithms-on-wfsts&#34;&gt;Some basic algorithms on WFSTs&lt;/h3&gt;
+
+&lt;h4 id=&#34;composition&#34;&gt;Composition&lt;/h4&gt;
+
+&lt;p&gt;Composition, as the name suggests, refers to the process of combining 2 WFSTs to form a single WFST. If we have transducers for pronunciation and word-level grammar, such an algorithm would enable us to form a phone-to-word level system easily.&lt;/p&gt;
+
+&lt;p&gt;Composition is done using 3 rules:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Initial state in the new WFST are formed by combining the initial states of the old WFSTs into pairs.&lt;/li&gt;
+&lt;li&gt;Similarly, final states are combined into pairs.&lt;/li&gt;
+&lt;li&gt;For every pair of edges such that the o-label of the first WFST is the i-label of the second, we add an edge from the source pair to the destination pair. The edge weight is summed using the sum rules.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;An example of composition is shown below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/composition.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;At this point, it may be important to define what &amp;ldquo;sum&amp;rdquo; means for edge weights. Formally, the &amp;ldquo;languages&amp;rdquo; accepted by WFSTs are generalized through the notion of &lt;a href=&#34;https://en.wikipedia.org/wiki/Semiring&#34; target=&#34;_blank&#34;&gt;semirings&lt;/a&gt;. Basically, it is a set of elements with 2 operators, namely $\oplus$ and $\otimes$. Depending on the type of semiring, these operators can take on different definitions. For example, in a tropical semiring, $\oplus$ denotes &lt;strong&gt;$\min$&lt;/strong&gt;, and $\otimes$ denotes &lt;strong&gt;sum&lt;/strong&gt;. Furthermore, in any WFST, weights are $\otimes$-multiplied along paths (Note: here “multiplied” would mean summed for a tropical semiring) and $\oplus$-summed over paths with identical symbol sequence.&lt;/p&gt;
+
+&lt;p&gt;See &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/ComposeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; for OpenFST implementation of composition.&lt;/p&gt;
+
+&lt;h4 id=&#34;determinization&#34;&gt;Determinization&lt;/h4&gt;
+
+&lt;p&gt;A deterministic automaton is one in which there is only one transition for each label in every state. By such a formulation, a deterministic WFST removes all redundancy and greatly reduces the complexity of the underlying grammar. But, are all WFSTs determinizable?&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;The Twins Property:&lt;/em&gt; Let us consider an automaton A. Two states &lt;em&gt;p&lt;/em&gt; and &lt;em&gt;q&lt;/em&gt; in A are said to be siblings if both can be reached by string &lt;em&gt;x&lt;/em&gt; and both have cycles with label &lt;em&gt;y&lt;/em&gt;. Essentially, siblings are twins if the total weight for the paths until the states, as well as that including the cycle, are equal for both.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;A WFST is determinizable if all its siblings are twins.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This is an example of what I said earlier regarding WFSTs being an efficient implementation of the algorithms used in ASR. There are several methods to determinize a WFST. One such algorithm is shown below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/determinization.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In simpler steps, this algorithm does the following:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;At each state, for every outgoing label, if there are multiple outgoing edges for that label, replace them with a single edge with weight as the $\otimes$-sum of all edge weights containing that label.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Since this is a local algorithm, it can be efficiently implemented in-memory. To see how to perform determinization in OpenFST, see &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/DeterminizeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;minimization&#34;&gt;Minimization&lt;/h4&gt;
+
+&lt;p&gt;Although minimization is not as essential as determinization, it is still a nice optimization technique. It refers to minimizing the number of states and transitions in a deterministic WFST.&lt;/p&gt;
+
+&lt;p&gt;Minimization is carried out in 2 steps:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Weight pushing: All weights are pushed towards the start state. See the following example.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/pushing.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;After this is done, we combine those states which have identical paths to any final state. For example in the above WFST, states 1 and 2 have become identical after weight pushing, so they are combined into one state.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In OpenFST, the implementation details for minimization can be found &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/MinimizeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The following&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; shows the complete pipeline for a WFST reduction.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/pipeline.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;wfsts-in-speech-recognition&#34;&gt;WFSTs in speech recognition&lt;/h4&gt;
+
+&lt;p&gt;Several WFSTs are composed in sequence for use in speech recognition. These are:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Grammar (&lt;strong&gt;G&lt;/strong&gt;): This is the language model trained on large text corpus.&lt;/li&gt;
+&lt;li&gt;Lexicon (&lt;strong&gt;L&lt;/strong&gt;): This encodes information about the likelihood of phones without context.&lt;/li&gt;
+&lt;li&gt;Context-dependent phonetics (&lt;strong&gt;C&lt;/strong&gt; ): This is similar to n-gram language modeling, except that it is for phones.&lt;/li&gt;
+&lt;li&gt;HMM structure (&lt;strong&gt;H&lt;/strong&gt;): This is the model for the waveform.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In general, the composed transducer &lt;strong&gt;H&lt;/strong&gt;o&lt;strong&gt;C&lt;/strong&gt;o&lt;strong&gt;L&lt;/strong&gt;o&lt;strong&gt;G&lt;/strong&gt; represents the entire pipeline of speech recognition. Each of the components can individually be improved, so that the entire ASR system gets improved.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;em&gt;This was just a brief introduction to WFSTs which are an important component in ASR systems. In further posts on speech, I hope to discuss things such as feature extraction, popular GMM-HMM models, and latest deep learning advances. I am also reading papers mentioned &lt;a href=&#34;http://jrmeyer.github.io/asr/2017/04/05/seminal-asr-papers.html&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; to get a good overview of how ASR has progressed over the years.&lt;/em&gt;&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Gales, Mark, and Steve Young. &amp;ldquo;The application of hidden Markov models in speech recognition.&amp;rdquo; Foundations and Trends in Signal Processing 1.3 (2008): 195–304.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Mohri, Mehryar, Fernando Pereira, and Michael Riley. &amp;ldquo;Weighted finite-state transducers in speech recognition.&amp;rdquo; Computer Speech &amp;amp; Language 16.1 (2002): 69–88.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;&lt;a href=&#34;https://wiki.eecs.yorku.ca/course_archive/2011-12/W/6328/_media/wfst-tutorial.pdf&#34; target=&#34;_blank&#34;&gt;Lecture slides&lt;/a&gt; from Prof. Hui Jiang (York University)
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
     </item>
     
     <item>
@@ -28,8 +531,167 @@ The ASR logic is very simple (it’s just Bayes rule, like most other things in 
       <pubDate>Sat, 24 Feb 2018 13:40:42 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/sparse-online-learning-lasso-regularization/</guid>
-      <description>Sparse vectors have become popular recently for 2 reasons:
- Sparse matrices require much less storage since they can be stored using various space-saving methods. Sparse vectors are much more interpretable than dense vectors. For instance, the non-zero non-negative components of a sparse word vector may be taken to denote the weights for certain features. In contrast, there is no interpretation for a value like $-0.1347$.  Sparsity is often induced through the use of L1 (or Lasso) regularization.</description>
+      <description>
+
+&lt;p&gt;Sparse vectors have become popular recently for 2 reasons:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Sparse matrices require much less storage since they can be stored using various space-saving methods.&lt;/li&gt;
+&lt;li&gt;Sparse vectors are much more interpretable than dense vectors. For instance, the non-zero non-negative components of a sparse word vector may be taken to denote the weights for certain features. In contrast, there is no interpretation for a value like $-0.1347$.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Sparsity is often induced through the use of L1 (or Lasso) regularization. There are 2 formulations of the Lasso: (i) convex constraint, and (ii) soft regularization.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Convex constraint&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;As the name suggests, a convex constraint is added to the minimization problem so that the parameters do not exceed a certain value.&lt;/p&gt;
+
+&lt;p&gt;$$ \min_{\beta \in \mathbb{R}^p}\lVert y - X\beta \rVert_2^2 \quad \text{s.t.} \quad \lVert \beta \rVert_1 \leq t $$&lt;/p&gt;
+
+&lt;p&gt;The smaller the value of the tuning parameter $t$, fewer is the number of non-zero components in the solution.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Soft regularization&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;This is just the Lagrange form the the convex constraint, and is used because it is easier to optimize. Note that it is equivalent to the convex constraint formulation for an appropriately chosen $g$.&lt;/p&gt;
+
+&lt;p&gt;$$ \min_{\beta \in \mathbb{R}^p}\lVert y - X\beta \rVert_2^2 + g\lVert \beta \rVert_1 $$&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;There is a great theoretical explanation of sparsity with Lasso regularization by &lt;a href=&#34;http://www.stat.cmu.edu/~ryantibs/&#34; target=&#34;_blank&#34;&gt;Ryan Tibshirani&lt;/a&gt; and &lt;a href=&#34;http://www.stat.cmu.edu/~larry/&#34; target=&#34;_blank&#34;&gt;Larry Wasserman&lt;/a&gt; which you can find &lt;a href=&#34;http://www.stat.cmu.edu/~larry/=sml/sparsity.pdf&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. I will instead be focusing on some methods that have been introduced recently for inducing sparsity while learning online i.e., when the samples are obtained one at a time. In addition to such a scenario, online learning also comes into the picture when the data set is simply too large to be loaded in memory at once, and there are not sufficient resources for performing batch learning in a parallel fashion.&lt;/p&gt;
+
+&lt;p&gt;In this post, I will summarize 3 such methods:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.jmlr.org/papers/volume10/langford09a/langford09a.pdf&#34; target=&#34;_blank&#34;&gt;Stochastic Truncated Gradient&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.jmlr.org/papers/volume10/duchi09a/duchi09a.pdf&#34; target=&#34;_blank&#34;&gt;Forward Backward Splitting&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.mendeley.com/viewer/?fileId=00e458de-d9ca-a697-5d67-a4c177759778&amp;amp;documentId=0e9eba78-0cbb-3cb2-a8ea-385a2afb64f5&#34; target=&#34;_blank&#34;&gt;Regularized Dual Averaging&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;But first, why a simple soft Lasso regularization won’t work? With the soft regularization method, we are essentially summing up 2 floating point values. As such, it is highly improbable that the sum will be zero, since very few pairs of floats add up to zero.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;stochastic-truncated-gradient-stg&#34;&gt;Stochastic Truncated Gradient (STG)&lt;/h4&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/14/stg.png&#34; alt=&#34;Simple round-off (T0) vs. Truncated Gradient (T1). Image taken from paper&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;STG combines ideas from 2 simple techniques:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;Coefficient rounding&lt;/em&gt;: In this method, the coefficients are rounded to 0 if they are less than a value $\theta$. This is denoted in the figure above (left graph). The rounding is done after every $k$ steps. The problem with this approach is that if $k$ is small, the coefficients do not get an opportunity to reach a value above $\theta$ before they are pulled back to $0$. On the other hand, if $k$ is large, the intermediate steps in the algorithm need to store a large number of non-zero coefficients, which does not solve the storage issue.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Sub-gradient method&lt;/em&gt;: In this method, L1-regularization is performed by shifting the update in the opposite direction depending on the sign of the coefficient. The update equation is&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;$$ f(w_i) = w_i - \eta\nabla_1 L(w_i,z_i) - \eta g \text{sgn}(w_i) $$&lt;/p&gt;
+
+&lt;p&gt;STG combines &lt;em&gt;rounding&lt;/em&gt; from (1) and &lt;em&gt;gravity&lt;/em&gt; from (2) so that (i) sparsity is achieved (unlike the sub-gradient method), and (ii) the rounding off is not too aggressive (unlike the direct rounding approach). The parameter update is then given by the function $T_1$ (shown in the right graph above).&lt;/p&gt;
+
+&lt;p&gt;$$ T_1(v_j,\alpha,\theta) = \begin{cases} \max(0,v_j-\alpha) \quad &amp;amp;\text{if}~ v_j \in [0,\theta] \\\ \min(0,v_j+\alpha) \quad &amp;amp;\text{if}~ v_j \in [-\theta,0] \\\ 0 \quad &amp;amp;\text{otherwise}   \end{cases} $$&lt;/p&gt;
+
+&lt;p&gt;The update rule is given using $T_1$ as&lt;/p&gt;
+
+&lt;p&gt;$$ f(w_i) = T_1 (w_i - \nabla_1 L_1 (w_i,z_i,\eta g_i,\theta)) $$&lt;/p&gt;
+
+&lt;p&gt;Here, $g$ may be called the gravity parameter, and $\theta$ is called the truncation parameter. In general, the larger these parameters are, the more sparsity is incurred. This can be understood easily from the definition of the truncation function.&lt;/p&gt;
+
+&lt;p&gt;Furthermore, note that on setting $\theta = \infty$ in the truncation function yields a special case of the Sub-gradient method wherein &lt;strong&gt;max&lt;/strong&gt; and &lt;strong&gt;min&lt;/strong&gt; operations are performed after applying gravity pull.&lt;/p&gt;
+
+&lt;p&gt;In the remainder of the paper, the authors prove a strong regret bound for the STG method, and also provide an efficient implementation for the same. Furthermore, they show the asymptotic solution of one instance of the algorithm is essentially equivalent to the Lasso regression, thus justifying the algorithm’s ability to produce sparse weight vectors when the number of features is intractably large.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;forward-backward-splitting-fobos&#34;&gt;Forward Backward Splitting (FOBOS)&lt;/h4&gt;
+
+&lt;p&gt;&lt;em&gt;Note: The method was named Forward Looking Subgradient (FOLOS) in the first draft and later renamed since it was essentially the same as an earlier proposed technique, the Forward Backward Splitting. The authors abbreviated it to FOBOS instead of FOBAS to avoid confusing readers of the first draft.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;First, a little background. Consider an objective function of the form $f(w) + r(w)$. In the case of a number of machine learning algorithms, the function $f$ denotes the empirical sum of some loss function (such as mean squared error), and the function $r$ is a regularizer (such as Lasso). If we use a simple gradient descent technique to minimize this objective function, the iterates would be of the form&lt;/p&gt;
+
+&lt;p&gt;$$ w_{t+1} = w_t - \eta_t g_t^f - \eta_t g_t^r $$&lt;/p&gt;
+
+&lt;p&gt;where the $g$’s are vectors from the subgradient sets of the corresponding functions. From the paper:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;A common problem in subgradient methods is that if $r$ or $f$ is non-differentiable, the iterates of the subgradient method are very rarely at the points of non-differentiability. In the case of the Lasso regularization function, however, these points are often the true minima of the function.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In other words, the subgradient approach will result in neither a true minima nor a sparse solution if $r$ is the L1 regularizer.&lt;/p&gt;
+
+&lt;p&gt;FOBOS, as the name suggests, splits every iteration into 2 steps — a forward step and a backward step, instead of minimizing both $f$ and $r$ simultaneously. The motivation for the method is that for L1 regularization functions, true minima is usually attained at the points of non-differentiability. For example, in the 2-D space, the function resembles a Diamond shape and the minima is obtained at one of the corner points. Each iteration of FOBOS consists of the following 2 steps:&lt;/p&gt;
+
+&lt;p&gt;$$ w_{t+\frac{1}{2}} = w_t - \eta_t g_t^f \\\ w_{t+1} = \text{argmin}_w { \frac{1}{2}(w_t - w_{t+\frac{1}{2}})^2 + \eta_{t+\frac{1}{2}}r(w) } $$&lt;/p&gt;
+
+&lt;p&gt;The first step is a simple unconstrained subgradient step with respect to the function $f$. In the second step, we try to achieve 2 objectives:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Stay close to the interim update vector. This is achieved by the first term.&lt;/li&gt;
+&lt;li&gt;Attain a low complexity value as expressed by $r$. (Second term)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;So the first step is a &lt;em&gt;forward&lt;/em&gt; step, where we update the coefficient in the direction of the subgradient, while the second is a &lt;em&gt;backward&lt;/em&gt; step where we pull the update back a little so as to obtain sparsity by moving in the direction of the non-differentiable points of $r$.&lt;/p&gt;
+
+&lt;p&gt;Using the first equation in the second, taking derivative w.r.t $w$, and equating the derivative to $0$, we obtain the update scheme as&lt;/p&gt;
+
+&lt;p&gt;$$ w_{t+1} = w_t - \eta_t g_t^f + \eta_{t+\frac{1}{2}} g_{t+1}^r $$&lt;/p&gt;
+
+&lt;p&gt;(&lt;strong&gt;Note&lt;/strong&gt;: The equation above looks suspiciously similar to the &lt;strong&gt;&lt;em&gt;Nesterov Accelerated Gradient (NAG)&lt;/em&gt;&lt;/strong&gt; method for optimization. The authors have even cited Nesterov’s paper in related work. It might be interesting to  investigate this further.)&lt;/p&gt;
+
+&lt;p&gt;This update scheme has 2 major advantages, according to the author.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;First, from an algorithmic standpoint, it enables sparse solutions at virtually no additional computational cost. Second, the forward-looking gradient allows us to build on existing analyses and show that the resulting framework enjoys the formal convergence properties of many existing gradient-based and online convex programming algorithms.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In the paper, the authors also prove convergence of the method and show that on setting the intermediate learning rate properly, low regret bounds can be proved for both online as well as batch settings.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;regularized-dual-averaging-rda&#34;&gt;Regularized Dual Averaging (RDA)&lt;/h4&gt;
+
+&lt;p&gt;Both of the above discussed techniques have one limitation — they perform updates depending only on the subgradients at a particular time step. In contrast, the RDA method “exploits the full regularization structure at each iteration.” Also, since the authors derive closed-form solutions for several popular optimization objectives, it follows that the computational complexity of such an approach is not worse than the methods which perform updates only based on current subgradients (both being $\mathcal{O}(n)$).&lt;/p&gt;
+
+&lt;p&gt;RDA comprises of 3 steps in every iteration.&lt;/p&gt;
+
+&lt;p&gt;In the first step, the subgradient is computed for that particular time step. This is the same as every other subgradient-based online optimization method.&lt;/p&gt;
+
+&lt;p&gt;The second step consists of computing a running average of all past subgradients. This is done using the online approach as&lt;/p&gt;
+
+&lt;p&gt;$$ \bar{g}_t = \frac{t-1}{t}\bar{g}_{t-1} + \frac{1}{t}g_t $$&lt;/p&gt;
+
+&lt;p&gt;In the third step, the update is computed as&lt;/p&gt;
+
+&lt;p&gt;$$ w_{t+1} = \text{argmin}_w { &amp;lt;\bar{g}_t,w&amp;gt; + \psi(w) + \frac{\beta}{t}h(w) } $$&lt;/p&gt;
+
+&lt;p&gt;Let us try to understand this update scheme. First, the function $h(w)$ is a strongly convex function such that the update vector which minimizes it also minimizes the regularizer. In the case of Lasso regularization, $h(w)$ is chosen as follows.&lt;/p&gt;
+
+&lt;p&gt;$$ h(w) = \frac{1}{2}\lVert w \rVert_2^2 + \rho \lVert w \rVert_1 $$&lt;/p&gt;
+
+&lt;p&gt;where $\rho$ is a parameter called the sparsity enhancing parameter. $\beta$ is a predetermined non-negative and non-decreasing sequence.&lt;/p&gt;
+
+&lt;p&gt;Now to solve the equation, we can just take the derivative of the argument of argmin and equate it to $0$. On solving this equation, we get an update of the form&lt;/p&gt;
+
+&lt;p&gt;$$ w_{t+1} = \frac{t}{\beta_t}(\bar{g}_t + \rho) $$&lt;/p&gt;
+
+&lt;p&gt;So the scheme ensures that the update is in the same convex space as the regularized dual average. Sparsity can further be controlled by tuning the value of the parameter $\rho$. The scaling factor can be regulated using the
+non-decreasing sequence selected at the beginning of the algorithm. For the case when it is equal to the time step $t$, the new coefficient is simply the sum of the dual average and the sparsity parameter.&lt;/p&gt;
+
+&lt;p&gt;The above is just my attempt at understanding the update scheme for RDA. I would be happy to discuss it further if you find something wrong with this explanation.&lt;/p&gt;
+
+&lt;p&gt;Now the method itself would become extremely infeasible if this differentiation would have to be performed for every iteration. However, for most commonly used regularizers and loss functions, the update rule can be represented with a closed-form solution. For this reason, the overall algorithm has the same complexity as earlier algorithms which use only the current step subgradient for performing updates.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Langford, John, Lihong Li, and Tong Zhang. “Sparse online learning via truncated gradient.” &lt;em&gt;Journal of Machine Learning Research&lt;/em&gt; 10.Mar (2009): 777–801.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Duchi, John, and Yoram Singer. “Efficient online and batch learning using forward backward splitting.” &lt;em&gt;Journal of Machine Learning Research&lt;/em&gt; 10.Dec (2009): 2899–2934.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;Xiao, Lin. “Dual averaging methods for regularized stochastic learning and online optimization.” &lt;em&gt;Journal of Machine Learning Research&lt;/em&gt; 11.Oct (2010): 2543–2596.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
     </item>
     
     <item>
@@ -38,9 +700,62 @@ The ASR logic is very simple (it’s just Bayes rule, like most other things in 
       <pubDate>Thu, 08 Feb 2018 13:40:25 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/short-note-sgd-algorithms/</guid>
-      <description>I just finished reading Sebastian Ruder’s amazing article providing an overview of the most popular algorithms used for optimizing gradient descent. Here I’ll make very short notes on them primarily for purposes of recall.
-Momentum The update vector consists of another term which has the previous update vector (weighted by $\gamma$). This helps it to move faster downhill — like a ball.
-$$ v_t = \gamma v_{t-1} + \eta \nabla_{\theta}J(\theta) $$</description>
+      <description>
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/13/mindmap.png&#34; alt=&#34;Mind Map for algorithms (taken from [this](http://forums.fast.ai/t/how-do-we-decide-the-optimizer-used-for-training/1829/6) forum post)&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;I just finished reading &lt;a href=&#34;http://ruder.io/&#34; target=&#34;_blank&#34;&gt;Sebastian Ruder&lt;/a&gt;’s amazing &lt;a href=&#34;https://arxiv.org/abs/1609.04747&#34; target=&#34;_blank&#34;&gt;article&lt;/a&gt; providing an overview of the most popular algorithms used for optimizing gradient descent. Here I’ll make very short notes on them primarily for purposes of recall.&lt;/p&gt;
+
+&lt;h4 id=&#34;momentum&#34;&gt;Momentum&lt;/h4&gt;
+
+&lt;p&gt;The update vector consists of another term which has the previous update vector (weighted by $\gamma$). This helps it to move faster downhill — like a ball.&lt;/p&gt;
+
+&lt;p&gt;$$ v_t = \gamma v_{t-1} + \eta \nabla_{\theta}J(\theta) $$&lt;/p&gt;
+
+&lt;h4 id=&#34;nesterov-accelerated-gradient-nag&#34;&gt;Nesterov accelerated gradient (NAG)&lt;/h4&gt;
+
+&lt;p&gt;In Momentum optimizer, the ball may go past the minima due to too much momentum, so we want to have a look-ahead term. In NAG, we take gradient of future position instead of current position.&lt;/p&gt;
+
+&lt;p&gt;$$ v_t = \gamma v_{t-1} + \eta \nabla_{\theta}J(\theta - \gamma v_{t-1}) $$&lt;/p&gt;
+
+&lt;h4 id=&#34;adagrad&#34;&gt;Adagrad&lt;/h4&gt;
+
+&lt;p&gt;Instead of a common learning rate for all parameters, we want to have separate learning rate for each. So Adagrad keeps sum of squares of parameter-wise gradients and modifies individual learning rates using this. As a result, parameters occuring more often have smaller gradients.&lt;/p&gt;
+
+&lt;p&gt;$$ \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{G_t +\epsilon}} \odot g_t $$&lt;/p&gt;
+
+&lt;h4 id=&#34;rmsprop&#34;&gt;RMSProp&lt;/h4&gt;
+
+&lt;p&gt;In Adagrad, since we keep adding all gradients, gradients become vanishingly small after some time. So in RMSProp, the idea is to add them in a decaying fashion as&lt;/p&gt;
+
+&lt;p&gt;$$ \mathbb{E}[g^2]_t = \gamma \mathbb{E}[g^2]_{t-1} + (1-\gamma)g_t^2 $$&lt;/p&gt;
+
+&lt;p&gt;Now replace $G_t$ in the denominator of Adagrad equation by this new term. Due to this, the gradients are no more vanishing.&lt;/p&gt;
+
+&lt;h4 id=&#34;adam-adaptive-moment-estimation&#34;&gt;Adam (Adaptive Moment Estimation)&lt;/h4&gt;
+
+&lt;p&gt;Adam combines RMSProp with Momentum. So, in addition to using the decaying average of past squared gradients for parameter-specific learning rate, it uses a decaying average of past gradients in place of the current gradient (similar to Momentum).&lt;/p&gt;
+
+&lt;p&gt;$$ \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{\hat{v_t}+\epsilon}}\hat{m}_t $$&lt;/p&gt;
+
+&lt;p&gt;The $\hat{}$ terms are actually bias-corrected averages to ensure that the values are not biased towards 0.&lt;/p&gt;
+
+&lt;h4 id=&#34;nadam&#34;&gt;Nadam&lt;/h4&gt;
+
+&lt;p&gt;Nadam combines RMSProp with NAG (since NAG is usually better for slope adaptation than Momentum. The derivation is simple and can be found in Ruder’s paper.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;In summary, SGD suffers from 2 problems: (i) being hesitant at steep slopes, and (ii) having same learning rate for all parameters. So the improved algorithms are categorized as:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Momentum, NAG: address issue (i). Usually NAG &amp;gt; Momentum.&lt;/li&gt;
+&lt;li&gt;Adagrad, RMSProp: address issue (ii). RMSProp &amp;gt; Adagrad.&lt;/li&gt;
+&lt;li&gt;Adam, Nadam: address both issues, by combining above methods.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;em&gt;Note&lt;/em&gt;: I have skipped a discussion on AdaDelta in this post since it is very similar to RMSProp and the latter is more popular.&lt;/p&gt;
+</description>
     </item>
     
     <item>

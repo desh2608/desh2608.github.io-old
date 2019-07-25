@@ -1,16 +1,119 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Kaldi on Desh Raj</title>
+    <title>kaldi on Desh Raj</title>
     <link>https://desh2608.github.io/tags/kaldi/</link>
-    <description>Recent content in Kaldi on Desh Raj</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <description>Recent content in kaldi on Desh Raj</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
-    <copyright>&amp;copy; 2018</copyright>
-    <lastBuildDate>Wed, 27 Mar 2019 12:05:41 -0400</lastBuildDate>
+    <copyright>&amp;copy; 2019</copyright>
+    <lastBuildDate>Tue, 21 May 2019 11:49:12 -0400</lastBuildDate>
     
-	<atom:link href="https://desh2608.github.io/tags/kaldi/index.xml" rel="self" type="application/rss+xml" />
+	    <atom:link href="https://desh2608.github.io/tags/kaldi/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>On lattice free MMI and Chain models in Kaldi</title>
+      <link>https://desh2608.github.io/post/chain/</link>
+      <pubDate>Tue, 21 May 2019 11:49:12 -0400</pubDate>
+      
+      <guid>https://desh2608.github.io/post/chain/</guid>
+      <description>
+
+&lt;p&gt;Recently, I came across &lt;a href=&#34;https://arxiv.org/pdf/1811.03700.pdf&#34; target=&#34;_blank&#34;&gt;this paper&lt;/a&gt; which compares several sequence discriminative training criteria based on the popular lattice-free MMI (LF-MMI) objective, and concludes that &amp;ldquo;boosted&amp;rdquo; LF-MMI outperforms others consistently. Since I couldn&amp;rsquo;t find the code publicly available, I set out to implement it myself in &lt;a href=&#34;http://kaldi-asr.org/&#34; target=&#34;_blank&#34;&gt;Kaldi&lt;/a&gt;. The idea was that even if the claim turned out to be false, this would give me a hands-on experience with C++ level implementations in Kaldi.&lt;/p&gt;
+
+&lt;p&gt;On first look, the implementation seems trivial if you already have a LF-MMI (also called the &amp;ldquo;chain&amp;rdquo; model in Kaldi) implementation available. However, there are several tricks used in Kaldi which are worth pointing out. In this article, I start with giving an overview of LF-MMI and its implementation in the chain models, and then talk about how I implemented boosted LF-MMI. The majority of the theory here is based on &lt;a href=&#34;https://www.danielpovey.com/files/2016_interspeech_mmi.pdf&#34; target=&#34;_blank&#34;&gt;this paper which introduced LF-MMI&lt;/a&gt; and &lt;a href=&#34;http://kaldi-asr.org/doc/chain.html&#34; target=&#34;_blank&#34;&gt;this doc on chain model&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;mmi-a-background&#34;&gt;MMI &amp;ndash; a background&lt;/h3&gt;
+
+&lt;p&gt;Maximum mutual information, or MMI, is a sequence discriminative training criteria popular in ASR. &amp;ldquo;Sequence&amp;rdquo; means that the objective takes into account the utterance as a whole instead of &amp;ldquo;frame-level&amp;rdquo; objectives like cross-entropy. &amp;ldquo;Discriminative&amp;rdquo; loosely means using an objective function which supposedly optimizes some criteria associated with the task, and then minimizing that objective directly using gradient-based methods. Discriminative training for LVCSR was made popular in &lt;a href=&#34;https://www.danielpovey.com/files/phd_2003.pdf&#34; target=&#34;_blank&#34;&gt;Dan Povey&amp;rsquo;s thesis&lt;/a&gt;. Formally, the MMI objective for ASR is written as&lt;/p&gt;
+
+&lt;p&gt;$$ F_{MMI}(\lambda) = \sum_{r=1}^R \log \frac{P_{\lambda}(O_r|M_{w_r})P(w_r)}{\sum_{\hat{w}}P_{\lambda}(O_r|M_{\hat{w}})P(\hat{w})}, $$&lt;/p&gt;
+
+&lt;p&gt;where $M_w$ is the HMM corresponding to the transcription $w$. As you can see, the objective function considers the log-probability of the whole utterance in the numerator, and normalizes it by dividing with the log-probability of all possible utterances in the denominator.&lt;/p&gt;
+
+&lt;p&gt;However, computing the sum in the denominator means summing over an exponentially large number of word sequences, which is not practically feasible. To remedy this, we approximate the sum with either of two methods:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;N-best list&lt;/strong&gt;: This is computed once and used for all utterances. However, this approximation is less used since it is too crude.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Lattice structure&lt;/strong&gt;: This may be word/phone based. A path through the lattice represents a possible word/phone sequence. One limitation with using a lattice is that it requires initialization with a trained model, and usually cross-entropy trained systems are used for this purpose. The older &lt;a href=&#34;https://kaldi-asr.org/doc/dnn.html&#34; target=&#34;_blank&#34;&gt;nnet&lt;/a&gt; setups in Kaldi used this approach.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;With the advent of end-to-end models, such a requirement of a trained system to initialize the lattice comes across as a major drawback of lattice-based MMI. How can we avoid using a lattice?&lt;/p&gt;
+
+&lt;h3 id=&#34;lattice-free-mmi&#34;&gt;Lattice-free MMI&lt;/h3&gt;
+
+&lt;p&gt;First proposed in &lt;a href=&#34;https://www.danielpovey.com/files/2016_interspeech_mmi.pdf&#34; target=&#34;_blank&#34;&gt;this paper from Dan Povey&lt;/a&gt;, lattice-free MMI is &amp;ldquo;purely sequence trained&amp;rdquo; in the sense that no cross-entropy training is required to initialize, since it does not use a lattice. So how does it approximate the sum in the denominator? Simply put, it does not &amp;ldquo;approximate&amp;rdquo; it &amp;mdash; it computes this sum exactly.&lt;/p&gt;
+
+&lt;p&gt;The key idea is that if we represent the denominator as a graph and somehow manage to fit this graph in the GPU, then computation can be performed efficiently. In the manner that it is formalized, the denominator graph cannot be fit into the GPU. To fix this, two major modifications are applied:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;A phone LM is used instead of a word LM. The number of possible phones is much smaller than the number of possible words, which makes the size of graph for phone LM significantly smaller.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;DNN outputs are computed at one-third the standard frame rate, which means that we now have 3 times fewer outputs to compute for any utterance. This is achieved by setting the frame shift to 30 ms instead of the traditional 10 ms.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;This reduced frame rate also means that now we cannot use the standard 3-state left-to-right HMM topology that is common in ASR, since we want to traverse the entire HMM in a single frame. Instead, we use an HMM which can emit symbols in the set &lt;code&gt;ab*&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;To train such a system according to the MMI objective, we need a way to efficiently compute the objective itself and its derivative. In Kaldi, the numerator and denominator are represented as FSTs (corresponding to the HMMs) and the overall objective function is simply the difference of these in log-space. As such, we need a way to efficiently represent these FSTs and perform forward-backward on them.&lt;/p&gt;
+
+&lt;h3 id=&#34;the-denominator-and-numerator-fsts&#34;&gt;The denominator and numerator FSTs&lt;/h3&gt;
+
+&lt;p&gt;Let us start with the denominator FST since it is much more expensive. The process of creating the denominator FST is very similar to the &lt;a href=&#34;http://kaldi-asr.org/doc/graph_recipe_test.html&#34; target=&#34;_blank&#34;&gt;decoding graph creation&lt;/a&gt;. The key idea, as in traditional ASR using WFSTs (see &lt;a href=&#34;https://cs.nyu.edu/~mohri/pub/hbka.pdf&#34; target=&#34;_blank&#34;&gt;Mohri&amp;rsquo;s well-known paper&lt;/a&gt;), is to have separate FSTs for &lt;code&gt;H&lt;/code&gt; (HMM state graph), &lt;code&gt;C&lt;/code&gt; (context-dependency), &lt;code&gt;L&lt;/code&gt; (the lexicon), and &lt;code&gt;G&lt;/code&gt; (the language model), and use WFST composition algorithms to get the final graph, with the exception that since we are using phones instead of words, we don&amp;rsquo;t need the &lt;code&gt;L&lt;/code&gt; graph. So our final graph is actually an &lt;code&gt;HCP&lt;/code&gt; instead of an &lt;code&gt;HCLG&lt;/code&gt;, where &lt;code&gt;P&lt;/code&gt; denotes the phone LM.&lt;/p&gt;
+
+&lt;p&gt;At this point, I would like to point out some Kaldi specifics. The phone LM &lt;code&gt;P&lt;/code&gt; is created in stage &lt;code&gt;-6&lt;/code&gt; by calling the function &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/egs/wsj/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py#L25&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;create_phone_lm()&lt;/code&gt;&lt;/a&gt;. The denominator FST is created in the stage &lt;code&gt;-5&lt;/code&gt; within the &lt;code&gt;train.py&lt;/code&gt; script, which internally makes a &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/egs/wsj/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py#L53&#34; target=&#34;_blank&#34;&gt;call to the binary &lt;code&gt;chain-make-den-fst&lt;/code&gt;&lt;/a&gt;. The denominator graph is specificied in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-den-graph.cc&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;chain-den-graph.cc&lt;/code&gt;&lt;/a&gt;. It uses the files &lt;code&gt;$dir/tree&lt;/code&gt; (the tree) and &lt;code&gt;$dir/0.trans_mdl&lt;/code&gt; (the transition model), which correspond to the &lt;code&gt;C&lt;/code&gt; and &lt;code&gt;H&lt;/code&gt; components, and the phone LM that was created in the previous stage.&lt;/p&gt;
+
+&lt;p&gt;The phone LM &lt;code&gt;P&lt;/code&gt; is constructed so that the overall size of the graph is minimized. It is a 4-gram with no backoff lower than 3-gram so that triphones not seen in training cannot be generated. The number of states is limited by completely removing low-count 4-gram states.&lt;/p&gt;
+
+&lt;p&gt;Once we have the composed graph &lt;code&gt;HCP&lt;/code&gt;, a different kind of minimization technique is used, which consists of performing the following operations thrice in a row.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;Push&lt;/em&gt; the weights&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Minimize&lt;/em&gt; the graph&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Reverse&lt;/em&gt; the arcs and swap initial and final states.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Another trick used to reduce the size of the denominator FST for training on the GPU is to train on chunks of 1-1.5 seconds, instead of the entire utterance. However, to do this, we would also need to break up the transcript, and 1-second chunks may not coincide with word boundaries. How do we solve this?&lt;/p&gt;
+
+&lt;p&gt;Recall that the numerator FST is defined to be utterance-specific, and encodes alternative pronunciations of the transcript of the original utterance. This lattice is turned into an FST that constrains at what time the phones can appear, with an error window of 0.05s from their position in the lattice. This is then processed into an FST whose labels are pdf-ids (neural net outputs). We extract fixed size chunks from this FST for training chunks in the denominator FST.&lt;/p&gt;
+
+&lt;p&gt;Another issue associated with chunk-level FSTs is that the initial probabilities are now different. We approximate this by running the HMM for a few iterations and then averaging the probabilities to use as the initial probability of any state. This is a crude approximation but it seems to work. We then call this the &lt;strong&gt;normalization FST&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;The numerator FST is much easier since it just contains the lattice for one utterance, broken into chunks of fixed length. The only point worth mentioning here (and this will be important when we talk about boosted LF-MMI later) is that the numerator FST is composed with the normalization FST. This is done for two reasons.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;It ensures that the objective function value is always negative, which makes it easier to interpret.&lt;/li&gt;
+&lt;li&gt;It also ensures that the numerator FST does not contain sequences that are not allowed by the denominator (or normalization) FST. This happens since the sum of the overall path weights for such sequences will be dominated by the normalization FST part.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;forward-backward-computations&#34;&gt;Forward-backward computations&lt;/h3&gt;
+
+&lt;p&gt;Again, since the numerator FST is much smaller, its forward and backward computations are performed on CPU (the process is outlined in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-numerator.h&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;chain-numerator.h&lt;/code&gt;&lt;/a&gt;), while those for the denominator FST (outlined in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-denominator.h&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;chain-denominator.h&lt;/code&gt;&lt;/a&gt;) are performed on the GPU.&lt;/p&gt;
+
+&lt;p&gt;The basic forward and backward algorithm are the same as well known in literature, and a pseudocode is also given in the extended comments in &lt;code&gt;chain-denominator.h&lt;/code&gt;. However, this algorithm is susceptible to numeric overflow and underflow. To avoid this, we multiply the emission probability of the frame with a normalizing factor $\frac{1}{alpha(t)}$ where $alpha(t) = \sum_{i} \alpha_i (t)$. This is also called an &amp;ldquo;arbitrary scale&amp;rdquo; since in principle it can be allowed to be any value and doesn&amp;rsquo;t affect the posterior. However, we do need to add a quantity $\sum_{t=0}^{T-1} \log alpha(t)$ to the final log probability obtained to make it equal to the actual log probability. This &amp;ldquo;arbitrary scaling&amp;rdquo; is used in both the forward and backward computations.&lt;/p&gt;
+
+&lt;p&gt;The actual objective function computation is implemented in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/src/chain/chain-training.cc#L205&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;ComputeChainObjfAndDeriv()&lt;/code&gt;&lt;/a&gt; defined in &lt;code&gt;chain-training.cc&lt;/code&gt;. There are two Kaldi-specific things I must point out here.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;The forward-backward computation for the denominator FST in the GPU is not done in the log domain, since computing log several times makes things slower. However, this also means that the objective function values can occasionally become &amp;ldquo;bad&amp;rdquo;. To fix this, the &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/src/chain/chain-training.cc#L49&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;PenalizeOutOfRange()&lt;/code&gt;&lt;/a&gt; function is used to encourage the objective to be within the [-30,30] range.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;The denominator computation is performed before the numerator, so as to reduce the maximum memory usage. I am not sure how this is, but it is important to remember this detail as we move to the implementation of boosted LF-MMI.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;implementing-boosted-lf-mmi&#34;&gt;Implementing boosted LF-MMI&lt;/h3&gt;
+
+&lt;p&gt;First, what is boosted LF-MMI? It is the same as LF-MMI, except that now we optimize the following objective function.&lt;/p&gt;
+
+&lt;p&gt;$$ F_{bMMI}(\lambda) = \sum_{r=1}^R \log \frac{P_{\lambda}(O_r|M_{W_r})P(W_r)}{\sum_{\hat{w}}P_{\lambda}(O_r|M_{\hat{w}})P(\hat{w})e^{-bA(M_{w_r},M_{\hat{w}})}}, $$&lt;/p&gt;
+
+&lt;p&gt;where $b$ is the boosting factor and $A(M_{w_r},M_{\hat{w}})$ is the accuracy function which measures the number of matching labels between the reference and hypothesis sequences. My Kaldi implementation for LF-bMMI can be found in &lt;a href=&#34;https://github.com/desh2608/kaldi/tree/bmmi&#34; target=&#34;_blank&#34;&gt;this branch&lt;/a&gt;. You may note that most of the changes are cosmetic and only serve to pass the new argument $b$ from the training script to the actual implementation, which is in the function &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/2e46097b7e4fcd1a07a7e9c1df6f1aaa062fbc33/src/chain/chain-training.cc#L319&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;ComputeBoostedChainObjfAndDeriv()&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In our implementation, the only change is that in the &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/2e46097b7e4fcd1a07a7e9c1df6f1aaa062fbc33/src/chain/chain-training.cc#L369&#34; target=&#34;_blank&#34;&gt;computation for &lt;code&gt;num_logprob_weighted&lt;/code&gt;&lt;/a&gt;, we subtract from &lt;code&gt;numerator.forward()&lt;/code&gt; by a term &lt;code&gt;b * num_seq * frames_per_seq&lt;/code&gt;. This might seem weird at first, since in the expression of the objective function, we actually subtract the denominator by this term. However, recall that the numerator FST is composed with the normalization FST, so that this modification will result in the same result as the objective function above.&lt;/p&gt;
+
+&lt;p&gt;On trying out LF-bMMI for mini-Librispeech, I found it to be slightly worse than regular LF-MMI (11.86 vs 11.74 WER), and consultation with &lt;a href=&#34;http://vimalmanohar.github.io/&#34; target=&#34;_blank&#34;&gt;Vimal Manohar&lt;/a&gt; revealed that he had tried LF-bMMI and LF-SMBR along with &lt;a href=&#34;https://hhadian.github.io/&#34; target=&#34;_blank&#34;&gt;Hossein Hadian&lt;/a&gt; last year to similar results.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Some Kaldi Things</title>
@@ -18,10 +121,141 @@
       <pubDate>Wed, 27 Mar 2019 12:05:41 -0400</pubDate>
       
       <guid>https://desh2608.github.io/post/kaldi-tricks/</guid>
-      <description>This is a regularly updated post on some tips and tricks for working with Kaldi.
-List of contents:
- How to stop training mid-way and decode using last trained stage About Sum() and Append() in Kaldi xconfig Checking training logs Converting between FV and FM types Number of epochs in Kaldi  
-How to stop training mid-way and decode using last trained stage In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe).</description>
+      <description>
+
+&lt;p&gt;&lt;em&gt;This is a regularly updated post on some tips and tricks for working with &lt;a href=&#34;http://kaldi-asr.org/&#34; target=&#34;_blank&#34;&gt;Kaldi&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;List of contents:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;#stop-train&#34;&gt;How to stop training mid-way and decode using last trained stage&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sum-append&#34;&gt;About &lt;code&gt;Sum()&lt;/code&gt; and &lt;code&gt;Append()&lt;/code&gt; in Kaldi xconfig&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#train-logs&#34;&gt;Checking training logs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#convert&#34;&gt;Converting between FV and FM types&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#epochs&#34;&gt;Number of epochs in Kaldi&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a name=&#34;stop-train&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;how-to-stop-training-mid-way-and-decode-using-last-trained-stage&#34;&gt;How to stop training mid-way and decode using last trained stage&lt;/h3&gt;
+
+&lt;p&gt;In the Kaldi chain model, suppose you are training for 4 epochs (which is close to 1000 iterations in the usual run of the TED-LIUM recipe). During training, suppose you decide to stop midway and check the decoding result.&lt;/p&gt;
+
+&lt;p&gt;Now, the training can be stopped and resumed simply by supplying the arguments &lt;code&gt;--stage&lt;/code&gt; and &lt;code&gt;--train-stage&lt;/code&gt;, where the input to &lt;code&gt;stage&lt;/code&gt; is the stage where the &lt;code&gt;train.py&lt;/code&gt; is called, and &lt;code&gt;train-stage&lt;/code&gt; is the stage from where you want to continue training.&lt;/p&gt;
+
+&lt;p&gt;But if you stop at, say, stage 239, and want to decode, you first have to prepare the model for testing. This is so that dropout and batchnorm aren&amp;rsquo;t performed at test time. For this, first run&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;nnet3-am-copy --prepare-for-test=true &amp;lt;dir&amp;gt;/239.mdl &amp;lt;dir&amp;gt;/final.mdl
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This creates a testing model called &lt;code&gt;final.mdl&lt;/code&gt; which the &lt;code&gt;decode.sh&lt;/code&gt; script uses for decoding. Instead of using the default name &lt;code&gt;final&lt;/code&gt;, you can create any test copy name, say &lt;code&gt;239-final.mdl&lt;/code&gt;. To use this mdl file for decoding, pass this as argument to the &lt;code&gt;--iter&lt;/code&gt; argument in &lt;code&gt;decode.sh&lt;/code&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a name=&#34;sum-append&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;about-sum-and-append-in-kaldi-xconfig&#34;&gt;About &lt;code&gt;Sum()&lt;/code&gt; and &lt;code&gt;Append()&lt;/code&gt; in Kaldi xconfig&lt;/h3&gt;
+
+&lt;p&gt;If you have worked with Kaldi xconfig, it is pretty easy to define layer inputs and outputs, using something called &lt;a href=&#34;http://kaldi-asr.org/doc/dnn3_code_data_types.html&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;Descriptors&lt;/code&gt;&lt;/a&gt;. They act as a glue between components and can also perform easy operations like append, sum, scale, round, etc. So, for instance, you can have the following xconfig:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;input name=ivector dim=100
+input dim=40 name=input
+relu-batchnorm-layer name=tdnn1 dim=1280 input=Append(-1,0,1,ReplaceIndex(ivector, t, 0))
+linear-component name=tdnn2l dim=256 input=Append(-1,0)
+relu-batchnorm-layer name=tdnn2 input=Append(0,1) dim=1280
+linear-component name=tdnn3l dim=256
+relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(tdnn3l,tdnn2l)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This network does not make too much sense and is only for purpose of representation. At some point, you may require to do something of the sort &lt;code&gt;Sum(Append(x,y),z)&lt;/code&gt;, i.e., append two inputs and add it to a third input. This operation, however, isn&amp;rsquo;t allowed in the xconfig.&lt;/p&gt;
+
+&lt;p&gt;This is because &lt;code&gt;Sum()&lt;/code&gt; takes 2 &lt;code&gt;&amp;lt;sum-descriptor&amp;gt;&lt;/code&gt; types, while the output of &lt;code&gt;Append()&lt;/code&gt; is a &lt;code&gt;&amp;lt;descriptor&amp;gt;&lt;/code&gt; type which is a super class of &lt;code&gt;&amp;lt;sum-descriptor&amp;gt;&lt;/code&gt;, and as such, there is an argument type mismatch. This can be easily solved:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;no-op-component name=noop1 input=Append(x,y)
+relu-batchnorm-layer name=tdnn3 dim=1280 input=Sum(noop1,tdnn2l)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Similarly, a &lt;code&gt;Scale()&lt;/code&gt; outputs a &lt;code&gt;&amp;lt;fwd-descriptor&amp;gt;&lt;/code&gt; while a &lt;code&gt;Sum()&lt;/code&gt; expects a &lt;code&gt;&amp;lt;sum-descriptor&amp;gt;&lt;/code&gt;, so to use &lt;code&gt;Scale()&lt;/code&gt; inside &lt;code&gt;Sum()&lt;/code&gt; we first have to pass it through a &lt;code&gt;no-op-component&lt;/code&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a name=&#34;train-logs&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;checking-training-logs&#34;&gt;Checking training logs&lt;/h3&gt;
+
+&lt;p&gt;When you are training any chain model in Kaldi, it is important to know if the parameters are getting updated well and if the objective function is improving. All such information is stored in the &lt;code&gt;log&lt;/code&gt; directories in Kaldi, but since there is so much information in there, it may be difficult to find what you are looking for.&lt;/p&gt;
+
+&lt;p&gt;Suppose your working directory is something like &lt;code&gt;exp/chain/tdnn_1a/&lt;/code&gt;. Then, first go to the &lt;code&gt;log&lt;/code&gt; directory by&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;cd exp/chain/tdnn_1a/log
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now, to check the objective functions for all the training iterations, do&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ls -lt train* | grep -r &#39;average objective&#39; .
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This will print something like this, for all the iterations.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;LOG (nnet3-chain-train[5.5.103~1-34cc4e]:PrintTotalStats():nnet-training.cc:348) Overall average objective function for &#39;output&#39; is -0.100819 over 505600 frames.
+LOG (nnet3-chain-train[5.5.103~1-34cc4e]:PrintTotalStats():nnet-training.cc:348) Overall average objective function for &#39;output-xent&#39; is -1.17531 over 505600 frames.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Here, our actual objective is &amp;lsquo;output&amp;rsquo;. The other objective is the cross-entropy regularization term. To avoid printing it, you can replace &lt;code&gt;&#39;average objective&#39;&lt;/code&gt; with &lt;code&gt;&amp;quot;average objective function for &#39;output&#39;&amp;quot;&lt;/code&gt; in the previous command. Look at the values. If the model is learning well, the objective should be increasing (since it is the log-likelihood).&lt;/p&gt;
+
+&lt;p&gt;You may also want to see if your parameters are updating how you want them to be. For this, do&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;ls -lt progress* | grep -r &#39;Relative parameter differences&#39; .
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Usually, the relative parameter differences are close to the learning rate.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a name=&#34;convert&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;converting-between-fm-and-fv-types&#34;&gt;Converting between FM and FV types&lt;/h3&gt;
+
+&lt;p&gt;Kaldi has two major types: Matrix and Vector. As such, features are often stored in one of these two file types. For instance, when you extract i-vectors, they are stored as a matrix of floats (FM) and if you extract x-vectors, they are stored as vectors of float (FV). Often it may be required to convert features stored as FV to FM and vice-versa.&lt;/p&gt;
+
+&lt;p&gt;Although there is no dedicated Kaldi binary to perform this conversion, we can leverage the fact that the underlying text format for both these types is the same and use this as an intermediate for the conversion. For example, to convert from FV to FM:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;copy-vector --binary=false scp:exp/xvectors/xvector.scp ark,t:- | \
+  copy-matrix ark,t:- ark,scp:exp/xvectors/xvector_mat.ark,exp/xvectors/xvector_mat.scp
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Similarly, to convert from FM to FV:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;copy-matrix --binary=false scp:exp/ivectors/ivector.scp ark,t:- | \
+  copy-vector ark,t:- ark,scp:exp/ivectors/ivector_vec.ark,exp/ivectors/ivector_vec.scp
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a name=&#34;epochs&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;number-of-epochs-in-kaldi&#34;&gt;Number of epochs in Kaldi&lt;/h3&gt;
+
+&lt;p&gt;This is borrowed directly from &lt;a href=&#34;https://groups.google.com/d/msg/kaldi-help/7OrqJI2Szvg/vk3P8qKWAwAJ&#34; target=&#34;_blank&#34;&gt;Dan&amp;rsquo;s reply&lt;/a&gt; in a &lt;code&gt;kaldi-help&lt;/code&gt; Google Group post.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;A few of the reasons we use relatively few epochs in Kaldi are as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;We actually count epochs &lt;em&gt;after&lt;/em&gt; augmentation, and with a system that has frame-subsampling-factor of 3 we separately train on the data shifted by -1, 0 and 1 and count that all as one epoch.  So for 3-fold augmentation and frame-subsampling-factor=3, each &amp;ldquo;epoch&amp;rdquo; actually ends up seeing the data 9 times.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Kaldi uses natural gradient, which has better convergence properties than regular SGD and allows you to train with larger learning rates; this might allow you to reduce the num-epochs by at least a factor of 1.5 or 2 versus what you&amp;rsquo;d use with normal SGD.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;We do model averaging at the end&amp;ndash; averaging over the last few iterations of training (an iteration is an interval of usually a couple minutes&amp;rsquo; training time).  This allows us to use relatively large learning rates at the end and not worry too much about the added noise; and it allows us to use relatively high learning rates at the end, which further decreases the training time.  This wouldn&amp;rsquo;t work without the natural gradient; the natural gradient stops the model from moving too far in the more important directions within parameter space.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;We start with aligments learned from a GMM system, so the nnet doesn&amp;rsquo;t have to do all the work of figuring out the alignments&amp;ndash; i.e. it&amp;rsquo;s not training from a completely uninformed start.&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So supposing we say we are using 5 epochs, we are really seeing the data more like 50 times, and if we didn&amp;rsquo;t have those tricks (NG, model averaging) that might have to be more like 100 or 150 epochs, and without knowing the alignments, maybe 200 or 300 epochs.&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
     </item>
     
   </channel>

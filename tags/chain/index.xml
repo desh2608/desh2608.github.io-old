@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Chain on Desh Raj</title>
+    <title>chain on Desh Raj</title>
     <link>https://desh2608.github.io/tags/chain/</link>
-    <description>Recent content in Chain on Desh Raj</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <description>Recent content in chain on Desh Raj</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
-    <copyright>&amp;copy; 2018</copyright>
+    <copyright>&amp;copy; 2019</copyright>
     <lastBuildDate>Tue, 21 May 2019 11:49:12 -0400</lastBuildDate>
     
-	<atom:link href="https://desh2608.github.io/tags/chain/index.xml" rel="self" type="application/rss+xml" />
+	    <atom:link href="https://desh2608.github.io/tags/chain/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -18,7 +18,101 @@
       <pubDate>Tue, 21 May 2019 11:49:12 -0400</pubDate>
       
       <guid>https://desh2608.github.io/post/chain/</guid>
-      <description>Recently, I came across this paper which compares several sequence discriminative training criteria based on the popular lattice-free MMI (LF-MMI) objective, and concludes that &amp;ldquo;boosted&amp;rdquo; LF-MMI outperforms others consistently. Since I couldn&amp;rsquo;t find the code publicly available, I set out to implement it myself in Kaldi. The idea was that even if the claim turned out to be false, this would give me a hands-on experience with C++ level implementations in Kaldi.</description>
+      <description>
+
+&lt;p&gt;Recently, I came across &lt;a href=&#34;https://arxiv.org/pdf/1811.03700.pdf&#34; target=&#34;_blank&#34;&gt;this paper&lt;/a&gt; which compares several sequence discriminative training criteria based on the popular lattice-free MMI (LF-MMI) objective, and concludes that &amp;ldquo;boosted&amp;rdquo; LF-MMI outperforms others consistently. Since I couldn&amp;rsquo;t find the code publicly available, I set out to implement it myself in &lt;a href=&#34;http://kaldi-asr.org/&#34; target=&#34;_blank&#34;&gt;Kaldi&lt;/a&gt;. The idea was that even if the claim turned out to be false, this would give me a hands-on experience with C++ level implementations in Kaldi.&lt;/p&gt;
+
+&lt;p&gt;On first look, the implementation seems trivial if you already have a LF-MMI (also called the &amp;ldquo;chain&amp;rdquo; model in Kaldi) implementation available. However, there are several tricks used in Kaldi which are worth pointing out. In this article, I start with giving an overview of LF-MMI and its implementation in the chain models, and then talk about how I implemented boosted LF-MMI. The majority of the theory here is based on &lt;a href=&#34;https://www.danielpovey.com/files/2016_interspeech_mmi.pdf&#34; target=&#34;_blank&#34;&gt;this paper which introduced LF-MMI&lt;/a&gt; and &lt;a href=&#34;http://kaldi-asr.org/doc/chain.html&#34; target=&#34;_blank&#34;&gt;this doc on chain model&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;mmi-a-background&#34;&gt;MMI &amp;ndash; a background&lt;/h3&gt;
+
+&lt;p&gt;Maximum mutual information, or MMI, is a sequence discriminative training criteria popular in ASR. &amp;ldquo;Sequence&amp;rdquo; means that the objective takes into account the utterance as a whole instead of &amp;ldquo;frame-level&amp;rdquo; objectives like cross-entropy. &amp;ldquo;Discriminative&amp;rdquo; loosely means using an objective function which supposedly optimizes some criteria associated with the task, and then minimizing that objective directly using gradient-based methods. Discriminative training for LVCSR was made popular in &lt;a href=&#34;https://www.danielpovey.com/files/phd_2003.pdf&#34; target=&#34;_blank&#34;&gt;Dan Povey&amp;rsquo;s thesis&lt;/a&gt;. Formally, the MMI objective for ASR is written as&lt;/p&gt;
+
+&lt;p&gt;$$ F_{MMI}(\lambda) = \sum_{r=1}^R \log \frac{P_{\lambda}(O_r|M_{w_r})P(w_r)}{\sum_{\hat{w}}P_{\lambda}(O_r|M_{\hat{w}})P(\hat{w})}, $$&lt;/p&gt;
+
+&lt;p&gt;where $M_w$ is the HMM corresponding to the transcription $w$. As you can see, the objective function considers the log-probability of the whole utterance in the numerator, and normalizes it by dividing with the log-probability of all possible utterances in the denominator.&lt;/p&gt;
+
+&lt;p&gt;However, computing the sum in the denominator means summing over an exponentially large number of word sequences, which is not practically feasible. To remedy this, we approximate the sum with either of two methods:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;N-best list&lt;/strong&gt;: This is computed once and used for all utterances. However, this approximation is less used since it is too crude.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;&lt;strong&gt;Lattice structure&lt;/strong&gt;: This may be word/phone based. A path through the lattice represents a possible word/phone sequence. One limitation with using a lattice is that it requires initialization with a trained model, and usually cross-entropy trained systems are used for this purpose. The older &lt;a href=&#34;https://kaldi-asr.org/doc/dnn.html&#34; target=&#34;_blank&#34;&gt;nnet&lt;/a&gt; setups in Kaldi used this approach.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;With the advent of end-to-end models, such a requirement of a trained system to initialize the lattice comes across as a major drawback of lattice-based MMI. How can we avoid using a lattice?&lt;/p&gt;
+
+&lt;h3 id=&#34;lattice-free-mmi&#34;&gt;Lattice-free MMI&lt;/h3&gt;
+
+&lt;p&gt;First proposed in &lt;a href=&#34;https://www.danielpovey.com/files/2016_interspeech_mmi.pdf&#34; target=&#34;_blank&#34;&gt;this paper from Dan Povey&lt;/a&gt;, lattice-free MMI is &amp;ldquo;purely sequence trained&amp;rdquo; in the sense that no cross-entropy training is required to initialize, since it does not use a lattice. So how does it approximate the sum in the denominator? Simply put, it does not &amp;ldquo;approximate&amp;rdquo; it &amp;mdash; it computes this sum exactly.&lt;/p&gt;
+
+&lt;p&gt;The key idea is that if we represent the denominator as a graph and somehow manage to fit this graph in the GPU, then computation can be performed efficiently. In the manner that it is formalized, the denominator graph cannot be fit into the GPU. To fix this, two major modifications are applied:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;A phone LM is used instead of a word LM. The number of possible phones is much smaller than the number of possible words, which makes the size of graph for phone LM significantly smaller.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;DNN outputs are computed at one-third the standard frame rate, which means that we now have 3 times fewer outputs to compute for any utterance. This is achieved by setting the frame shift to 30 ms instead of the traditional 10 ms.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;This reduced frame rate also means that now we cannot use the standard 3-state left-to-right HMM topology that is common in ASR, since we want to traverse the entire HMM in a single frame. Instead, we use an HMM which can emit symbols in the set &lt;code&gt;ab*&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;To train such a system according to the MMI objective, we need a way to efficiently compute the objective itself and its derivative. In Kaldi, the numerator and denominator are represented as FSTs (corresponding to the HMMs) and the overall objective function is simply the difference of these in log-space. As such, we need a way to efficiently represent these FSTs and perform forward-backward on them.&lt;/p&gt;
+
+&lt;h3 id=&#34;the-denominator-and-numerator-fsts&#34;&gt;The denominator and numerator FSTs&lt;/h3&gt;
+
+&lt;p&gt;Let us start with the denominator FST since it is much more expensive. The process of creating the denominator FST is very similar to the &lt;a href=&#34;http://kaldi-asr.org/doc/graph_recipe_test.html&#34; target=&#34;_blank&#34;&gt;decoding graph creation&lt;/a&gt;. The key idea, as in traditional ASR using WFSTs (see &lt;a href=&#34;https://cs.nyu.edu/~mohri/pub/hbka.pdf&#34; target=&#34;_blank&#34;&gt;Mohri&amp;rsquo;s well-known paper&lt;/a&gt;), is to have separate FSTs for &lt;code&gt;H&lt;/code&gt; (HMM state graph), &lt;code&gt;C&lt;/code&gt; (context-dependency), &lt;code&gt;L&lt;/code&gt; (the lexicon), and &lt;code&gt;G&lt;/code&gt; (the language model), and use WFST composition algorithms to get the final graph, with the exception that since we are using phones instead of words, we don&amp;rsquo;t need the &lt;code&gt;L&lt;/code&gt; graph. So our final graph is actually an &lt;code&gt;HCP&lt;/code&gt; instead of an &lt;code&gt;HCLG&lt;/code&gt;, where &lt;code&gt;P&lt;/code&gt; denotes the phone LM.&lt;/p&gt;
+
+&lt;p&gt;At this point, I would like to point out some Kaldi specifics. The phone LM &lt;code&gt;P&lt;/code&gt; is created in stage &lt;code&gt;-6&lt;/code&gt; by calling the function &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/egs/wsj/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py#L25&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;create_phone_lm()&lt;/code&gt;&lt;/a&gt;. The denominator FST is created in the stage &lt;code&gt;-5&lt;/code&gt; within the &lt;code&gt;train.py&lt;/code&gt; script, which internally makes a &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/egs/wsj/s5/steps/libs/nnet3/train/chain_objf/acoustic_model.py#L53&#34; target=&#34;_blank&#34;&gt;call to the binary &lt;code&gt;chain-make-den-fst&lt;/code&gt;&lt;/a&gt;. The denominator graph is specificied in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-den-graph.cc&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;chain-den-graph.cc&lt;/code&gt;&lt;/a&gt;. It uses the files &lt;code&gt;$dir/tree&lt;/code&gt; (the tree) and &lt;code&gt;$dir/0.trans_mdl&lt;/code&gt; (the transition model), which correspond to the &lt;code&gt;C&lt;/code&gt; and &lt;code&gt;H&lt;/code&gt; components, and the phone LM that was created in the previous stage.&lt;/p&gt;
+
+&lt;p&gt;The phone LM &lt;code&gt;P&lt;/code&gt; is constructed so that the overall size of the graph is minimized. It is a 4-gram with no backoff lower than 3-gram so that triphones not seen in training cannot be generated. The number of states is limited by completely removing low-count 4-gram states.&lt;/p&gt;
+
+&lt;p&gt;Once we have the composed graph &lt;code&gt;HCP&lt;/code&gt;, a different kind of minimization technique is used, which consists of performing the following operations thrice in a row.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;Push&lt;/em&gt; the weights&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Minimize&lt;/em&gt; the graph&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Reverse&lt;/em&gt; the arcs and swap initial and final states.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Another trick used to reduce the size of the denominator FST for training on the GPU is to train on chunks of 1-1.5 seconds, instead of the entire utterance. However, to do this, we would also need to break up the transcript, and 1-second chunks may not coincide with word boundaries. How do we solve this?&lt;/p&gt;
+
+&lt;p&gt;Recall that the numerator FST is defined to be utterance-specific, and encodes alternative pronunciations of the transcript of the original utterance. This lattice is turned into an FST that constrains at what time the phones can appear, with an error window of 0.05s from their position in the lattice. This is then processed into an FST whose labels are pdf-ids (neural net outputs). We extract fixed size chunks from this FST for training chunks in the denominator FST.&lt;/p&gt;
+
+&lt;p&gt;Another issue associated with chunk-level FSTs is that the initial probabilities are now different. We approximate this by running the HMM for a few iterations and then averaging the probabilities to use as the initial probability of any state. This is a crude approximation but it seems to work. We then call this the &lt;strong&gt;normalization FST&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;The numerator FST is much easier since it just contains the lattice for one utterance, broken into chunks of fixed length. The only point worth mentioning here (and this will be important when we talk about boosted LF-MMI later) is that the numerator FST is composed with the normalization FST. This is done for two reasons.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;It ensures that the objective function value is always negative, which makes it easier to interpret.&lt;/li&gt;
+&lt;li&gt;It also ensures that the numerator FST does not contain sequences that are not allowed by the denominator (or normalization) FST. This happens since the sum of the overall path weights for such sequences will be dominated by the normalization FST part.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;forward-backward-computations&#34;&gt;Forward-backward computations&lt;/h3&gt;
+
+&lt;p&gt;Again, since the numerator FST is much smaller, its forward and backward computations are performed on CPU (the process is outlined in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-numerator.h&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;chain-numerator.h&lt;/code&gt;&lt;/a&gt;), while those for the denominator FST (outlined in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/master/src/chain/chain-denominator.h&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;chain-denominator.h&lt;/code&gt;&lt;/a&gt;) are performed on the GPU.&lt;/p&gt;
+
+&lt;p&gt;The basic forward and backward algorithm are the same as well known in literature, and a pseudocode is also given in the extended comments in &lt;code&gt;chain-denominator.h&lt;/code&gt;. However, this algorithm is susceptible to numeric overflow and underflow. To avoid this, we multiply the emission probability of the frame with a normalizing factor $\frac{1}{alpha(t)}$ where $alpha(t) = \sum_{i} \alpha_i (t)$. This is also called an &amp;ldquo;arbitrary scale&amp;rdquo; since in principle it can be allowed to be any value and doesn&amp;rsquo;t affect the posterior. However, we do need to add a quantity $\sum_{t=0}^{T-1} \log alpha(t)$ to the final log probability obtained to make it equal to the actual log probability. This &amp;ldquo;arbitrary scaling&amp;rdquo; is used in both the forward and backward computations.&lt;/p&gt;
+
+&lt;p&gt;The actual objective function computation is implemented in &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/src/chain/chain-training.cc#L205&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;ComputeChainObjfAndDeriv()&lt;/code&gt;&lt;/a&gt; defined in &lt;code&gt;chain-training.cc&lt;/code&gt;. There are two Kaldi-specific things I must point out here.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;The forward-backward computation for the denominator FST in the GPU is not done in the log domain, since computing log several times makes things slower. However, this also means that the objective function values can occasionally become &amp;ldquo;bad&amp;rdquo;. To fix this, the &lt;a href=&#34;https://github.com/kaldi-asr/kaldi/blob/8b54ef83e20b682a0b1f91cdbaf6abd53ce3c32d/src/chain/chain-training.cc#L49&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;PenalizeOutOfRange()&lt;/code&gt;&lt;/a&gt; function is used to encourage the objective to be within the [-30,30] range.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;The denominator computation is performed before the numerator, so as to reduce the maximum memory usage. I am not sure how this is, but it is important to remember this detail as we move to the implementation of boosted LF-MMI.&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;implementing-boosted-lf-mmi&#34;&gt;Implementing boosted LF-MMI&lt;/h3&gt;
+
+&lt;p&gt;First, what is boosted LF-MMI? It is the same as LF-MMI, except that now we optimize the following objective function.&lt;/p&gt;
+
+&lt;p&gt;$$ F_{bMMI}(\lambda) = \sum_{r=1}^R \log \frac{P_{\lambda}(O_r|M_{W_r})P(W_r)}{\sum_{\hat{w}}P_{\lambda}(O_r|M_{\hat{w}})P(\hat{w})e^{-bA(M_{w_r},M_{\hat{w}})}}, $$&lt;/p&gt;
+
+&lt;p&gt;where $b$ is the boosting factor and $A(M_{w_r},M_{\hat{w}})$ is the accuracy function which measures the number of matching labels between the reference and hypothesis sequences. My Kaldi implementation for LF-bMMI can be found in &lt;a href=&#34;https://github.com/desh2608/kaldi/tree/bmmi&#34; target=&#34;_blank&#34;&gt;this branch&lt;/a&gt;. You may note that most of the changes are cosmetic and only serve to pass the new argument $b$ from the training script to the actual implementation, which is in the function &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/2e46097b7e4fcd1a07a7e9c1df6f1aaa062fbc33/src/chain/chain-training.cc#L319&#34; target=&#34;_blank&#34;&gt;&lt;code&gt;ComputeBoostedChainObjfAndDeriv()&lt;/code&gt;&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In our implementation, the only change is that in the &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/2e46097b7e4fcd1a07a7e9c1df6f1aaa062fbc33/src/chain/chain-training.cc#L369&#34; target=&#34;_blank&#34;&gt;computation for &lt;code&gt;num_logprob_weighted&lt;/code&gt;&lt;/a&gt;, we subtract from &lt;code&gt;numerator.forward()&lt;/code&gt; by a term &lt;code&gt;b * num_seq * frames_per_seq&lt;/code&gt;. This might seem weird at first, since in the expression of the objective function, we actually subtract the denominator by this term. However, recall that the numerator FST is composed with the normalization FST, so that this modification will result in the same result as the objective function above.&lt;/p&gt;
+
+&lt;p&gt;On trying out LF-bMMI for mini-Librispeech, I found it to be slightly worse than regular LF-MMI (11.86 vs 11.74 WER), and consultation with &lt;a href=&#34;http://vimalmanohar.github.io/&#34; target=&#34;_blank&#34;&gt;Vimal Manohar&lt;/a&gt; revealed that he had tried LF-bMMI and LF-SMBR along with &lt;a href=&#34;https://hhadian.github.io/&#34; target=&#34;_blank&#34;&gt;Hossein Hadian&lt;/a&gt; last year to similar results.&lt;/p&gt;
+</description>
     </item>
     
   </channel>

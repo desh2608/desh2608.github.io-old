@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Text classification on Desh Raj</title>
+    <title>text classification on Desh Raj</title>
     <link>https://desh2608.github.io/tags/text-classification/</link>
-    <description>Recent content in Text classification on Desh Raj</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <description>Recent content in text classification on Desh Raj</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
-    <copyright>&amp;copy; 2018</copyright>
+    <copyright>&amp;copy; 2019</copyright>
     <lastBuildDate>Mon, 02 Oct 2017 12:49:14 +0530</lastBuildDate>
     
-	<atom:link href="https://desh2608.github.io/tags/text-classification/index.xml" rel="self" type="application/rss+xml" />
+	    <atom:link href="https://desh2608.github.io/tags/text-classification/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -18,7 +18,116 @@
       <pubDate>Mon, 02 Oct 2017 12:49:14 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/last-3-years-in-text-classification/</guid>
-      <description>While working on my undergrad thesis on relation classification of biomedical text using deep learning methods, I quickly hacked together models in Tensorflow that combined convolutional and recurrent layers in various combinations. While some of these “network architectures” worked superbly (even surpassing state-of-the-art results), I had no clue what was happening inside the model. To gain such an intuition, I read about 20 recent papers on text classification (starting with the first “CNN for sentence classification” paper by Yoon Kim) over the course of a week.</description>
+      <description>
+
+&lt;p&gt;While working on my &lt;a href=&#34;https://desh2608.github.io/project/btp/&#34; target=&#34;_blank&#34;&gt;undergrad thesis&lt;/a&gt; on relation classification of biomedical text using deep learning methods, I quickly hacked together models in Tensorflow that combined convolutional and recurrent layers in various combinations. While some of these “network architectures” worked superbly (even surpassing state-of-the-art results), I had no clue what was happening inside the model. To gain such an intuition, I read about 20 recent papers on text classification (starting with the first “CNN for sentence classification” paper by Yoon Kim) over the course of a week. Aside from an obvious enlightenment about why my architecture was working the way it was, I also gained valuable insight into how results are presented by experts like Yann LeCunn and Tommi Jaakkola (which would later help me in getting my CoNLL paper accepted as an undergrad).&lt;/p&gt;
+
+&lt;p&gt;Anyway, so while reading these myriad of text classification papers, I subconsciously began organizing them under different heads, depending upon the kind of approach used. The common objective across each of these approaches was that they all wanted to model the structural information of the sentence into the sentence embedding. All of this was in March, and ever since, I have wanted to organize the notes I made from my readings into a formal article, so that others may benefit from the insights.&lt;/p&gt;
+
+&lt;p&gt;Some background in CNNs and LSTMs is assumed.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;character-to-sentence-level-embeddings&#34;&gt;Character to sentence level embeddings&lt;/h4&gt;
+
+&lt;p&gt;Using word vectors (conventionally obtained using Word2Vec or GloVe) has been the most popular technique for input feature embedding. Yann LeCunn proposed character-level embeddings in his NIPS 2015 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;, and the motivation behind this was that language could also be thought of as a signal similar to speech, with each character representing one bit of information. As such, it was reasonable to encode characters rather than words to obtain sentence level structure more efficiently. Although the proposed method was outperformed even by traditional tf-idf approaches for smaller datasets, the most important hypothesis obtained from empirical analyses was that character level CNNs tend to work well with uncurated user-generated data, such as reviews on Amazon. This makes them especially suitable for use in data wherever misspellings or use of exotic characters is frequent, such as in tweets.&lt;/p&gt;
+
+&lt;p&gt;Even before LeCunn’s work, a COLING 2014 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; from IBM Research (Brazil) combined embeddings from the character, word, and sentence levels to obtain an amalgamation for the sentence representation. This is done in two convolutional layers as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;In the first layer, vectors are obtained for words using traditional lookup techniques like Word2Vec. At the same time, character-level input vectors corresponding to each word are fed into a convolutional layer and a subsequent max pooling layer, and padding is used so that fixed length outputs are obtained for every word. These convolved features are concatenated with the word-level embeddings to obtain the joint word vector. The rationale behind this is that while word-level embeddings are meant to capture syntactic and semantic information, character-level embeddings capture morphological and shape information.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/4/char.png&#34; alt=&#34;Obtaining character-level embeddings. Image taken from Fig. 1 [^2].&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;The second layer to obtain sentence-level vectors is similar to the character level. On applying  convolutions and max pooling, we obtain a global feature representation for the sentence.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Embeddings have become a staple in deep learning models for NLP, and the latest trend is to use deep transfer learning to learn entire parameters for word vectors. While the community has mostly stabilized on using word-level vectors for input features, it wasn’t for lack for exploration, as is evident from these early approaches.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;encoding-structural-information-parse-trees-and-tensor-algebra&#34;&gt;Encoding structural information: parse trees and tensor algebra&lt;/h4&gt;
+
+&lt;p&gt;Again, for accurate text classification, it is imperative to obtain a good sentence representation that effectively captures the structural information and any semantics possible. If we think about Yoon Kim’s original CNN model in this vein, the limitations in the simple “conv+pool” model becomes obvious. While the convolutional layer helps to recognize short phrases, the final max pooling layer completely disregards any word order or structural information in the sentence. Essentially, we can reorder phrases in the sentences, and the representation would still remain the same.&lt;/p&gt;
+
+&lt;p&gt;To solve these problems, a myriad of techniques have been proposed. Here I will discuss 2 of them — the first involves using syntactic parse trees, and the second turns to good old tensor algebra.&lt;/p&gt;
+
+&lt;p&gt;A 2015 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; from Peking University proposed two tree-based CNN models, namely c-TBCNN and d-TBCNN, depending on whether constituency or dependency parse trees were used. I will first outline the model:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A sentence is first converted to a parse tree, and each node is represented as a distributed, real-valued vector. While the nodes of dependency trees are words themselves, those in constituency trees are not. To solve this problem, constituency tree nodes are pretrained using Socher’s RNN and kept fixed thereafter.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/4/tree-cnn.png&#34; alt=&#34;Tree-based convolutional window. Image taken from Fig. 2 [^3].&#34; /&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A &lt;em&gt;tree-based convolutional window&lt;/em&gt; is defined, which slides over the entire tree to extract structural information of the sentence. The convolutional equation for a window which slides over a parent and its direct children in a constituency tree is given by&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;$$ y = f(w_p^{( c )}\cdot p + w_l^{( c )}\cdot c_l + w_r^{( c )}\cdot c_r + b^{( c )}). $$&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;In a dependency tree, a node can have any number of children. To overcome this, weights in these trees are assigned according to dependency type rather than position, and so the convolution formula becomes&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;$$ y = f(W_p^{(d)}\cdot p + \sum_{i=1}^n W_{r[c_i]}^{(d)}\cdot c_i + b^{(d)}). $$&lt;/p&gt;
+
+&lt;p&gt;In empirical evaluation, d-TBCNN was found to outperform c-TBCNN probably due to d-TBCNN being able to exploit structural features more efficiently because of the compact expressiveness of dependency trees. The paper also provides visualizations for understanding the mechanism of the proposed network, and they show that TBCNNs do integrate information about different words in a window.&lt;/p&gt;
+
+&lt;p&gt;A 2015 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34;&gt;4&lt;/a&gt;&lt;/sup&gt; from Regina Barzilay and Tommi Jaakkola at MIT used non-linear, non-consecutive convolutions, and turned to tensor algebra to reduce computational complexity. The motivation behind this model is two-fold:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Conventional CNNs use linear operations on stacked word vectors, which ignores the interesting non-linear interaction between n-grams.&lt;/li&gt;
+&lt;li&gt;Consecutive convolutions misses out on the non-consecutive phrases e.g. &amp;ldquo;&lt;em&gt;not&lt;/em&gt; nearly as &lt;em&gt;good&lt;/em&gt;&amp;rdquo; etc.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Essentially, they modified the 2 main components of a CNN-based text classification module, namely window-based convolutions, and the linear convolution operation, with 3 novel modifications.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Stacked n-gram word vectors are replaced by tensor products, and this n-gram tensor can be seen as a generalization of the typical concatenated vector.&lt;/li&gt;
+&lt;li&gt;Since the convolutional filters themselves are high-dimensional tensors (n dimensions corresponding to the size of tensor window, and 1 channel dimension), directly maintaining them as full tensors would lead to parametric explosion. To overcome this, the convolutional tensor is represented using &lt;em&gt;low-rank factorization.&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Instead of applying convolutions only to consecutive n-grams, all possible n-grams are used. At each position, the aggregate representation is the weighted sum of all n-gram representations ending at that position.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The paper makes use of linear algebra very cleverly to extend simple convolution operations across the whole sentence without making it computationally infeasible. In the results section, the authors have also analyzed the importance of such non-linear and non-consecutive activations empirically.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;regional-two-view-embeddings&#34;&gt;Regional (two-view) embeddings&lt;/h4&gt;
+
+&lt;p&gt;In a series of papers (published at NIPS 2015&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34;&gt;5&lt;/a&gt;&lt;/sup&gt; and ICML 2016&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:6&#34;&gt;&lt;a href=&#34;#fn:6&#34;&gt;6&lt;/a&gt;&lt;/sup&gt;), Rie Johnson and Tong Zhang introduced the concept of regional embedding in sentences, which was based on two-view embeddings. Essentially, they wanted to answer the question: &lt;em&gt;Can an unlabeled data be used to augment a CNN/LSTM module in a better way than by simply obtaining pretrained word vectors?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;In some way, these embeddings are also related to the first section on character to sentence level  embeddings. However, I have put it in a separate section since my own network architecture in my CoNLL paper derived hugely from the interpretation given in these papers. (You can say this was when I gained enlightenment!)&lt;/p&gt;
+
+&lt;p&gt;In an earlier paper, the authors had showed that using high-dimensional one-hot bag-of-words (BOW) vectors rather than pretrained word vectors proved to be better in simpler systems. Their new objective was to learn regional embeddings from unlabeled data and use it as additional input to the supervised CNN.&lt;/p&gt;
+
+&lt;p&gt;But first, &lt;em&gt;what is a tv-embedding&lt;/em&gt;? Essentially, it is a function of a view that preserves everything required to predict another view. (See the paper section 2 for details. The motivation for using tv-embeddings is also explained theoretically in the Appendix &lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:5&#34;&gt;&lt;a href=&#34;#fn:5&#34;&gt;5&lt;/a&gt;&lt;/sup&gt;.)&lt;/p&gt;
+
+&lt;p&gt;In the papers, the authors used a CNN and an LSTM, respectively, to obtain these tv-embeddings for short regions in the sentences using an unlabeled corpus. They called these as “regional embeddings,” and used them as additional input for the supervised classification task. Furthermore, in their ICML paper, they did away with CNNs entirely, and argued that using bidirectional LSTMs for obtaining the regional embedding and then pooling for the sentence vector gives and adequate sentence representation. However, experimental results showed that using tv-embeddings from networks resulted in the best performing model.&lt;/p&gt;
+
+&lt;p&gt;This “regional embedding+pooling” logic was what finally provided the necessary intuition for my own relation classification network.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Zhang, Xiang, Junbo Zhao, and Yann LeCun. “&lt;a href=&#34;http://papers.nips.cc/paper/5782-character-level-convolutional-networks-for-text-classification.pdf&#34; target=&#34;_blank&#34;&gt;Character-level convolutional networks for text classification.&lt;/a&gt;” &lt;em&gt;Advances in neural information processing systems&lt;/em&gt;. 2015.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Dos Santos, Cícero Nogueira, and Maira Gatti. “&lt;a href=&#34;http://anthology.aclweb.org/C/C14/C14-1008.pdf&#34; target=&#34;_blank&#34;&gt;Deep Convolutional Neural Networks for Sentiment Analysis of Short Texts.&lt;/a&gt;” &lt;em&gt;COLING&lt;/em&gt;. 2014.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;Mou, Lili, et al. “&lt;a href=&#34;https://arxiv.org/pdf/1504.01106.pdf&#34; target=&#34;_blank&#34;&gt;Discriminative neural sentence modeling by tree-based convolution.&lt;/a&gt;” &lt;em&gt;arXiv preprint arXiv:1504.01106&lt;/em&gt; (2015).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:4&#34;&gt;Lei, Tao, Regina Barzilay, and Tommi Jaakkola. “&lt;a href=&#34;https://arxiv.org/pdf/1508.04112.pdf&#34; target=&#34;_blank&#34;&gt;Molding CNNs for text: non-linear, non-consecutive convolutions.&lt;/a&gt;” &lt;em&gt;arXiv preprint arXiv:1508.04112&lt;/em&gt; (2015).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:4&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:5&#34;&gt;Johnson, Rie, and Tong Zhang. “&lt;a href=&#34;http://papers.nips.cc/paper/5849-semi-supervised-convolutional-neural-networks-for-text-categorization-via-region-embedding.pdf&#34; target=&#34;_blank&#34;&gt;Semi-supervised convolutional neural networks for text categorization via region embedding.&lt;/a&gt;” &lt;em&gt;Advances in neural information processing systems&lt;/em&gt;. 2015.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:5&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:6&#34;&gt;Johnson, Rie, and Tong Zhang. “&lt;a href=&#34;http://proceedings.mlr.press/v48/johnson16.pdf&#34; target=&#34;_blank&#34;&gt;Supervised and semi-supervised text categorization using LSTM for region embeddings.&lt;/a&gt;” &lt;em&gt;International Conference on Machine Learning&lt;/em&gt;. 2016.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:6&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
     </item>
     
   </channel>

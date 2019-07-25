@@ -1,16 +1,169 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Speech-recognition on Desh Raj</title>
+    <title>speech recognition on Desh Raj</title>
     <link>https://desh2608.github.io/tags/speech-recognition/</link>
-    <description>Recent content in Speech-recognition on Desh Raj</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <description>Recent content in speech recognition on Desh Raj</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
-    <copyright>&amp;copy; 2018</copyright>
-    <lastBuildDate>Mon, 23 Apr 2018 13:41:31 +0530</lastBuildDate>
+    <copyright>&amp;copy; 2019</copyright>
+    <lastBuildDate>Thu, 22 Nov 2018 11:27:15 -0500</lastBuildDate>
     
-	<atom:link href="https://desh2608.github.io/tags/speech-recognition/index.xml" rel="self" type="application/rss+xml" />
+	    <atom:link href="https://desh2608.github.io/tags/speech-recognition/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Experiments with Subword Modeling</title>
+      <link>https://desh2608.github.io/post/subword-segmentation/</link>
+      <pubDate>Thu, 22 Nov 2018 11:27:15 -0500</pubDate>
+      
+      <guid>https://desh2608.github.io/post/subword-segmentation/</guid>
+      <description>
+
+&lt;p&gt;Think about tasks such as machine translation (MT), automatic speech recognition (ASR), or handwriting recognition (HWR). While these appear very distinct, on abstraction they share the same pipeline wherein given an input signal, we are required to predict some text. The difference only lies in the form of the input signal - it is a piece of text, a sound wave, or a line image, in the case of MT, ASR, and HWR, respectively.&lt;/p&gt;
+
+&lt;p&gt;In all of these tasks, OOV words are a major source of nuisance. &lt;em&gt;What is an OOV word?&lt;/em&gt; Simply put, these are those words in the test dataset which are not seen in the training data, and as such, not present in the vocabulary - hence the name &amp;ldquo;out of vocabulary&amp;rdquo;. Even if the training vocabulary is very large (in fact, the name Large Vocabulary ASR is very common), the test data may still have words which were never seen before, for instance, names of people, places, or organizations.&lt;/p&gt;
+
+&lt;p&gt;A crude way of dealing with such OOV words may be to simply predict a special token &lt;code&gt;&amp;lt;UNK&amp;gt;&lt;/code&gt; whenever they are encountered. However, this would lead to severe information loss, especially when all new names are replaced by the special token. This is where subwords come into the picture.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Subwords are smaller units that comprise words. They may be a single character, or even entire words.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;For example, suppose our training vocabulary consists of just 2 words {&amp;lsquo;speech&amp;rsquo;,&amp;lsquo;processing&amp;rsquo;}. If our language model is trained on word-level, we would only be able to predict these 2 words, and nothing else. So while testing, if we are required to predict the phrase &amp;ldquo;&lt;em&gt;he sings in a choir&lt;/em&gt;&amp;rdquo;, our model would fail miserably. However, if we had trained on a subword-level (say, character level), we have a non-zero chance of predicting the phrase since all the characters are seen in the training. This provides sufficient motivation for using subwords in these tasks.&lt;/p&gt;
+
+&lt;p&gt;Traditionally, in ASR, subwords have been modeled using information from phonemes (distinct sound units), such that a subword corresponds to a phoneme unit. The intuition is that at test time, any new word can only be formed using phonemes of the language. However, this requires considerable domain knowledge, and even still, variations in accent or speaker can greatly affect test-time performance.&lt;/p&gt;
+
+&lt;p&gt;In MT, subwords first came into limelight with &lt;a href=&#34;http://www.aclweb.org/anthology/P16-1162&#34; target=&#34;_blank&#34;&gt;this popular paper&lt;/a&gt; from Seinrich and Haddow at the University of Edinburgh. They used a simple but effective &lt;a href=&#34;https://en.wikipedia.org/wiki/Byte_pair_encoding&#34; target=&#34;_blank&#34;&gt;Byte Pair Encoding (BPE)&lt;/a&gt; based approach to identify subword units in the text. The summary of their method is as follows:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Fix a vocabulary size &lt;em&gt;V&lt;/em&gt; according to your total data size.&lt;/li&gt;
+&lt;li&gt;Separate all the characters in all the words.&lt;/li&gt;
+&lt;li&gt;Merge the most frequent bigram into one token and add it to the vocabulary.&lt;/li&gt;
+&lt;li&gt;Perform &lt;em&gt;V&lt;/em&gt; such merge operations to get the final vocabulary.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This simple method performs extremely well in practice, and the authors were able to get improvements of about 1.1 BLEU points on an English to German translation task.&lt;/p&gt;
+
+&lt;p&gt;I was recently working on an HWR task which required similar subword modeling for OOV word recognition, and the remainder of this article is about the methods used and their performance.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&#34;towards-a-likelihood-based-model&#34;&gt;Towards a likelihood-based model&lt;/h2&gt;
+
+&lt;p&gt;The first method we tried was the BPE-based approach, and it gave improvements on the word-error rate (WER) over the word-based model. However, BPE is constrained in the sense that it is a deterministic technique. Once you have fixed the training vocabulary, every string can only be segmented in a specific way. This may hint at a loss of modeling power, and so our first hypothesis is that a probabilistic segmentation technique may perform better.&lt;/p&gt;
+
+&lt;p&gt;On further investigation, I found a &lt;a href=&#34;https://arxiv.org/abs/1804.10959&#34; target=&#34;_blank&#34;&gt;recent paper&lt;/a&gt; which proposes a technique known as &amp;ldquo;subword regularization&amp;rdquo; for MT. The method consists of two parts: vocabulary learning, and subword sampling.&lt;/p&gt;
+
+&lt;h3 id=&#34;vocabulary-learning&#34;&gt;Vocabulary learning&lt;/h3&gt;
+
+&lt;p&gt;Similar to the BPE-based technique, we start with all the characters distinct in every word, and merge until we reach the desired vocabulary size &lt;em&gt;V&lt;/em&gt;. However, while BPE used the metric of most frequent bigram, the Unigram SR method ranks all subwords according to the likelihood reduction on removing the subword from the vocabulary. The top 80% of these are retained and the rest are discarded. Once this phase is over, we can now obtain the likelihood of observing a subword sequence given any string (sentence).&lt;/p&gt;
+
+&lt;h3 id=&#34;subword-sampling&#34;&gt;Subword sampling&lt;/h3&gt;
+
+&lt;p&gt;We choose the top-k segmentations based on the likelihood, and then model them as a multinomial distribution $P(x_i | X) = \frac{P(x_i)^{\alpha}}{\sum_l P(x_i)^{\alpha}}$, where $\alpha$ is a smoothing hyperparameter. A smaller $\alpha$ leads to a more uniform distribution, while a larger $\alpha$ leads to Viterbi sampling (i.e., selection of the best segmentation).&lt;/p&gt;
+
+&lt;p&gt;The idea behind this method is &amp;ldquo;regularization by noise&amp;rdquo;. This means that the algorithm is expected to generalize well since we are now training it with some added noise by selecting several different segmentation candidates for any word, and so the model sees a wider variety of subwords during training.&lt;/p&gt;
+
+&lt;p&gt;For implementation, we used Google&amp;rsquo;s &lt;code&gt;sentencepiece&lt;/code&gt; library, which is also the official code of the paper linked above, and integrated it in our Kaldi-based pipeline (&lt;a href=&#34;https://github.com/desh2608/kaldi/blob/iam_sr/egs/wsj/s5/utils/lang/bpe/learn_unigram_sr.py&#34; target=&#34;_blank&#34;&gt;see here&lt;/a&gt;). While the method supposedly performed well in MT, we didn&amp;rsquo;t obtain the same performance improvements in the HWR task. A top-1 (deterministic) sampler gave similar results as BPE, but a top-5 sampler performed worse, which hinted that probabilstic sampling may not necessarily be the best suited option for our task.&lt;/p&gt;
+
+&lt;p&gt;For further analysis, I looked at the frequency of different subword lengths learned by the two methods for the same total vocabulary size.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/bpe.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/uni.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;It turns out that the unigram method learns several &amp;ldquo;longer&amp;rdquo; subwords than BPE, which may give us some idea about the poorer performance. This suggested that if we somehow put a constraint on the lengths of the learned subwords while keeping the probabilistic sampling, we might get the best of both worlds.&lt;/p&gt;
+
+&lt;h2 id=&#34;digression-the-morfessor-tool&#34;&gt;Digression - The Morfessor tool&lt;/h2&gt;
+
+&lt;p&gt;Readers familiar with linguistics (or morphology in particular) would have heard about (or used) the  Morfessor tool, which provides an unsupervised technique for morpheme recognition. Morphemes, in a crude sense, are essentially subword units which are self-contained in meaning. Interestingly, &lt;a href=&#34;http://www.aclweb.org/anthology/W02-0603&#34; target=&#34;_blank&#34;&gt;the first Morfessor paper&lt;/a&gt; proposed a technique which is very similar to the likelihood-based subword modeling in the unigram SR paper (although the author does not seem to be aware of this). Additionally, they also proposed a minimum description length (MDL) based approach which added the subword lengths as a cost in the objective function, and therefore penalized longer subwords. Empirically, they found that the MDL technique outperformed the likelihood based method, and this further reinforced my belief that a subword length constraint would prove beneficial for the task.&lt;/p&gt;
+
+&lt;h2 id=&#34;lzw-based-subword-modeling&#34;&gt;LZW-based subword modeling&lt;/h2&gt;
+
+&lt;p&gt;In an &lt;a href=&#34;https://pdfs.semanticscholar.org/dfcd/6bb8dcbcf828f8414c494fa56e96f8169a7b.pdf&#34; target=&#34;_blank&#34;&gt;Interspeech 2005 paper&lt;/a&gt;, a new subword modeling algorithm was presented which supposedly correlated strongly with syllables of a language. The method is based on the popular &lt;a href=&#34;https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Welch&#34; target=&#34;_blank&#34;&gt;LZW compression technique&lt;/a&gt; (which is also used in the Unix &lt;code&gt;compress&lt;/code&gt; utility). In the context of strings, the LZW method finds a set of prefix-free substrings to encode the given string. The authors of the paper further used subword length tables to keep track of how many times each such subword was called during training, and thus ranked them within the tables. The test-time segmentation was determined by computing the average rank of all the segmentation candidates in this tree traversal.&lt;/p&gt;
+
+&lt;p&gt;In our implementation, we further integrated the probabilistic sampling method from the unigram SR, and used memoization to make the tree traversal computationally efficient. The implementation for learning and applying the model can be found &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/iam_sr/egs/wsj/s5/utils/lang/learn_lzw.py&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; and &lt;a href=&#34;https://github.com/desh2608/kaldi/blob/iam_sr/egs/wsj/s5/utils/lang/apply_lzw.py&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;, respectively.&lt;/p&gt;
+
+&lt;p&gt;Perhaps the most critical segments of the implementation are the following:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;def learn_subwords_from_word(word, tab_seqlen, tab_pos, max_subword_length):
+    w = &amp;quot;&amp;quot;
+    pos = 0
+    for i,c in enumerate(word):
+        if (i == len(word) - 1):
+            pos = 2
+        wc = w + c
+        if (len(wc) &amp;gt; max_subword_length):
+            wc = c
+        
+        if wc in tab_seqlen[len(wc)-1]:
+            w = wc
+            tab_seqlen[len(wc)-1][wc] += 1
+        else:
+            tab_seqlen[len(wc)-1][wc] = 1
+            w = c
+        if wc in tab_pos[pos]:
+            w = wc
+            tab_pos[pos][wc] += 1
+            i -= 1
+        else:
+            tab_pos[pos][wc] = 1
+            w = c
+            pos = min(i,1)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;def compute_segment_scores(word, tab_seqlen, tab_pos, scores):
+    if (len(word) == 0):
+        return ([])
+    max_subword_length = len(tab_seqlen)
+    seg_scores = []
+    for i in range(max_subword_length):
+        if(i &amp;lt; len(word)):
+            subword = word[:i+1]
+            if subword in tab_seqlen[i]:
+                other_scores = []
+                subword_score = float(tab_seqlen[i][subword][1]/(((i+1)**max_subword_length)*len(tab_seqlen[i])))
+                if (word[i+1:] in scores):
+                    other_scores = copy.deepcopy(scores[word[i+1:]])
+                else:
+                    other_scores = copy.deepcopy(compute_segment_scores(word[i+1:], tab_seqlen, tab_pos, scores))
+                if (len(other_scores) == 0):
+                    seg_scores.append(([subword],subword_score))
+                else:
+                    for j,segment in enumerate(other_scores):
+                        other_scores[j] = ([subword]+segment[0],subword_score+segment[1])
+                    seg_scores += other_scores
+    seg_scores = sorted(seg_scores, key=lambda item: item[1])
+    scores[word] = seg_scores
+    return seg_scores
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It may be noted here that the score of a segmentation candidate is calculated as the sum of the scores for all the subwords in that segmentation, where the score of subword $\sigma_w$ is defined as&lt;/p&gt;
+
+&lt;p&gt;$$ \sigma_w = w \times \text{relative rank of subword in its table}$$&lt;/p&gt;
+
+&lt;p&gt;Here, $w = \left(\frac{1}{|w|}\right)^{\max_w{|w|}}$. This score empirically gives subword lengths which correspond closely with the distribution of syllable lengths in English. It is a variation of the scoring scheme proposed in the original paper.&lt;/p&gt;
+
+&lt;p&gt;An analysis of the subword length frequencies obtained using this method reveals the following.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/lzw1.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As expected, it produces more subwords of shorter lengths. A log-scale graph reveals further details about frequencies of longer subwords.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/subword/lzw2.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For higher lengths, LZW corresponds strongly with BPE, while unigram SR is nowhere close.&lt;/p&gt;
+
+&lt;p&gt;However, in the actual task, the method performs worse than both BPE and unigram, and this further strengthed my belief that probabilistic sampling, while useful for MT, does not quite fit in this particular HWR dataset.&lt;/p&gt;
+
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;While BPE seems like an ad-hoc technique for modeling subword units, it actually performs exceptionally well in practice. This, combined with its simplicity of implementation and low time complexity, makes it a great candidate for the task.&lt;/p&gt;
+
+&lt;p&gt;However, I believe that if a subword model were informed by the grapheme units (for HWR), as early techniques for ASR were informed by phonemes, it might perform well on the task. This seems like an interesting direction for exploration.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>An Introduction to Speech Recognition using WFSTs</title>
@@ -18,8 +171,138 @@
       <pubDate>Mon, 23 Apr 2018 13:41:31 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/intro-speech-recognition-wfst/</guid>
-      <description>Until now, all of my blog posts have been about deep learning methods or their application to NLP. Since the last couple of weeks, however, I have started learning about Automatic Speech Recognition (ASR)1. Therefore, I will also include speech-related articles in this publication now.
-The ASR logic is very simple (it’s just Bayes rule, like most other things in machine learning). Essentially, given a speech waveform, the objective is to transcribe it, i.</description>
+      <description>
+
+&lt;p&gt;Until now, all of my blog posts have been about deep learning methods or their application to NLP. Since the last couple of weeks, however, I have started learning about Automatic Speech Recognition (ASR)&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;. Therefore, I will also include speech-related articles in this publication now.&lt;/p&gt;
+
+&lt;p&gt;The ASR logic is very simple (it’s just Bayes rule, like most other things in machine learning). Essentially, given a speech waveform, the objective is to transcribe it, i.e., identify a text which aligns with the waveform. Suppose $Y$ represents the feature vectors obtained from the waveform (Note: this “feature extraction” itself is an involved procedure, and I will describe it in detail in another post), and $\mathbf{w}$ denotes an arbitrary string of words. Then, we have the following.&lt;/p&gt;
+
+&lt;p&gt;$$ \hat{\mathbf{w}} = \text{arg}\max_{\mathbf{w}} { P(\mathbf{w}|Y)} = \text{arg} \max_{\mathbf{w}} {P(Y|\mathbf{w})P(\mathbf{w}) } $$&lt;/p&gt;
+
+&lt;p&gt;The two likelihoods in the term are trained separately. The first component, known as &lt;em&gt;acoustic modeling&lt;/em&gt;, is trained using a parallel corpus of utterances and speech waveforms. The second component, called &lt;em&gt;language modeling&lt;/em&gt;, is trained in an unsupervised fashion from a large corpus of text.&lt;/p&gt;
+
+&lt;p&gt;Although the ASR training appears simple from this abstract level, the implementation is arguably more complex, and is usually done using Weighted Finite State Transducers (WFSTs). In this post, I’ll describe WFSTs, some of their basic algorithms, and give a brief introduction to how they are used for speech recognition.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;weighted-finite-state-transducers-wfsts&#34;&gt;Weighted Finite State Transducers (WFSTs)&lt;/h4&gt;
+
+&lt;p&gt;If you have taken any Theory of Computation course before, you’d probably already be aware what an &lt;em&gt;automata&lt;/em&gt; is. Essentially, a finite automaton accepts a language (which is a set of strings). They are represented by directed graphs as shown below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/dag.gif&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Each such automaton has a start state, one or more final states, and labeled edges connecting the states. A string is accepted if it ends in a final state after traversing through some path in the graph. For instance in the above DFA (deterministic finite automata), &lt;em&gt;a&lt;/em&gt;, &lt;em&gt;ac&lt;/em&gt;, and &lt;em&gt;ae&lt;/em&gt; are allowed.&lt;/p&gt;
+
+&lt;p&gt;So an &lt;em&gt;acceptor&lt;/em&gt; maps any input string to a binary class {0,1} depending on whether or not the string is accepted. A &lt;em&gt;transducer&lt;/em&gt;, on the other hand, has 2 labels on each edge — an input label, and an output label. Furthermore, a &lt;em&gt;weighted&lt;/em&gt; finite state transducer has weights corresponding to each edge and every final state.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/wfst.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Therefore, a WFST is a mapping from a pair of strings to a weight sum. The pair is formed from the input/output labels along any path of the WFST. For pairs which are not possible in the graph, the corresponding weight is infinite.&lt;/p&gt;
+
+&lt;p&gt;In practice, there are libraries available in every language to implement WFSTs. For C++, &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/WebHome&#34; target=&#34;_blank&#34;&gt;OpenFST&lt;/a&gt; is a popular library, which is also used in the &lt;a href=&#34;http://kaldi-asr.org/&#34; target=&#34;_blank&#34;&gt;Kaldi speech recognition toolkit&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In principle, it is possible to implement speech recognition algorithms without using WFSTs. However, these data structures have &lt;a href=&#34;https://cs.nyu.edu/~mohri/pub/csl01.pdf&#34; target=&#34;_blank&#34;&gt;several proven results&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; and algorithms which can directly be used in ASRs without having to worry about correctness and complexity. These advantages have made WFSTs almost omniscient in speech recognition. I’ll now summarize some algorithms on WFSTs.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;some-basic-algorithms-on-wfsts&#34;&gt;Some basic algorithms on WFSTs&lt;/h3&gt;
+
+&lt;h4 id=&#34;composition&#34;&gt;Composition&lt;/h4&gt;
+
+&lt;p&gt;Composition, as the name suggests, refers to the process of combining 2 WFSTs to form a single WFST. If we have transducers for pronunciation and word-level grammar, such an algorithm would enable us to form a phone-to-word level system easily.&lt;/p&gt;
+
+&lt;p&gt;Composition is done using 3 rules:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Initial state in the new WFST are formed by combining the initial states of the old WFSTs into pairs.&lt;/li&gt;
+&lt;li&gt;Similarly, final states are combined into pairs.&lt;/li&gt;
+&lt;li&gt;For every pair of edges such that the o-label of the first WFST is the i-label of the second, we add an edge from the source pair to the destination pair. The edge weight is summed using the sum rules.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;An example of composition is shown below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/composition.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;At this point, it may be important to define what &amp;ldquo;sum&amp;rdquo; means for edge weights. Formally, the &amp;ldquo;languages&amp;rdquo; accepted by WFSTs are generalized through the notion of &lt;a href=&#34;https://en.wikipedia.org/wiki/Semiring&#34; target=&#34;_blank&#34;&gt;semirings&lt;/a&gt;. Basically, it is a set of elements with 2 operators, namely $\oplus$ and $\otimes$. Depending on the type of semiring, these operators can take on different definitions. For example, in a tropical semiring, $\oplus$ denotes &lt;strong&gt;$\min$&lt;/strong&gt;, and $\otimes$ denotes &lt;strong&gt;sum&lt;/strong&gt;. Furthermore, in any WFST, weights are $\otimes$-multiplied along paths (Note: here “multiplied” would mean summed for a tropical semiring) and $\oplus$-summed over paths with identical symbol sequence.&lt;/p&gt;
+
+&lt;p&gt;See &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/ComposeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; for OpenFST implementation of composition.&lt;/p&gt;
+
+&lt;h4 id=&#34;determinization&#34;&gt;Determinization&lt;/h4&gt;
+
+&lt;p&gt;A deterministic automaton is one in which there is only one transition for each label in every state. By such a formulation, a deterministic WFST removes all redundancy and greatly reduces the complexity of the underlying grammar. But, are all WFSTs determinizable?&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;The Twins Property:&lt;/em&gt; Let us consider an automaton A. Two states &lt;em&gt;p&lt;/em&gt; and &lt;em&gt;q&lt;/em&gt; in A are said to be siblings if both can be reached by string &lt;em&gt;x&lt;/em&gt; and both have cycles with label &lt;em&gt;y&lt;/em&gt;. Essentially, siblings are twins if the total weight for the paths until the states, as well as that including the cycle, are equal for both.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;A WFST is determinizable if all its siblings are twins.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This is an example of what I said earlier regarding WFSTs being an efficient implementation of the algorithms used in ASR. There are several methods to determinize a WFST. One such algorithm is shown below.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/determinization.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;In simpler steps, this algorithm does the following:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;At each state, for every outgoing label, if there are multiple outgoing edges for that label, replace them with a single edge with weight as the $\otimes$-sum of all edge weights containing that label.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Since this is a local algorithm, it can be efficiently implemented in-memory. To see how to perform determinization in OpenFST, see &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/DeterminizeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;minimization&#34;&gt;Minimization&lt;/h4&gt;
+
+&lt;p&gt;Although minimization is not as essential as determinization, it is still a nice optimization technique. It refers to minimizing the number of states and transitions in a deterministic WFST.&lt;/p&gt;
+
+&lt;p&gt;Minimization is carried out in 2 steps:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Weight pushing: All weights are pushed towards the start state. See the following example.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/pushing.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;After this is done, we combine those states which have identical paths to any final state. For example in the above WFST, states 1 and 2 have become identical after weight pushing, so they are combined into one state.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In OpenFST, the implementation details for minimization can be found &lt;a href=&#34;http://www.openfst.org/twiki/bin/view/FST/MinimizeDoc&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The following&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; shows the complete pipeline for a WFST reduction.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/17/pipeline.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;wfsts-in-speech-recognition&#34;&gt;WFSTs in speech recognition&lt;/h4&gt;
+
+&lt;p&gt;Several WFSTs are composed in sequence for use in speech recognition. These are:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Grammar (&lt;strong&gt;G&lt;/strong&gt;): This is the language model trained on large text corpus.&lt;/li&gt;
+&lt;li&gt;Lexicon (&lt;strong&gt;L&lt;/strong&gt;): This encodes information about the likelihood of phones without context.&lt;/li&gt;
+&lt;li&gt;Context-dependent phonetics (&lt;strong&gt;C&lt;/strong&gt; ): This is similar to n-gram language modeling, except that it is for phones.&lt;/li&gt;
+&lt;li&gt;HMM structure (&lt;strong&gt;H&lt;/strong&gt;): This is the model for the waveform.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In general, the composed transducer &lt;strong&gt;H&lt;/strong&gt;o&lt;strong&gt;C&lt;/strong&gt;o&lt;strong&gt;L&lt;/strong&gt;o&lt;strong&gt;G&lt;/strong&gt; represents the entire pipeline of speech recognition. Each of the components can individually be improved, so that the entire ASR system gets improved.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;em&gt;This was just a brief introduction to WFSTs which are an important component in ASR systems. In further posts on speech, I hope to discuss things such as feature extraction, popular GMM-HMM models, and latest deep learning advances. I am also reading papers mentioned &lt;a href=&#34;http://jrmeyer.github.io/asr/2017/04/05/seminal-asr-papers.html&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt; to get a good overview of how ASR has progressed over the years.&lt;/em&gt;&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Gales, Mark, and Steve Young. &amp;ldquo;The application of hidden Markov models in speech recognition.&amp;rdquo; Foundations and Trends in Signal Processing 1.3 (2008): 195–304.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Mohri, Mehryar, Fernando Pereira, and Michael Riley. &amp;ldquo;Weighted finite-state transducers in speech recognition.&amp;rdquo; Computer Speech &amp;amp; Language 16.1 (2002): 69–88.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;&lt;a href=&#34;https://wiki.eecs.yorku.ca/course_archive/2011-12/W/6328/_media/wfst-tutorial.pdf&#34; target=&#34;_blank&#34;&gt;Lecture slides&lt;/a&gt; from Prof. Hui Jiang (York University)
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
     </item>
     
   </channel>

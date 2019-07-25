@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Representation learning on Desh Raj</title>
+    <title>representation learning on Desh Raj</title>
     <link>https://desh2608.github.io/tags/representation-learning/</link>
-    <description>Recent content in Representation learning on Desh Raj</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <description>Recent content in representation learning on Desh Raj</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
-    <copyright>&amp;copy; 2018</copyright>
+    <copyright>&amp;copy; 2019</copyright>
     <lastBuildDate>Tue, 31 Jul 2018 18:45:15 +0530</lastBuildDate>
     
-	<atom:link href="https://desh2608.github.io/tags/representation-learning/index.xml" rel="self" type="application/rss+xml" />
+	    <atom:link href="https://desh2608.github.io/tags/representation-learning/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -18,8 +18,141 @@
       <pubDate>Tue, 31 Jul 2018 18:45:15 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/deep-learning-theory-5/</guid>
-      <description>We have discussed several aspects of deep learning theory, ranging from optimization and generalization guarantees to role of depth and generative models. In this final post of this series, I will illustrate how theory can motivate simple solutions to problems, which can then outperform complex techniques. For this, we will consider a field where deep learning has done exceptionally well, namely, word and sentence embeddings.
-If you need a refresher on word embeddings, I have previously explained them, along with the most popular methods, in this post.</description>
+      <description>
+
+&lt;p&gt;We have discussed several aspects of deep learning theory, ranging from &lt;a href=&#34;https://desh2608.github.io/post/deep-learning-theory-1/&#34; target=&#34;_blank&#34;&gt;optimization&lt;/a&gt; and &lt;a href=&#34;https://desh2608.github.io/post/deep-learning-theory-2/&#34; target=&#34;_blank&#34;&gt;generalization guarantees&lt;/a&gt; to &lt;a href=&#34;https://desh2608.github.io/post/deep-learning-theory-3/&#34; target=&#34;_blank&#34;&gt;role of depth&lt;/a&gt; and &lt;a href=&#34;https://desh2608.github.io/post/deep-learning-theory-4/&#34; target=&#34;_blank&#34;&gt;generative models&lt;/a&gt;. In this final post of this series, I will illustrate how theory can motivate simple solutions to problems, which can then outperform complex techniques. For this, we will consider a field where deep learning has done exceptionally well, namely, word and sentence embeddings.&lt;/p&gt;
+
+&lt;p&gt;If you need a refresher on word embeddings, I have previously explained them, along with the most popular methods, in &lt;a href=&#34;https://desh2608.github.io/post/understanding-word-vectors/&#34; target=&#34;_blank&#34;&gt;this post&lt;/a&gt;. The &lt;em&gt;distributional hypothesis&lt;/em&gt; forms the basis for all word embedding techniques used at present. Instead of naively taking the co-occurence matrix, though, almost all techniques use some low-rank approximation for the same. This gives rise to low-dimensional ($\sim 300$) dense embeddings for text. An important question, then, is the following: How can low-dimensional embeddings represent the complex linguistic structure in text? We will first look at this question from a theoretical perspective, based on &lt;a href=&#34;http://aclweb.org/anthology/Q16-1028&#34; target=&#34;_blank&#34;&gt;this ACL&amp;rsquo;16 paper&lt;/a&gt; from Arora et al.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;how-do-low-dimensional-embeddings-approximate-co-occurence-matrices&#34;&gt;How do low-dimensional embeddings approximate co-occurence matrices?&lt;/h3&gt;
+
+&lt;p&gt;Formally, we want to see why, for some low-dimensional vector representations $v$, we have&lt;/p&gt;
+
+&lt;p&gt;$$ \langle v_w,v_{w^{\prime}} \rangle \approx \text{PMI}(w,w^{\prime}), $$&lt;/p&gt;
+
+&lt;p&gt;where $\text{PMI}(w,w^{\prime})$ is the pointwise mutual information between $w$ and $w^{\prime}$, defined as $\log \frac{P(w,w^{\prime})}{P(w)P(w^{\prime})}$, where the probabilities are computed empirically from the co-occurence matrix.&lt;/p&gt;
+
+&lt;p&gt;For this, the authors propose a generative model of language, as opposed to the usual discriminative model that is based on predicting the context words given a target word (i.e., multiclass classification). This is based on the random walk of a discourse vector $c_t \in \mathcal{R}^d$, which generates $t$th word in step $t$. Every word has a time-invariant latent vector $v_w \in \mathcal{R}^d$, and the word production model is given as&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}[w ~ \text{emitted at time} ~ t|c_t] \propto \exp(\langle c_t,v_w \rangle). $$&lt;/p&gt;
+
+&lt;p&gt;Here, &lt;em&gt;random walk&lt;/em&gt; means that $c_{t+1}$ is obtained by adding a small random displacement vector to $c_t$. For a theoretic analysis, we make an isotropy assumption about the word vectors.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Isotropy assumption&lt;/strong&gt;: In the bulk, word vectors are distributed uniformly in the $\mathcal{R}^d$ space.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;To generate such a dsitribution, we can just sample i.i.d from $v = s \cdot v^{\prime}$, where $s$ is a scalar random variable ($s \leq \kappa$), and $v^{\prime}$ is obtained from a spherical Gaussian distribution. This is a simple Bayesian prior similar to the assumptions commonly used in statistics.&lt;/p&gt;
+
+&lt;p&gt;Let us define $Z_c = \sum_{w}\exp(\langle v_w,c \rangle)$. This is like the normalization factor used with the above equation, but it is very difficult to compute. In the paper, the authors prove that this value is very close to some constant $Z$ for a fixed $c$. This allows us to remove this factor from consideration. Empirically, it has also been seen that some log-linear models have self-normalization properties, and this may be a reason for the observation. Let us now see how to prove this lemma.&lt;/p&gt;
+
+&lt;p&gt;Since $Z_c$ is a sum of random variables, it may be tempting to use concentration inequalities to bound its value. However, we cannot do this since $Z_c$ is neither sub-Gaussian nor sub-exponential. We approach the problem it two parts. First we bound the mean and variance of $Z_c$, and then show that it is concentrated around its mean.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Part 1:&lt;/strong&gt; Suppose there are $n$ vectors in our space. Since they are identically distributed, we have&lt;/p&gt;
+
+&lt;p&gt;$$ \mathbb{E}[Z_c] = n\mathbb{E}[\exp(\langle v_w,c \rangle)] \geq n\mathbb{E}[1 + \langle v_w,c \rangle] = n. $$&lt;/p&gt;
+
+&lt;p&gt;Here, we have used $\mathbb{E}[\langle v_w,c \rangle] = 0$, since $v_w$&amp;rsquo;s are drawn from a scaled uniform spherical Gaussian. Now, suppose all the scalar variables $s_w$ are equal in distribution to $s$. Then, we can write&lt;/p&gt;
+
+&lt;p&gt;$$ \mathbb{E}[Z_c] = n\mathbb{E}[\exp(\langle v_w,c \rangle)] = n\mathbb{E}\left[ \mathbb{E} [\exp(\langle v_w,c \rangle)|s]\right]. $$&lt;/p&gt;
+
+&lt;p&gt;We can compute the conditional expectation as&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} \mathbb{E} [\exp(\langle v_w,c \rangle)|s] &amp;amp;= \int_x \frac{1}{\sigma\sqrt{2\pi}}\exp\left( -\frac{x^2}{2\sigma^2} \right)\exp(x) dx \\\ &amp;amp;= \frac{1}{\sigma\sqrt{2\pi}}\exp\left( -\frac{(x-\sigma^2)^2}{2\sigma^2} + \frac{\sigma^2}{2}\right) dx \\\ &amp;amp;= \exp(\frac{\sigma^2}{2}). \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;Here, the standard deviation is equal to the scaling factor $s$, and so $\sigma^2 = s^2$. It follows that&lt;/p&gt;
+
+&lt;p&gt;$$ \mathbb{E}(Z_c) = n\exp(\frac{s^2}{2}). $$&lt;/p&gt;
+
+&lt;p&gt;Similarly, we can show that the variance&lt;/p&gt;
+
+&lt;p&gt;$$ \mathbb{V}(Z_c) \leq n\mathbb{E}[\exp(2s^2)]. $$&lt;/p&gt;
+
+&lt;p&gt;Since $\langle v_w,c \rangle|s$ has a Gaussian distribution with variance $s^2 \leq \kappa^2$, we have using Chernoff bounds that&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}[|\langle v_w,c \rangle| \geq \eta \log n |s] \leq \exp \left( - \frac{\eta^2 \log^2 n}{2\kappa^2} \right) = \exp (-\Omega(\log^2 n)). $$&lt;/p&gt;
+
+&lt;p&gt;Here we have removed $\eta$ and $\kappa$ since they are constants. We can now write the converse of this inequality, by taking expectation over all $s_w$, as&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}[|\langle v_w,c \rangle| \leq \frac{1}{2}\log n] \geq 1 - \exp(-\Omega(\log^2 n)). $$&lt;/p&gt;
+
+&lt;p&gt;This means that, with high probability, $|\langle v_w,c \rangle| \leq \frac{1}{2}\log n$, or equivalently, $\exp(\langle v_w,c \rangle) \leq \sqrt{n}$. Now, let the random variable $X_w$ have the same distribution as $\exp(\langle v_w,c \rangle)$ when the above holds.&lt;/p&gt;
+
+&lt;p&gt;Let us take a minute to understand what we are doing here. We do not know how to bound the original $Z_c$, since $\exp(\langle v_w,c \rangle)$ has no known concentration bounds. So we approximate it by a new random variable with high probability, so that we can compute bounds on the sum. Now, let $Z_{c}^{\prime} = \sum_{w}X_w$. We will now try to bound the mean and variance for this random variable.&lt;/p&gt;
+
+&lt;p&gt;Computing the lower bound for the mean is simple since the mean of $\exp(\langle v_w,c \rangle)$ is zero, and so $\mathbb{E}[Z_c^{\prime}] \leq n$. We can similarly bound the variance as $\mathbb{V}[Z_c^{\prime}] \leq 1.1 \Lambda n$, where $\Lambda$ is a constant. Now, using Bernstein&amp;rsquo;s inequality, we get&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}\left[ | Z_c^{\prime} - \mathbb{E}[Z_c^{\prime}] | \geq \epsilon n \right] \leq \exp(-\Omega(\log^2 n)). $$&lt;/p&gt;
+
+&lt;p&gt;Since $Z_c$ has the same distribution as $Z_c^{\prime}$, the above inequality also holds for the former. This means that the probability of $Z_c$ deviating from its mean is very low, and so we can say with high probability that&lt;/p&gt;
+
+&lt;p&gt;$$ (1-\epsilon_z)Z \leq Z_c \leq (1+\epsilon_z)Z. $$&lt;/p&gt;
+
+&lt;p&gt;The above proof was just to remove the normalization factor as a constant from the original problem, so that analysis becomes easier. We now come to the main result itself. Suppose $c$ and $c^{\prime}$ are consecutive discourse vectors and $w$ and $w^{\prime}$ are words generated from them. We have&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} p(w,w^{\prime}) &amp;amp;= \mathbb{E}_{c,c^{\prime}}[\text{Pr}[w,w^{\prime}|c,c^{\prime}]] \\\ &amp;amp;= \mathbb{E}_{c,c^{\prime}}[p(w|c)p(w^{\prime}|c^{\prime})] \\\ &amp;amp;= \mathbb{E}_{c,c^{\prime}}\left[ \frac{\exp(\langle v_w,c \rangle)}{Z_c}\right] \frac{\exp(\langle v_{w^{\prime}},c^{\prime} \rangle)}{Z_{c^{\prime}}}. \end{align} $$&lt;/p&gt;
+
+&lt;p&gt;As proved above, we can approximate the denominators to $Z$ and take them out of the expectation. This gives&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} p(w,w^{\prime}) &amp;amp;= \frac{1}{Z^2}\mathbb{E}_{c,c^{\prime}}[\exp(\langle v_w,c \rangle)\exp(\langle v_{w^{\prime}},c^{\prime} \rangle))] \\\ &amp;amp;= \frac{1}{Z^2}\mathbb{E}_c [\exp(\langle v_w,c \rangle)\mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} \rangle)]]. \end{align}. $$&lt;/p&gt;
+
+&lt;p&gt;We can compute the internal expectation term as&lt;/p&gt;
+
+&lt;p&gt;$$ \begin{align} \mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} \rangle)] &amp;amp;= \mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} - c + c \rangle)] \\\ &amp;amp;= \mathbb{E}_{c^{\prime}|c}[\exp(\langle v_{w^{\prime}},c^{\prime} -c \rangle)]\exp(\langle v_{w^{\prime}},c \rangle) \\\ &amp;amp;\approx \exp(\langle v_{w^{\prime}},c \rangle). \end{align}$$&lt;/p&gt;
+
+&lt;p&gt;Here, the last approximation can be done because we have assumed that our random walk has small steps, i.e., $|c^{\prime} - c|$ is small. Using this in above, we get&lt;/p&gt;
+
+&lt;p&gt;$$ p(w,w^{\prime}) = \frac{1}{Z^2}\mathbb{E}[\exp(\langle v_w + v_{w^{\prime}},c \rangle)]. $$&lt;/p&gt;
+
+&lt;p&gt;Since $c$ has uniform distribution over the sphere, the above resembles a Gaussian centered at 0 and variance $\frac{\lVert  v_w + v_{w^{\prime}} \rVert^2}{d}$. Since $\mathbb{E}[\exp(X)] = \exp(\frac{\sigma^2}{2})$ for $X \sim \mathcal{N}(0,\sigma^2)$, we get the closed form expression as&lt;/p&gt;
+
+&lt;p&gt;$$ p(w,w^{\prime}) = \frac{1}{Z^2}\exp\left( \frac{\lVert  v_w + v_{w^{\prime}} \rVert^2}{2d} \right), $$&lt;/p&gt;
+
+&lt;p&gt;which is the desired result. Note that I have ignored some technicalities for error bounds in this proof. We have now shown the original result that we wanted, but how did dimensionality help?&lt;/p&gt;
+
+&lt;p&gt;The answer lies in the &lt;em&gt;isotropy assumption&lt;/em&gt; that we made at the very beginning. Having $n$ vectors be isotropic in $d$ dimensions requires $d &amp;lt;&amp;lt; n$, which is indeed what is observed empirically. Hence, theory justifies experimental findings.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;an-algorithm-for-sentence-embeddings&#34;&gt;An algorithm for sentence embeddings&lt;/h3&gt;
+
+&lt;p&gt;In a previous part of this series, I echoed Prof. Arora&amp;rsquo;s concern that theoretical analysis at present is like a postmortem analysis, where we try to find properties of the model that can explain certain empirical findings. The ideal scenario would be where we can use this understanding to guide future learning models. In this section, I will look at &lt;a href=&#34;https://openreview.net/pdf?id=SyK00v5xx&#34; target=&#34;_blank&#34;&gt;this paper from ICLR&amp;rsquo;17&lt;/a&gt; which uses the understanding from the previous section to build simple but strong word embeddings.&lt;/p&gt;
+
+&lt;p&gt;Suppose we want to obtain the vector for a piece of text, say, a sentence. From our generative model defined in the previous section, it would be reasonable to say that this can be approximated by a &lt;em&gt;max a priori&lt;/em&gt; (MAP) estimate of the discourse vector that generated the sentence, i.e.,&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}[w ~ \text{emitted in sentence} ~ s | c_s] = \frac{\exp(\langle c_s,v_w \rangle)}{Z_{c_s}}, $$&lt;/p&gt;
+
+&lt;p&gt;where $c_s$ is the discourse vector that remains approximately constant for the sentence. However, we need to modify this slightly to account for two real situations.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Some words often appear out of context, and some stop words appear regardless of discourse. To approximate this, we add a term $\alpha p(w)$ to the log-linear model, where $p(w)$ is the unigram probability of the word. This makes probability of appearance of some words high even if they have low correlation with the discourse vector.&lt;/li&gt;
+&lt;li&gt;Generation of words depends not just on current sentence, but on entire history of discourse. To model this, we use discourse vector $\tilde{c}_s = \beta c_0 + (1-\beta)c_s$, where $c_0$ is the common discourse vector.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Finally, the modified log-linear objective is as follows.&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Pr}[w ~ \text{emitted in sentence} ~ s | c_s] = \alpha p(w) + (1-\alpha) \frac{\exp(\langle \tilde{c}_s,v_w \rangle)}{Z_{\tilde{c}_s}} $$&lt;/p&gt;
+
+&lt;p&gt;After the word embeddings have been trained using this objective, we can model the likelihood for obtaining sentence $s$ given discourse vector $c_s$ as&lt;/p&gt;
+
+&lt;p&gt;$$ p[s|c_s] = \prod_{w\in s}p(w|c_s) = \prod_{w\in s}\left[ \alpha p(w) + (1-\alpha) \frac{\exp(\langle \tilde{c}_s,v_w \rangle)}{Z} \right]. $$&lt;/p&gt;
+
+&lt;p&gt;Here, we have taken $Z_{\tilde{c}_s} = Z$, in accordance with the result we proved earlier. To maximize this expression, we just need to maximize the term inside the product. Taking $f_w(\tilde{c}_s)$ to denote the term inside the product, we can easily compute its derivative, and then use Taylor expansion, $f_w(\tilde{c}_s) = f_w(0) + \nabla f_w(\tilde{c}_s)^T \tilde{c}_s$, to get an expression for $f_w(\tilde{c}_s)$. Finally, we have&lt;/p&gt;
+
+&lt;p&gt;$$ \text{arg}\max\sum_{w\in s}f_w(\tilde{c}_s) \propto \sum_{w\in s}\frac{a}{p(w)+a}v_w, $$&lt;/p&gt;
+
+&lt;p&gt;where $a = \frac{1-\alpha}{\alpha Z}$. If we analyze this expression, this is simply a weighted sum of the word vectors in the sentence, which is one of the most common bag-of-words technique to obtain sentence embeddings. Furthermore, the weight is low if the unigram frequency of the word is high. This is similar to Tf-idf weighting of words. Now, this theory gives rise to the following algorithm, taken from the original paper.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/25/sif.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This is a striking illustration of how rigorously developed theoretical results can guide construction of simple algorithms in deep learning.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;strong&gt;Final note:&lt;/strong&gt; This series was based on the ICML 2018 tutorial on &amp;ldquo;&lt;a href=&#34;http://unsupervised.cs.princeton.edu/deeplearningtutorial.html&#34; target=&#34;_blank&#34;&gt;Toward a Theory for Deep Learning&lt;/a&gt;&amp;rdquo; by &lt;a href=&#34;https://www.cs.princeton.edu/~arora/&#34; target=&#34;_blank&#34;&gt;Prof. Sanjeev Arora&lt;/a&gt;, which is why the discussion revolved mostly around the work done by his group. The papers themselves are not very trivial to understand, but the &lt;a href=&#34;www.offconvex.org&#34; target=&#34;_blank&#34;&gt;blog posts&lt;/a&gt; are more beginner friendly, and highly recommended. Several people criticize deep learning for being purely intuition-based, but I believe that will change soon, given that so much good research is being done to develop a theory for it.&lt;/p&gt;
+</description>
     </item>
     
     <item>
@@ -28,8 +161,89 @@ If you need a refresher on word embeddings, I have previously explained them, al
       <pubDate>Thu, 12 Apr 2018 13:41:14 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/how-to-obtain-sentence-vectors/</guid>
-      <description>In several of my previous posts, I have discussed methods for obtaining word embeddings, such as SVD, word2vec, or GloVe. In this post, I will abstract a level higher and talk about 4 different methods that have been proposed to get embeddings for sentences.
-But first, some of you may ask why do we even need a different method for obtaining sentence vectors. Since sentences are essentially made up of words, it may be reasonable to argue that simply taking the sum or the average of the constituent word vectors should give a decent sentence representation.</description>
+      <description>
+
+&lt;p&gt;In several of my previous posts, I have discussed methods for obtaining word embeddings, such as SVD, word2vec, or GloVe. In this post, I will abstract a level higher and talk about 4 different methods that have been proposed to get embeddings for sentences.&lt;/p&gt;
+
+&lt;p&gt;But first, some of you may ask why do we even need a different method for obtaining sentence vectors. Since sentences are essentially made up of words, it may be reasonable to argue that simply taking the sum or the average of the constituent word vectors should give a decent sentence representation. This is akin to a bag-of-words representation, and hence suffers from the same limitations, i.e.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;It ignores the order of words in the sentence.&lt;/li&gt;
+&lt;li&gt;It ignores the sentence semantics completely.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Other word vector based approaches are also similarly constrained. For instance, a weighted average technique again loses word order within the sentence. To remedy this issue, &lt;a href=&#34;https://nlp.stanford.edu/~socherr/EMNLP2013_RNTN.pdf&#34; target=&#34;_blank&#34;&gt;Socher et al.&lt;/a&gt; combined the words in the order given by the parse tree of the sentence. While this technique may be suitable for complete sentences, it does not work for phrases or paragraphs.&lt;/p&gt;
+
+&lt;p&gt;In an earlier &lt;a href=&#34;https://desh2608.github.io/post/last-3-years-in-text-classification/&#34; target=&#34;_blank&#34;&gt;post&lt;/a&gt;, I discussed several ways in which sentence representations are obtained as an intermediate step during text classification. Several approaches are used for this purpose, such as character to sentence level feature encoding, parse trees, regional (two-view) embeddings, and so on. However, the limitation with such an &amp;ldquo;intermediate&amp;rdquo; representation is that the vectors obtained are not generic in that they are closely tied to the classification objective. As such, vectors obtained through training on one objective may not be extrapolated for other tasks.&lt;/p&gt;
+
+&lt;p&gt;In light of this discussion, I will now describe 4 recent methods that have been proposed to obtain general sentence vectors. Note that each of these belongs to either of 2 categories: (i) inter-sentence, wherein the vector of one sentence depends on its surrounding sentences, and (ii) intra-sentence, where a sentence vector only depends on that particular sentence in isolation.&lt;/p&gt;
+
+&lt;h4 id=&#34;paragraph-vectors&#34;&gt;Paragraph Vectors&lt;/h4&gt;
+
+&lt;p&gt;In this &lt;a href=&#34;http://www.jmlr.org/proceedings/papers/v32/le14.pdf&#34; target=&#34;_blank&#34;&gt;ICML’14 paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; from Mikolov (who also invented &lt;em&gt;word2vec&lt;/em&gt;), the authors propose the following solution: a sentence vector can be learned simply by assigning an index to each sentence, and then treating the index like any other word. This is shown in the following figure.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/16/doc2vec.png&#34; alt=&#34;Paragraph vectors model. Figure taken from paper&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Essentially, every paragraph (or sentence) is mapped to a unique vector, and the combined paragraph and word vectors are used to predict the next word. Through such a training, the paragraph vectors may start storing missing information, thus acting like a memory for the paragraph. For this reason, this method is called the Distributed Memory model (PV-DM).&lt;/p&gt;
+
+&lt;p&gt;To obtain the embeddings for an unknown sentence, an inference step needs to be performed. A new column of randomly initialized values is added to the sentence embedding matrix. The inference step is performed keeping all the other parameters fixed to obtain the required vector.&lt;/p&gt;
+
+&lt;p&gt;The PV-DM model requires a large amount of storage space since the paragraph vectors are concatenated with all the vectors in the context window at every training step. To solve this, the authors propose another model, called the Distributed BOW (PV-DBOW), which predicts random words in the context window. The downside is that this model does not use word order, and hence performs worse than PV-DM.&lt;/p&gt;
+
+&lt;h4 id=&#34;skip-thoughts&#34;&gt;Skip-thoughts&lt;/h4&gt;
+
+&lt;p&gt;While PV was an intra-sentence model, &lt;a href=&#34;https://papers.nips.cc/paper/5950-skip-thought-vectors.pdf&#34; target=&#34;_blank&#34;&gt;skip-thoughts&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; is inter-sentence. The method uses continuity of text to predict the next sentence from the given sentence. This also solves the problem of the inference step that is present in the PV model. If you have read about the skip-gram algorithm in word2vec, skip-thoughts is essentially the same technique abstracted to the sentence level.&lt;/p&gt;
+
+&lt;p&gt;In the paper, the authors propose an encoder-decoder framework for training, with an RNN used for both encoding and decoding. In addition to a sentence embedding matrix, this method also generates vectors for the words in the corpus vocabulary. Finally, the objective function to be maximized is as follows.&lt;/p&gt;
+
+&lt;p&gt;$$ \sum_t \log P(w_{i+1}^t|w_{i+1}^{&amp;lt; t},\mathbf{h}_i) + \sum_t \log P(w_{i-1}^t|w_{i-1}^{&amp;lt; t},\mathbf{h}_i) $$&lt;/p&gt;
+
+&lt;p&gt;Here, the indices $i+1$ and $i-1$ represent the next sentence and the previous sentence, respectively. Overall, the function represents the sum of log probabilities of correctly predicting the next sentence and the previous sentence, given the current sentence.&lt;/p&gt;
+
+&lt;p&gt;Since word vectors are also precited at training time, a problem may arise at the time of inference if the new sentence contains an OOV word. To solve this, the authors present a simple solution for vocabulary expansion. We assume that any word, even if it is OOV, will definitely come from some vector space (say w2v), such that we have its vector representation in that space. As such, every known word has 2 representations, one in the RNN space and another in the w2v space. We can then identify a linear transformation matrix that transforms w2v space vectors into RNN space vectors, and this matrix may be used to obtain the RNN vectors for OOV words.&lt;/p&gt;
+
+&lt;h4 id=&#34;fastsent&#34;&gt;FastSent&lt;/h4&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1602.03483.pdf&#34; target=&#34;_blank&#34;&gt;This model&lt;/a&gt;, proposed by Kyunghun Cho&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;, is also an inter-sentence technique, and is conceptually very similar to skip-thoughts. The only difference is that it uses a BOW representation of the sentence to predict the surrounding sentences, which makes it computationally much more efficient than skip-thoughts. The training hypothesis remains the same, i.e., rich sentence semantics can be inferred from the content of adjacent sentences. Since the details of the method are same as skip-thoughts, I will not repeat them here to avoid redundancy.&lt;/p&gt;
+
+&lt;h4 id=&#34;sequential-denoising-autoencoders-sdae&#34;&gt;Sequential Denoising Autoencoders (SDAE)&lt;/h4&gt;
+
+&lt;p&gt;This technique was also proposed in the &lt;a href=&#34;https://arxiv.org/pdf/1602.03483.pdf&#34; target=&#34;_blank&#34;&gt;same paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; as FastSent. However, it is essentially an intra-sentence method wherein the objective is to regenerate a sentence from a noisy version.&lt;/p&gt;
+
+&lt;p&gt;In essence, in an SDAE, a high-dimensional input data is corrupted according to some noise function and the model is trained to recover the original data from the corrputed version.&lt;/p&gt;
+
+&lt;p&gt;In the paper, the noise function $N$ uses 2 parameters as follows.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;For each word $w$ in the sentence $S$, $N$ deletes it according to some probability $p_0$.&lt;/li&gt;
+&lt;li&gt;For each non-overlapping bigram in $S$, $N$ swaps the bigram tokens with probability $p_x$.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;These are inspired from the “word dropout” and “debagging” approaches, respectively, which have earlier been studied in some detail.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;In the last paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt;, the authors have performed detailed empirical evaluations of several sentence vector methods, including all of the above. From this analysis, the following observations can be drawn,&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Task-dependency:&lt;/strong&gt; Although the methods intend to produce general sentence representations which work well across different tasks, it is found that some methods are more suitable from some tasks due to the inherent algorithm. For instance, skip-thoughts perform well on textual entailment tasks, whereas SDAEs perform much better on paraphrase detection.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Inter vs. intra:&lt;/strong&gt; The inter-sentence models generate similar vectors in that their nearest neighbors are those sentences which have shared concepts. In contrast, for the intra-sentence models, these are sentences which have more overlapping words.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Dependency on word order:&lt;/strong&gt; Although the widely held view is that word order is critical for sentence vectors, the average score for models which are sensitive to word order was found to be almost equal to those which are not. It was even lower for RNN models in unsupervised objectives, which is indeed surprising. One explanation for this may be that the sentences in the dataset, or the evaluation techniques, are not robust enough so as to sufficiently challenge simple word frequency based techniques.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Le, Quoc, and Tomas Mikolov. “Distributed representations of sentences and documents.” International Conference on Machine Learning. 2014.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Kiros, Ryan, et al. “Skip-thought vectors.” Advances in neural information processing systems. 2015.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;Hill, Felix, Kyunghyun Cho, and Anna Korhonen. “Learning distributed representations of sentences from unlabelled data.” arXiv preprint arXiv:1602.03483 (2016).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
     </item>
     
     <item>
@@ -38,7 +252,145 @@ But first, some of you may ask why do we even need a different method for obtain
       <pubDate>Wed, 14 Mar 2018 13:40:57 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/online-learning-word-embeddings/</guid>
-      <description>Word vectors have become the building blocks for all natural language processing systems. I have earlier written an overview of popular algorithms for learning word embeddings here. One limitation with all these methods (namely SVD, skip-gram, and GloVe) is that they are all “batch” techniques. In this post, I will discuss two recent papers (which are very similar but were developed independently) which aim to provide an online approximation for the skip-gram algorithm.</description>
+      <description>
+
+&lt;p&gt;Word vectors have become the building blocks for all natural language processing systems. I have earlier written an overview of popular algorithms for learning word embeddings &lt;a href=&#34;https://desh2608.github.io/post/understanding-word-vectors/&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;. One limitation with all these methods (namely SVD, skip-gram, and GloVe) is that they are all “batch” techniques. In this post, I will discuss two recent papers (which are very similar but were developed independently) which aim to provide an online approximation for the skip-gram algorithm.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;But first, what do we mean by a “batch” algorithm?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Simply put, in a batch algorithm, the entire data set needs to be available before we begin the processing. In contrast, an “online” algorithm can process inputs on-the-fly, i.e., in a streaming fashion. Needless to say, such algorithms are also preferable when the available resources are not sufficient to process the entire dataset at once.&lt;/p&gt;
+
+&lt;p&gt;Now that we have some idea about batch algorithms, I’ll explain why the existing methods for word representation learning are of this kind. First, in the case of the standard SVD and Stanford’s GloVe, the entire cooccurence matrix needs to be computed, and only then can the processing be started. If some additional data arrives later, the matrix would have to be recomputed, and training would have to be restarted (if at least one of the updates depends on a changed matrix element). Second, in the case of Mikolov’s &lt;em&gt;word2vec&lt;/em&gt; (skip-gram and CBOW), negative sampling is often used to make the computation more efficient. This sampling depends on the unigram probability distribution of the vocabulary words in the corpus. As such, before learning can happen, we need to compute the vocabulary as well as the unigram distribution.&lt;/p&gt;
+
+&lt;p&gt;Recently, two very similar methods (developed independently) have been proposed to make the skip-gram with negative sampling (SGNS) algorithm learn in a streaming fashion. I’ll quickly review the SGNS algorithm first so that there is some context when we discuss the papers.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;batch-sgns-algorithm&#34;&gt;Batch SGNS algorithm&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/15/skipgram.png&#34; alt=&#34;Skip-gram objective. Image taken from [The Morning Paper](https://blog.acolyer.org/2016/04/21/the-amazing-power-of-word-vectors/).&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;SGNS is a window-based method with the following training objective: Given the target word, predict all the context words in the window.&lt;/p&gt;
+
+&lt;p&gt;Suppose we have a context window where $w$ is the target word and $c$ is one of the context words. Then, skip-gram’s objective is to compute $P(c|w)$, which is given as&lt;/p&gt;
+
+&lt;p&gt;$$ p(c|w;\theta) = \frac{\exp(v_c \cdot v_w)}{\sum_{c^{\prime}\in C}\exp(v_{c^{\prime}}\cdot v_w)} $$&lt;/p&gt;
+
+&lt;p&gt;Basically, it is just a softmax probability distribution over all the word-context pairs in the corpus, directed by the cosine similarity. However, the denominator term here is very expensive to compute since there may be a very large number of possible context words. To solve this problem, negative sampling is used.&lt;/p&gt;
+
+&lt;p&gt;Goldberg and Levy have explained the derivation for the objective function in SGNS very clearly in their &lt;a href=&#34;https://arxiv.org/pdf/1402.3722.pdf&#34; target=&#34;_blank&#34;&gt;note&lt;/a&gt;. I will try to provide a little intuition here.&lt;/p&gt;
+
+&lt;p&gt;For the word $w$, we are trying to predict the context word $c$. Since we are using softmax, this is essentially like a multi-class classification problem, where we are trying to classify the next word into one of $N$ classes (where $N$ is the number of words in the dictionary). Since $N$ may be quite large, this is a very difficult problem.&lt;/p&gt;
+
+&lt;p&gt;What SGNS does is that it converts this multi-classification problem into binary classification. The new objective is to predict, for any given word-context pair $(w,c)$, whether the pair is in the window or not. For this, we try to increase the probability of a &amp;ldquo;positive&amp;rdquo; pair $(w,c)$, while at the same time reducing the probability of $k$ randomly chosen &amp;ldquo;negative samples&amp;rdquo; $(w,s)$ where $s$ is a word not found in $w$’s context. This leads to the following objective function which we try to maximize in SGNS:&lt;/p&gt;
+
+&lt;p&gt;$$ J = \log \sigma(c\cdot w) + \sum_{i=1}^k \mathbb{E}_{w_i \sim p(w)}[\log \sigma (-w_i \cdot w)]  $$&lt;/p&gt;
+
+&lt;p&gt;In other words, we push the target vector in the direction of the positive context vector, and pull it away from $k$ randomly chosen (w.r.t. the unigram probability distribution) negative vectors. Here &amp;ldquo;negative&amp;rdquo; means that these vectors are not actually present in the target’s context.&lt;/p&gt;
+
+&lt;h4 id=&#34;what-do-we-need-to-make-sgns-online&#34;&gt;What do we need to make SGNS online?&lt;/h4&gt;
+
+&lt;p&gt;As is evident from the above discussion, since SGNS is a window-based approach, the training itself is very much in an online paradigm. However, the constraints are in creating a vocabulary and a unigram distribution for negative sampling, which makes SGNS a two-pass method. Further, if additional data is seen later, the distribution and vocabulary would change, and the model would have to be retrained.&lt;/p&gt;
+
+&lt;p&gt;Essentially, we need online alternatives for 2 aspects of the algorithms:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Dynamic vocabulary building&lt;/li&gt;
+&lt;li&gt;Adaptive unigram distribution&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;With this background, I will now discuss the two proposed methods for online SGNS.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;space-saving-word2vec&#34;&gt;Space-Saving word2vec&lt;/h3&gt;
+
+&lt;p&gt;In &lt;a href=&#34;https://arxiv.org/pdf/1704.07463.pdf&#34; target=&#34;_blank&#34;&gt;this paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; from researchers at Johns Hopkins, the following solutions were proposed for the two problems mentioned above.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Space-saving algorithm for dynamic vocabulary building.&lt;/li&gt;
+&lt;li&gt;Reservoir sampling for adaptive unigram distribution.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;Space-saving algorithm:&lt;/strong&gt; It is a popular method to estimate the top-$k$ most frequent items in a streaming data.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;We declare a structure V containing $k$ pairs of word and their counts, and initialize it to empty pairs.&lt;/li&gt;
+&lt;li&gt;As word $w$ arrives, if $w \in V$, we increment its count.&lt;/li&gt;
+&lt;li&gt;Otherwise, if $V$ has space, we append the pair $(w,1)$ to $V$.&lt;/li&gt;
+&lt;li&gt;If not, the word with the lowest count is replaced by $w$.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;At any instant, the words in the structure V denote the dynamic vocabulary of the corpus.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Reservoir sampling:&lt;/strong&gt; Reservoir sampling is a family of randomized algorithms for randomly choosing a sample of $k$ items from a list S containing $n$ items, where $n$ is either a very large or unknown number. (Wikipedia)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Similar to the SS algorithm, we declare a structure (called the reservoir) of $k$ empty elements (not pairs this time). In addition, we initialize a counter $c$ to 0.&lt;/li&gt;
+&lt;li&gt;The first $k$ elements in the stream are filled into the reservoir. $c$ is incremented at every occurence.&lt;/li&gt;
+&lt;li&gt;For the remaining items, we draw $j$ from $1,\ldots,c$ randomly. If $j &amp;lt; k$, the $j^{\text{th}}$ element of the reservoir is replaced with the new element.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;At any instant, the samples present in the reservoir provide an approximate distribution of items in the entire data stream.&lt;/p&gt;
+
+&lt;p&gt;While the algorithm itslelf is conceptually simple, the authors have mentioned several implementation choices which are important for training SGNS online. I list them here with some observations:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;When a word is ejected from a bin in the dynamic vocabulary, its embeddings are re-initialized. As such, every bin has its own learning rate which is reset when the word in the bin is changed.&lt;/li&gt;
+&lt;li&gt;During sentence subsampling, all words not in $W$ are retained. Those in $W$ are retained with a probability which is inversely proportional to the square root of its count in the dictionary.&lt;/li&gt;
+&lt;li&gt;Probably the most important deviation from the SGNS algorithm is that the reservoir sampling essentially generates an empirical distribution from which to sample negative context words. In contrast, in the original SGNS algorithm, a &lt;em&gt;smoothed&lt;/em&gt; empirical distribution is used. The authors have themselves allowed that “ smoothing the negative sampling distribution was (sic) shown to increase word embedding quality consistently.”&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;incremental-sgns&#34;&gt;Incremental SGNS&lt;/h3&gt;
+
+&lt;p&gt;This &lt;a href=&#34;http://aclweb.org/anthology/D17-1037&#34; target=&#34;_blank&#34;&gt;EMNLP’17 paper&lt;/a&gt;&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; from researchers at Yahoo Japan proposes the following alternative solutions for the aforementioned problems.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Misra-Gries algorithm for dynamic vocabulary building.&lt;/li&gt;
+&lt;li&gt;A modified reservoir sampling algorithm for adaptive unigram table.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;&lt;strong&gt;Misra-Gries algorithm:&lt;/strong&gt; This was developed long before the space-saving algorithm (1982) and was the go-to technique for top-$k$ most frequent itemset estimation in streaming data, before the space-saving algorithm was developed. The method is very similar to SS except for one difference:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;When word $w$ is not in $V$ and there is no space to append, every element in $V$ is decremented until some element becomes 0, at which point it is replaced by the new word.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Modified reservoir sampling:&lt;/strong&gt; Here is the pseudocode from the paper.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://desh2608.github.io/img/15/reservoir.png&#34; alt=&#34;Modified reservoir sampling. Image taken from original paper&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This algorithm differs from the conventional Reservoir Sampling in two important ways:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;The counts used here are &lt;em&gt;smoothed&lt;/em&gt; (see line 4 to 6). This has been shown to be important for word vector quality, as discussed above.&lt;/li&gt;
+&lt;li&gt;If the reservoir does not have enough space, we iterate over all existing words and replace them with some probability (which is proportional to the smoothed count of $w$). Contrast this with the earlier technique, where a $j$ was randomly sampled and word at that index was replaced. (&lt;strong&gt;Disclaimer&lt;/strong&gt;: &lt;em&gt;I am not sure how exactly this modification helps in learning. If I am allowed to venture a guess, I would say that it is a “soft” equivalent of the hard replacement in the original algorithm. This probably helps in the theoretical analysis of the algorithm.&lt;/em&gt;)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;In addition, the authors have also provided theoretical justification for their algorithm and proved the following theorem: &lt;em&gt;The loss in case of incremental SGNS converges in probability to that of batch SGNS.&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;In summary, SGNS is probably the easiest batch word embedding algorithm to “streamify” because of its inherent window-based nature. The constraints of vocabulary and counts are addressed with approximation algorithms. I can think of several possible directions in which this work can be continued.&lt;/p&gt;
+
+&lt;p&gt;First, there are several algorithms for estimating the top-$k$ most frequent items in a data stream. These are divided into count-based and sketch-based methods. The SS algorithm is probably the most efficient count-based technique, but it may be useful to look at other methods to see if they provide some edge. (Although I’m pretty sure the JHU researchers would have been thorough in their
+selection of the algorithm.)&lt;/p&gt;
+
+&lt;p&gt;Second, GloVe and SVD are yet to be addressed. In case of GloVe in particular, the problem would be to construct the co-occurence matrix in a online fashion. There should be some related work in statistics which can be leveraged for this, but I haven’t conducted much literature survey in this direction.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;May, Chandler, Kevin Duh, Benjamin Van Durme, and Ashwin Lall. &amp;ldquo;&lt;em&gt;Streaming word embeddings with the space-saving algorithm.&lt;/em&gt;&amp;rdquo; arXiv preprint arXiv:1704.07463 (2017).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Kaji, Nobuhiro, and Hayato Kobayashi. &amp;ldquo;&lt;em&gt;Incremental skip-gram model with negative sampling.&lt;/em&gt;&amp;rdquo; arXiv preprint arXiv:1704.03956 (2017).*
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
     </item>
     
     <item>
@@ -47,9 +399,110 @@ But first, some of you may ask why do we even need a different method for obtain
       <pubDate>Wed, 07 Feb 2018 13:40:06 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/irony-detection-in-tweets/</guid>
-      <description>There was a SemEval 2018 Shared Task on “irony detection in tweets” that ended recently. As a fun personal project, I thought of giving it a shot, just to implement some new ideas. In this post, I will describe my approach for the problem along with some code.
-Problem description The task itself was divided into two subtasks:
- Task A: Binary classification. Given a tweet, detect whether it has irony or not.</description>
+      <description>
+
+&lt;p&gt;There was a &lt;a href=&#34;https://github.com/Cyvhee/SemEval2018-Task3&#34; target=&#34;_blank&#34;&gt;SemEval 2018 Shared Task&lt;/a&gt; on “irony detection in tweets” that ended recently. As a fun personal project, I thought of giving it a shot, just to implement some new ideas. In this post, I will describe my approach for the problem along with some code.&lt;/p&gt;
+
+&lt;h4 id=&#34;problem-description&#34;&gt;Problem description&lt;/h4&gt;
+
+&lt;p&gt;The task itself was divided into two subtasks:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;Task A: Binary classification&lt;/em&gt;. Given a tweet, detect whether it has irony or not.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Task B: Multi-label classification&lt;/em&gt;. Given a tweet and a set of labels: i) verbal irony realized through a polarity contrast, ii) verbal irony without such a polarity contrast (i.e., other verbal irony), iii) descriptions of situational irony, iv) non-irony, find the correct irony type.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;While the task appears to be a simple text classification job, there are several nuances that make it challenging. Irony is often context-dependent or derived from world knowledge. In sentiment analysis, the semantics of the sentences are sufficient to judge whether the sentence has been spoken in a positive or negative manner. However, irony, by definition, almost always exists when the literal meaning of the sentence is dramatically different from what has been implied. Sample this:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Just great when you’re (sic) mobile bill arrives by text.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;From a sentiment analysis perspective, the presence of the phrase “just great” would adjudge this sentence strongly positive. However, from our world knowledge, we know the nuances of the interplay between a “mobile bill” and “text.” As a human, then, we can judge that the sentence is spoken in irony.&lt;/p&gt;
+
+&lt;p&gt;The problem is: how can we have an automated system understand this?&lt;/p&gt;
+
+&lt;h4 id=&#34;circular-correlation-between-text-and-hashtags&#34;&gt;Circular correlation between text and hashtags&lt;/h4&gt;
+
+&lt;p&gt;The first idea of a solution came from how the dataset was generated in the first place. To mine tweets containing irony, those tweets were selected which contained the hashtag &lt;strong&gt;#not&lt;/strong&gt;. The idea was that a lot of people explicitly declare their intent at irony through hashtags. For instance, consider the following tweet:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Physical therapy at 8 am is just what I want to be doing with my Friday #iwanttosleep&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In this example, let us breakdown the tweet into 2 components:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;Text&lt;/em&gt;: Physical therapy at 8 am is just what I want to be doing with my Friday.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Hashtag&lt;/em&gt;: I want to sleep&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;It is obvious from the semantics of the 2 components that they imply very different things. As such, it may help to model the interaction between the “text” and “hashtag” components of the tweet and then use the resulting embedding for classification. In this regard, we are essentially treating the problem as that of relation classification, where the entities are the 2 components and we need to identify whether there exists a relation between them (task A), and if yes, of which type (task B).&lt;/p&gt;
+
+&lt;p&gt;The problem, now, is reduced to the issue of how to model the two components and their interaction. This is where deep learning comes into the picture.&lt;/p&gt;
+
+&lt;h4 id=&#34;modeling-embeddings-and-interaction&#34;&gt;Modeling embeddings and interaction&lt;/h4&gt;
+
+&lt;p&gt;The embeddings to represent the components are obtained simply by passing their pretrained word vectors through a bidirectional LSTM layer. This is fairly simple for the text component.&lt;/p&gt;
+
+&lt;p&gt;However, in the hashtag component, a single hashtag almost always consists of multiple words concatenated into a single string. Therefore, we first perform word segmentation on the hashtag and use the resulting segments to obtain the embedding.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import wordsegment as ws
+ws.load()
+hashtag = “ “.join(ws.segment(temp))
+## Here, &#39;temp&#39; is the original hashtag
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Once the embeddings for the two components have been obtained, we use the circular cross-correlation technique (which I have earlier described in &lt;a href=&#34;https://desh2608.github.io/post/beyond-euclidean-embeddings/&#34; target=&#34;_blank&#34;&gt;this blog post&lt;/a&gt; to model their interaction.  Essentially, the operator is defined as&lt;/p&gt;
+
+&lt;p&gt;$$ [a\cdot b]_k = \sum_{i=1}^{d-1}a_i b_{(k+i)\text{mod}d}. $$&lt;/p&gt;
+
+&lt;p&gt;In Tensorflow, this is implemented as follows:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import tensorflow as tf
+
+def holographic_merge(inp):
+    [a, b] = inp
+    a_fft = tf.fft(tf.complex(a, 0.0))
+    b_fft = tf.fft(tf.complex(b, 0.0))
+    ifft = tf.ifft(tf.conj(a_fft) * b_fft)
+    return tf.cast(tf.real(ifft), &#39;float32&#39;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The output of this merge is then passed to an XGBoost classifier (whose implementation was used out-of-the-box from the corresponding Python package).&lt;/p&gt;
+
+&lt;p&gt;This model resulted in a validation accuracy of ~62%, compared to ~59% for a simple LSTM model. Time to analyze where it was failing!&lt;/p&gt;
+
+&lt;h4 id=&#34;world-knowledge-for-irony-detection&#34;&gt;World knowledge for irony detection&lt;/h4&gt;
+
+&lt;p&gt;The problem with this idea was that although it performed well for samples similar to the example given above, such samples constituted only about 20% of the dataset. For a majority of the tweets containing irony, there was no hashtag, and as such, modeling interactions was useless.&lt;/p&gt;
+
+&lt;p&gt;In such cases, we have to solely rely upon the text component to detect hashtag, for e.g.&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;The fun part about 4 am drives in the winter, is no one has cleaned the snow yet&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;If an automated system has to understand that the above sentence contains irony, it needs to know that there is nothing fun about driving on a road covered in snow. This knowledge cannot be gained from learning on a few thousand tweets. We now turn to &lt;strong&gt;transfer learning&lt;/strong&gt;!&lt;/p&gt;
+
+&lt;p&gt;MIT researchers recently built an unsupervised system called &lt;a href=&#34;https://deepmoji.mit.edu/&#34; target=&#34;_blank&#34;&gt;DeepMoji&lt;/a&gt; for emoji prediction in tweets. According to the website, &amp;ldquo;DeepMoji has learned to understand emotions and sarcasm based on millions of emojis. We hypothesize that if we use this pretrained model to extract features from the text component, it may then be used to predict whether the text contains irony. In a way, we are transfering world knowledge to our model (assuming that the million tweets on which DeepMoji was trained is our world!).&lt;/p&gt;
+
+&lt;p&gt;As expected, concatenating the DeepMoji features with the holographic embeddings resulted in a validation accuracy of $\sim69\%$, i.e., a jump of almost 7%. This reinforces our hypothesis that world knowledge is indeed an important ingredient in any kind of irony detection.&lt;/p&gt;
+
+&lt;h4 id=&#34;summary&#34;&gt;Summary&lt;/h4&gt;
+
+&lt;p&gt;In essence, we identified 2 aspects that were essential to identify irony in
+tweets:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Semantic interaction between text and hashtags, modeled using holographic embeddings&lt;/li&gt;
+&lt;li&gt;World knowledge about irony in text, obtained through transfer learning from DeepMoji&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The code for the project is available &lt;a href=&#34;https://github.com/desh2608/tweet-irony-detection&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; In the final test phase, the results were disappointing (~50% for task A) especially given the high performance on validation set. This could likely have been due to some implementation error on the test set, and we are waiting for the gold labels to be released to analyze our mistake.&lt;/p&gt;
+</description>
     </item>
     
     <item>
@@ -58,8 +511,149 @@ Problem description The task itself was divided into two subtasks:
       <pubDate>Wed, 06 Dec 2017 13:39:15 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/beyond-euclidean-embeddings/</guid>
-      <description>Representation learning, as the name suggests, seeks to learn representations for structures such as images, videos, words, sentencences, graphs, etc., which may then be used for several objectives. Arguably the most important representations used nowadays are word embeddings, usually learnt using the distributional semantics methods such as skip-gram or GloVe. I have previously written about these methods here.
-Two assumptions are inherent while using these methods to learn word vectors:</description>
+      <description>
+
+&lt;p&gt;Representation learning, as the name suggests, seeks to learn representations for structures such as images, videos, words, sentencences, graphs, etc., which may then be used for several objectives. Arguably the most important representations used nowadays are word embeddings, usually learnt using the distributional semantics methods such as skip-gram or GloVe. I have previously written about these methods &lt;a href=&#34;https://desh2608.github.io/post/understanding-word-vectors/&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Two assumptions are inherent while using these methods to learn word vectors:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;That words are best visualized as points in the $n$-dimensional space.&lt;/li&gt;
+&lt;li&gt;That the Euclidean distance or the Euclidean dot product are the best measures of similarity between words (or other structures for which the embeddings have been learnt).&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Over the last couple years, researchers have sought to challenge both of these assumptions by proposing several new non-Euclidean representations for words and graphs. Especially in the case of learning relational embeddings, the model should be able to learn all combinations of properties, namely reflexivity/irreflexivity, symmetry/anti-symmetry, and transitivity. Euclidean dot products are limited in that they cannot handle anti-symmetry, since dot products are commutative.&lt;/p&gt;
+
+&lt;p&gt;In this post, I will discuss 4 non-Euclidean embeddings: Gaussian, Holographic, Complex, and Poincare.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;word-representations-via-gaussian-embeddings&#34;&gt;Word representations via Gaussian embeddings&lt;/h4&gt;
+
+&lt;p&gt;The key idea in this ICLR ’15 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; is to map words to a density instead of a point. Density here is represented by a “potential function,” such as a Gaussian. The authors provide a nice recap of energy functions as a tool for learning word representations.&lt;/p&gt;
+
+&lt;p&gt;Essentially, any representation learning involves an energy function $E(x,y)$ which scores pairs of inputs and outputs. A loss function is then uses this energy function to quantify the difference between actual output and predicted output. In the case of skip-gram models, the energy function used is a dot product, and the loss function is a logistic regression. In this paper, the authors propose 2 kinds of energy functions (for symmetric and asymmetric similarity), and the loss function used is max margin as follows.&lt;/p&gt;
+
+&lt;p&gt;$$ L_m(w,c_p,c_n) = \max(0,m-E(w,c_p)+E(w,c_n)) $$&lt;/p&gt;
+
+&lt;p&gt;For a Gaussian distribution to model any word, a baseline approach may involve using the distribution around the word to compute and mean and variance. If a word $w$ occurs $N$ times in the corpus, the covariance of the distribution around $w$ is given as&lt;/p&gt;
+
+&lt;p&gt;$$ \sum_w = \frac{1}{NW}\sum_i^N \sum_j^W (c(w)_{ij})(c(w)_{ij}-w)^T $$&lt;/p&gt;
+
+&lt;p&gt;where W is the window size, and $w$ is the assumed mean. However, the distributions learned using this empirical approach do not possess some desired properties such as unsupervised entailment represented as inclusion between ellipsoids. To solve this, 2 energy functions are proposed.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Method 1: Symmetric similarity&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;This method just computes the inner product between the two distributions. It has been shown that the inner product of two normal distributions is again a normal distribution. Furthermore, we take the log of this value for two reasons. First, since we are dealing with ranking loss, taking the logarithm converts absolute values into relative values, which is easier to interpret. Second, it is numerically easier to deal with.&lt;/p&gt;
+
+&lt;p&gt;Furthermore, the energy function is shown to be of the form &lt;strong&gt;log det A + const&lt;/strong&gt;. We can interpret the constant term as a regularizer that prevents us from decreasing the distance by only increasing joint variance. This combination pushes the means together while encouraging them to have more concentrated, sharply peaked distributions in order to have high energy.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Method 2: Asymmetric similarity&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;This method computes the energy function as the negative of the KL-divergence between the 2 distributions (negative because the KL-divergence returns a distance value and hence needs to be minimized to increase similarity). A low KL divergence from $x$ to $y$ indicates that we can encode $y$ easily as $x$, implying that $y$ entails (logically follows from) $x$.&lt;/p&gt;
+
+&lt;p&gt;The authors have further computed the gradients for each of the two energy functions, and they are easily expressible in terms of existing means and covariances.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;poincare-embeddings-for-hierarchical-representations&#34;&gt;Poincare embeddings for hierarchical representations&lt;/h4&gt;
+
+&lt;p&gt;This paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:2&#34;&gt;&lt;a href=&#34;#fn:2&#34;&gt;2&lt;/a&gt;&lt;/sup&gt; proposes embeddings in hyperbolic spaces, such as the Poincare sphere. Before we get into the method itself, I think it would be best to give a brief overview of hyperbolic geometry itself.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Hyperbolic geometry&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;In his book &lt;em&gt;Elements&lt;/em&gt;, Euclid provided a rigourous framework for axioms, theorems and postulates for all geometrical knowledge at the time. He stated 5 axioms which were to be assumed true. The first 4 were quite self-evident, and were:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Any two points can be connected by a line.&lt;/li&gt;
+&lt;li&gt;Any line segment can be extended indefinitely.&lt;/li&gt;
+&lt;li&gt;Given a line segment, a circle can be drawn with center at one of the endpoints and radius equal to the length of the segment.&lt;/li&gt;
+&lt;li&gt;Any two right angles are congruent.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;However, the fifth axiom, also known as Playfair’s axiom, is much less obvious.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Playfair’s axiom&lt;/em&gt;: Given a line L and a point P, there exists at most one line through P that is parallel to L.&lt;/p&gt;
+
+&lt;p&gt;Euclid himself wasn’t very fond of this axiom and his first 28 postulates depended only on the first 4 axioms, which are the “core” of Euclidean geometry. Even 2000 years after his death, mathematicians tried to derive the fifth axiom from the first 4. While using “proof by contradiction” for this purpose, they assumed the negation of the fifth axiom (Given a line L and a point P not on L, there are at least two distinct lines that can be drawn through P that are parallel to L) and tried to arrive at a contradiction. However, while the derived results were strange and very different from those in Euclidean geometry, they were consistent within themselves. This was a turning point in mathematics as such a bifurcation in geometry had never been expected before. The geometry that arose from these explorations is known as &lt;em&gt;hyperbolic geometry&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;With this knowledge, let us now look at how embeddings may be computed in this new model.&lt;/p&gt;
+
+&lt;p&gt;The Poincare sphere model of hyperbolic space is particularly suitable for representing hierarchies. Consider a knowledge base which can be visualized as a tree. For any branching factor &lt;em&gt;b&lt;/em&gt;, the number of leaf nodes increases exponentially as the number of levels increases. If we try to replicate this construction in a Euclidean disk(sphere), it would not be possible since the area(volume) of a disk(sphere) increases only quadratically(cubically) with increase in radius. This requires that we increase the number of dimensions exponentially.&lt;/p&gt;
+
+&lt;p&gt;However, the Poincare sphere embeds such hierarchies easily: nodes that are exactly $l$ levels below the root are placed on a sphere in hyperbolic space with radius $r \propto l$ and nodes that are less than $l$ levels below the root are located within this sphere. This type of construction is possible as hyperbolic disc area and circle length grow exponentially with their radius. In the paper, the authors used a sphere instead of disk since more degrees of freedom implies better representation of latent hierarchies.&lt;/p&gt;
+
+&lt;p&gt;Distances in the hyperbolic space are given as&lt;/p&gt;
+
+&lt;p&gt;$$ d(u,v) = arcosh\left( 1 + 2\frac{\lVert u-v \rVert^2}{(1-\lVert u \rVert)^2(1-\lVert v \rVert)^2} \right) $$&lt;/p&gt;
+
+&lt;p&gt;Here, hierarchy is represented using the norm of the embedding, while similarity is mirrored in the norm of vector difference. Furthermore, the function is differentiable, which is good for gradient descent.&lt;/p&gt;
+
+&lt;p&gt;For optimization, the update term is the learning rate times the Riemannian gradient of the parameter. The Riemannian gradient itself is computed by taking the product of the Poincare ball matrix inverse (which is trivial to compute) with the Euclidean gradient (which depends on the gradients of the distance function). The loss function used in the paper is a softmax with negative sampling.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;holographic-embeddings-for-knowledge-graphs&#34;&gt;Holographic embeddings for knowledge graphs&lt;/h4&gt;
+
+&lt;p&gt;This and the next method seek to learn embeddings for relations within knowledge graphs, and the motivation for both is to have embeddings that allow asymmetric relations to be sufficiently represented. To achieve said objective, this AAAI ’16 paper&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:3&#34;&gt;&lt;a href=&#34;#fn:3&#34;&gt;3&lt;/a&gt;&lt;/sup&gt; employs circular correlations, while the next paper from ICML ’16&lt;sup class=&#34;footnote-ref&#34; id=&#34;fnref:4&#34;&gt;&lt;a href=&#34;#fn:4&#34;&gt;4&lt;/a&gt;&lt;/sup&gt; uses complex embeddings.&lt;/p&gt;
+
+&lt;p&gt;Before describing the method, I will first describe the task. Given a set $E$ of entities and a set $P$ of relation types, the objective is to learn a characteristic function for each relation type that determines whether that relation exists between any two elements in $E$. The entities are referred to as the &lt;em&gt;subject&lt;/em&gt; and the &lt;em&gt;object&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;The general approach is to approximate the characteristic function using a function that takes as input the relation vector, and the vectors corresponding to the subject and the object. Using a loss function such as log likelihood minimization with negative sampling, we can tune the parameters that describe the entity vectors and the relation type vector. This is similar to our earlier discussion on energy function optimization.&lt;/p&gt;
+
+&lt;p&gt;The catch here is that the characteristic function is supposed to output a scalar score (the probability of the relation), but the inputs to it are vectors. To convert the input to a scalar, the entity vectors are combined using a composition operator &lt;strong&gt;o&lt;/strong&gt;(more on this later), and its dot product is taken with the relation type vector.&lt;/p&gt;
+
+&lt;p&gt;So the problem boils down to the choice of a good compositional operator. In the past, three different approaches have been taken for this problem.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;em&gt;Tensor product&lt;/em&gt;: Take the outer product of the entity vectors. However, the resulting vector contains the square of the initial number of parameters, which may cause problems such as overfitting down the line.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Concatenation, projection, and non-linearity&lt;/em&gt;: The projection matrix is learned during training. However, due to the absence of interaction between features, the representation learnt is not rich enough, even though non-linearity is added.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Non-compositional methods&lt;/em&gt;: In these approaches, the score is computed as the distance of the difference vector with the relation vector (e.g., TransE).&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Essentially, we want an operator which has cross-feature interactions without having the number of parameters explode. To this end, the authors propose the circular correlation operator, which is given as&lt;/p&gt;
+
+&lt;p&gt;$$ [a\cdot b]_k = \sum_{i=1}^{d-1}a_i b_{(k+i)\text{mod}d}. $$&lt;/p&gt;
+
+&lt;p&gt;The output contains as many parameters as the input vectors, while also capturing the interaction between the features. The function measures the covariance between embeddings at different dimension shifts, and the asymmetry stems from this circular correlation.&lt;/p&gt;
+
+&lt;p&gt;At this point, you may be wondering why a simple convolutional operator would not suffice. The answer is that convolution is a commutative function, while correlation is not. Again, the key lies in symmetry (or the lack of it)!&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h4 id=&#34;complex-embeddings-for-link-prediction&#34;&gt;Complex embeddings for link prediction&lt;/h4&gt;
+
+&lt;p&gt;In the objective of predicting relations described earlier, we can think of the characteristic function as a function which takes as input a latent matrix &lt;strong&gt;X&lt;/strong&gt; of scores and outputs the corresponding probability. This latent matrix is an $E \times E$ matrix since it contains the scores for every possible pair of entities. However, since the number of entitites may be very large, the problem we want to solve is that of matrix factorization.&lt;/p&gt;
+
+&lt;p&gt;This is similar to the singular value decomposition method for learning word vectors that I discussed in an earlier blog post. If we assume that an entity has only one unique representation, regardless of whether it occurs as subject or object, the matrix X can be factorized as&lt;/p&gt;
+
+&lt;p&gt;$$ X = EWE^{-1} $$&lt;/p&gt;
+
+&lt;p&gt;Since the entity vectors are complex in nature ($u$ = Re($u$) + $i$Im($u$)), the matrix factorization of $X$ may be either real or complex. But since the characteristic function returns a real output, we define $X$ as the Real part of the factorization. Now, our original objective is to learn $P(Y=1)$ for every $s-o$ pair, and we are trying to approximate this using the latent matrix $X$. In the case of binary relations (yes/no), $Y$ is essentially a sign matrix, and hence it is safe to assume that its “sign-rank” is low.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;But what is a “sign-rank”?&lt;/em&gt; It refers to the smallest rank of a real matrix having the same sign pattern as $Y$. The authors showed in an earlier paper that if the sign rank of $Y$ is low, the rank of Re($EWE^T$) is at most twice that of $Y$. While this is a good upper bound, the actual rank is often much lower than the rank of $Y$.&lt;/p&gt;
+
+&lt;p&gt;In the case of multi-relational data, each relation has a representation $w$ associated with it. The characteristic function then takes as input the relation type along with the subject and object, and computes the score based on a novel scoring function. This function has the following property: if $w$ is real, the characteristic function is symmetric, and if $w$ is imaginary, then it is anti-symmetric.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;While Euclidean embeddings are popular, they are in no way sufficient to represent all the complexities and hierarchies in language. These methods suggest that looking at non-Euclidean spaces for representation learning may be the way to go.&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;
+
+&lt;hr /&gt;
+
+&lt;ol&gt;
+&lt;li id=&#34;fn:1&#34;&gt;Vilnis, Luke, and Andrew McCallum. “&lt;a href=&#34;https://arxiv.org/pdf/1412.6623.pdf&#34; target=&#34;_blank&#34;&gt;Word representations via gaussian embedding&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1412.6623&lt;/em&gt;(2014).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:1&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:2&#34;&gt;Nickel, Maximilian, and Douwe Kiela. “&lt;a href=&#34;https://arxiv.org/pdf/1705.08039.pdf&#34; target=&#34;_blank&#34;&gt;Poincare Embeddings for Learning Hierarchical Representations&lt;/a&gt;.” &lt;em&gt;arXiv preprint arXiv:1705.08039&lt;/em&gt; (2017).
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:2&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:3&#34;&gt;Nickel, Maximilian, Lorenzo Rosasco, and Tomaso A. Poggio. “&lt;a href=&#34;https://arxiv.org/pdf/1510.04935.pdf&#34; target=&#34;_blank&#34;&gt;Holographic Embeddings of Knowledge Graphs&lt;/a&gt;.” &lt;em&gt;AAAI&lt;/em&gt;. 2016.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:3&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li id=&#34;fn:4&#34;&gt;Trouillon, Théo, et al. “&lt;a href=&#34;http://proceedings.mlr.press/v48/trouillon16.pdf&#34; target=&#34;_blank&#34;&gt;Complex embeddings for simple link prediction&lt;/a&gt;.” &lt;em&gt;International Conference on Machine Learning&lt;/em&gt;. 2016.
+ &lt;a class=&#34;footnote-return&#34; href=&#34;#fnref:4&#34;&gt;&lt;sup&gt;^&lt;/sup&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+</description>
     </item>
     
     <item>
@@ -68,7 +662,139 @@ Two assumptions are inherent while using these methods to learn word vectors:</d
       <pubDate>Fri, 29 Sep 2017 11:12:55 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/understanding-word-vectors/</guid>
-      <description>This article is a formal representation of my understanding of vector semantics, from course notes and reading reference papers and chapters from Jurafsky’s SLP book. I will be talking about sparse and dense vector semantics, including SVD, skip-gram, and GloVe. In many places, I will try to explain the ideas in language rather than equations (but I’ll provide links to derivations and stuff wherever it is absolutely essential, which is actually everywhere!</description>
+      <description>
+
+&lt;p&gt;&lt;em&gt;This article is a formal representation of my understanding of vector semantics, from course notes and reading reference papers and chapters from Jurafsky’s SLP book. I will be talking about sparse and dense vector semantics, including SVD, skip-gram, and GloVe. In many places, I will try to explain the ideas in language rather than equations (but I’ll provide links to derivations and stuff wherever it is absolutely essential, which is actually everywhere!).&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;“You shall know a word by the company it keeps.”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In vision, images are represented by the corresponding RGB values (or values obtained from other filters), so they are essentially matrices of integers. Language was more arbitrary because traditionally there was no formal method (or globally accepted standard) for representing words with numerical values. Well, not until &lt;strong&gt;word embeddings&lt;/strong&gt; came into the picture (no pun intended)!&lt;/p&gt;
+
+&lt;p&gt;What are embeddings, though? They are called so because words are essentially transformed into vectors by “embedding” them into a vector space. For this, we make use of the hypothesis that words which occur in similar context tend to have similar meaning, i.e., the meaning of a word can be inferred from the distribution around it. For this reason, these methods are also called “distributional” methods.&lt;/p&gt;
+
+&lt;p&gt;Word vectors may be sparse or dense. I’ll begin with sparse vectors and then describe dense ones.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;sparse-vectors&#34;&gt;Sparse vectors&lt;/h3&gt;
+
+&lt;h4 id=&#34;term-document-and-term-term-matrix&#34;&gt;Term-document and term-term matrix&lt;/h4&gt;
+
+&lt;p&gt;Suppose we have a set of 1000 documents, consisting of a total of 5000 unique words. In a very naive fashion, we can simply count the number of occurrences of each word in every document, and then represent each word by this 1000-dimensional vector of counts. This is exactly what a &lt;strong&gt;term-document matrix&lt;/strong&gt; does.&lt;/p&gt;
+
+&lt;p&gt;Similarly, consider a large corpus of text with 5000 unique words. Now take a window of some fixed size and for each word pair, we count the number of times it occurs in the window. These counts form a &lt;strong&gt;term-term matrix&lt;/strong&gt;, also called a &lt;strong&gt;co-occurrence matrix&lt;/strong&gt; which in this case will be a 5000x5000 matrix (with most cells 0 if the window size is relatively small).&lt;/p&gt;
+
+&lt;h4 id=&#34;pointwise-mutual-information-pmi&#34;&gt;Pointwise Mutual Information (PMI)&lt;/h4&gt;
+
+&lt;p&gt;The co-occurrence matrix is not the best measure of similarity between 2 words since it is based on the raw frequency, and hence is very skewed. Instead, it would be desirable to have a quantity which measures how much more likely is it for 2 words to occur in a window, compared with pure chance. This is exactly what PMI measures.&lt;/p&gt;
+
+&lt;p&gt;$$ \text{PMI}(x,y) = \log \left( \frac{P(x,y)}{P(x)P(y)} \right) $$&lt;/p&gt;
+
+&lt;p&gt;If PMI is positive, the ($x$,$y$) pair is more likely to occur together than pure chance, and vice versa. However, a negative value is unreliable since it is unlikely to get many co-occurrences of a word pair in a small corpus. To solve this problem, we define a Positive PMI (PPMI) as&lt;/p&gt;
+
+&lt;p&gt;$$ \text{PPMI}(x,y) = \max (\text{PMI}(x,y),0). $$&lt;/p&gt;
+
+&lt;h4 id=&#34;tf-idf-term-frequency-inverse-document-frequency&#34;&gt;TF-IDF (Term frequency — inverse document frequency)&lt;/h4&gt;
+
+&lt;p&gt;This is composed of 2 parts: TF, which denotes the count of the word in a document, and IDF, which is a weight component that gives higher weight to words occurring only in a few documents (and hence are more representative of the documents they are present in, in contrast to words like ‘the’ which are present in large number of documents).&lt;/p&gt;
+
+&lt;p&gt;$$ idf_i = \log \left( \frac{N}{df_i} \right) $$&lt;/p&gt;
+
+&lt;p&gt;Here, $N$ is the total number of documents and $df_i$ is the number of documents in which word $i$ occurs.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;dense-vectors&#34;&gt;Dense vectors&lt;/h3&gt;
+
+&lt;p&gt;The problem with sparse vectors is the curse of dimensionality, which makes computation and storage infeasible. For this reason, we prefer dense vectors, with real-valued elements. Dense vector semantics fall into 2 categories: matrix factorization, and neural embeddings.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;matrix-factorization&#34;&gt;Matrix Factorization&lt;/h3&gt;
+
+&lt;h4 id=&#34;singular-vector-decomposition-svd&#34;&gt;Singular vector decomposition (SVD)&lt;/h4&gt;
+
+&lt;p&gt;This is basically a dimensionality reduction technique where we find the dimensions with the highest variances. Suppose we have the co-occurence matrix A of size $m \times n$, then it is possible to factorize A into:&lt;/p&gt;
+
+&lt;p&gt;$$ A_{m \times n} = U_{m\times r}S_{r\times r}V_{r\times n}^T $$&lt;/p&gt;
+
+&lt;p&gt;where $r$ is the rank of matrix $A$ (i.e. $r$ = maximum number of linearly independent vectors that can be used to form $A$). Also, $U$ is a matrix of the eigenvectors of $AA^T)$ and $S$ is a diagonal matrix comprising its eigenvalues. If we rearrange the columns in $U$ to correspond with a decreasing order of eigenvalues, we can keep the first $k$ columns which will represent the dimensions in the latent space which have the highest variance. These will give us a $k$-dimensional representation for each of the $m$ words in the vocabulary.&lt;/p&gt;
+
+&lt;p&gt;But why do we want to perform this truncation?&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;First, removing the lower variance dimensions filters the noise component from the word embeddings.&lt;/li&gt;
+&lt;li&gt;More importantly, having a lower number of parameters leads to better generalization. It is found that 300-dimensional word embeddings perform much better than, say, 3000-dimensional ones.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;However, this approach is still constrained since the matrix factorization of $A$, which in itself may be a large matrix, is computationally complex.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;neural-embeddings&#34;&gt;Neural embeddings&lt;/h3&gt;
+
+&lt;p&gt;The idea is simple. We can treat each element in the vector as a parameter to be updated while training a neural network model. We start with a randomly initialized vector and update it at each iteration. This update is based on the vectors of the context (window) words. The hypothesis is that such an update would ultimately result in similar words having vectors which are closer to each other in the vector space.&lt;/p&gt;
+
+&lt;p&gt;Here, I will describe the 2 most popular neural models — Word2Vec and GloVe.&lt;/p&gt;
+
+&lt;h4 id=&#34;word2vec&#34;&gt;Word2Vec&lt;/h4&gt;
+
+&lt;p&gt;Word2Vec is actually the name of a tool which internally uses skip-gram or CBOW (continuous bag-of-words) with negative sampling. The objectives for both these models are quite similar, except a subtle distinction. In skip-gram, we predict the context words given the target word, and in CBOW, we predict the target word given the context words. In this article, I will limit my discussion to &lt;em&gt;skip-gram with negative sampling&lt;/em&gt; (SGNS).&lt;/p&gt;
+
+&lt;p&gt;Suppose we have a context window where $w$ is the target word and $c$ is one of the context words. Then, skip-gram’s objective is to compute $P(c|w)$, which is given as&lt;/p&gt;
+
+&lt;p&gt;$$ p(c|w;\theta) = \frac{\exp(v_c\cdot v_w)}{\sum_{c^{\prime}\in C}\exp(v_{c^{\prime}}\cdot v_w)}. $$&lt;/p&gt;
+
+&lt;p&gt;Basically, it is just a softmax probability distribution over all the word-context pairs in the corpus, directed by the cosine similarity. However, the denominator term here is very expensive to compute since there may be a very large number of context words. To solve this problem, negative sampling is used.&lt;/p&gt;
+
+&lt;p&gt;Goldberg and Levy have explained the derivation for the objective function in SGNS very clearly in their &lt;a href=&#34;https://arxiv.org/pdf/1402.3722.pdf&#34; target=&#34;_blank&#34;&gt;note&lt;/a&gt;. I will try to provide a little intuition here.&lt;/p&gt;
+
+&lt;p&gt;For the word $w$, we are trying to predict the context word $c$. Since we are using softmax, this is essentially like a multi-class classification problem, where we are trying to classify the next word into one of $N$ classes (where $N$ is the number of words in the dictionary). Since $N$ may be quite large, this is a very difficult problem.&lt;/p&gt;
+
+&lt;p&gt;What SGNS does is that it converts this multi-classification problem into binary classification. The new objective is to predict, for any given word-context pair ($w$,$c$), whether the pair is in the window or not. For this, we try to increase the probability of a “positive” pair ($w$,$c$), while at the same time reducing the probability of $k$ randomly chosen “negative samples” ($w$,$s$) where $s$ is a word not found in $w$’s context. This leads to the following objective function which we try to maximize in SGNS:&lt;/p&gt;
+
+&lt;p&gt;$$ J = \log \sigma(c\cdot w) + \sum_{i=1}^k \mathbb{E}_{w_i \sim p(w)}[\log \sigma (-w_i \cdot w)]  $$&lt;/p&gt;
+
+&lt;h4 id=&#34;glove-global-vectors&#34;&gt;GloVe (Global Vectors)&lt;/h4&gt;
+
+&lt;p&gt;One grievance with skip-gram and CBOW is that since they are both window-based models, the co-occurrence statistics of the corpus are not used efficiently, thereby resulting in suboptimal embeddings. The GloVe model proposed by Pennington et al. seeks to solve this problem by formulating an objective function from probability statistics.&lt;/p&gt;
+
+&lt;p&gt;Again, the original &lt;a href=&#34;https://nlp.stanford.edu/pubs/glove.pdf&#34; target=&#34;_blank&#34;&gt;paper&lt;/a&gt; is very pleasant to read (section 3 describes their model in detail), and it is interesting to note the derivation for the objective function:&lt;/p&gt;
+
+&lt;p&gt;$$ J = \sum_{i,j=1}^V f(X_{ij})(w_i^Tw_j + b_i + b_j - \log X_{ij})^2 $$&lt;/p&gt;
+
+&lt;p&gt;Here, $X_{ij}$ is the count of the word pair ($i$,$j$) in the corpus. The weight function $f(x)$ has 3 requirements:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;$f(0) = 0$, so that the entire term does not tend to $\infty$.&lt;/li&gt;
+&lt;li&gt;It should be non-decreasing to assign low weights to rare occurrences.&lt;/li&gt;
+&lt;li&gt;It should be relatively small for large values of $x$.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Again, please read the paper for details.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Although the matrix factorization approach and the neural embedding method may initially come off as completely independent, Levy and Goldberg (again!) ingeniously showed in a &lt;a href=&#34;https://papers.nips.cc/paper/5477-neural-word-embedding-as-implicit-matrix-factorization.pdf&#34; target=&#34;_blank&#34;&gt;NIPS 2014 paper&lt;/a&gt; that even the SGNS method implicitly factorizes a word-context matrix where the cells are the PMI (pointwise mutual information) of the respective word-context pairs, shifted by a global context. They derive this in Section 3.1 of the paper, and I urge you to go to the link and read it. It’s a delight! The derivation is really simple and I would have done it here, except that I would only be reproducing the exact proof.&lt;/p&gt;
+
+&lt;p&gt;Very recently, Richard Socher’s group at Salesforce Research have proposed a new kind of embeddings called CoVe (Contextualized Word Vectors) in their paper. The idea is again borrowed from vision, where transfer learning has been used for a long time. Basically, models with various objectives are trained on a large dataset such as ImageNet, and then these weights are used to initialize model parameters for various vision tasks. Similarly, CoVe uses parameters trained on a attentional Seq2Seq machine translation task, and then uses it for various other tasks, including question-answering, where it has shown state-of-the-art performance on the SQuAD dataset. I have only skimmed through the paper, but I suppose such a deep transfer learning is naturally the next step towards improving word embeddings.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;As an aside, there is a series of blog posts by Sanjeev Arora that analyzes the theory of semantic embeddings in great detail. There are 3 posts in the series:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.offconvex.org/2015/12/12/word-embeddings-1/&#34; target=&#34;_blank&#34;&gt;Semantic word embeddings&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.offconvex.org/2016/02/14/word-embeddings-2/&#34; target=&#34;_blank&#34;&gt;Word Embeddings: Explaining their properties&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.offconvex.org/2016/07/10/embeddingspolysemy/&#34; target=&#34;_blank&#34;&gt;Linear algebraic structure of word embeddings&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;These provide great insight into the mathematics behind word vectors, and are beautifully written (which is no surprise since Prof. Arora is one of the authors of the famous and notoriously advanced book on Computational Complexity).&lt;/p&gt;
+</description>
     </item>
     
   </channel>

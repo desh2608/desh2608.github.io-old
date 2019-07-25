@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Natural language generation on Desh Raj</title>
+    <title>natural language generation on Desh Raj</title>
     <link>https://desh2608.github.io/tags/natural-language-generation/</link>
-    <description>Recent content in Natural language generation on Desh Raj</description>
-    <generator>Hugo -- gohugo.io</generator>
+    <description>Recent content in natural language generation on Desh Raj</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
     <language>en-us</language>
-    <copyright>&amp;copy; 2018</copyright>
+    <copyright>&amp;copy; 2019</copyright>
     <lastBuildDate>Sat, 16 Sep 2017 09:15:44 +0530</lastBuildDate>
     
-	<atom:link href="https://desh2608.github.io/tags/natural-language-generation/index.xml" rel="self" type="application/rss+xml" />
+	    <atom:link href="https://desh2608.github.io/tags/natural-language-generation/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -18,8 +18,100 @@
       <pubDate>Sat, 16 Sep 2017 09:15:44 +0530</pubDate>
       
       <guid>https://desh2608.github.io/post/metrics-for-nlg-evaluation/</guid>
-      <description>Simple natural language processing tasks such as sentiment analysis, or even more complex ones like semantic parsing are easy to evaluate since the evaluation simply requires label matching. As such, metrics like F-score (which is the harmonic mean of precision and recall), or even accuracy in uniformly distributed data, are used for such tasks.
-Evaluating natural language generation systems is a much more complex task, however. And for this reason, a number of different metrics have been proposed for tasks such as machine translation or summarization.</description>
+      <description>
+
+&lt;p&gt;Simple natural language processing tasks such as sentiment analysis, or even more complex ones like semantic parsing are easy to evaluate since the evaluation simply requires label matching. As such, metrics like F-score (which is the harmonic mean of precision and recall), or even accuracy in uniformly distributed data, are used for such tasks.&lt;/p&gt;
+
+&lt;p&gt;Evaluating natural language generation systems is a much more complex task, however. And for this reason, a number of different metrics have been proposed for tasks such as machine translation or summarization. In this blog, I describe 3 major schemes, namely BLEU, ROUGE, and METEOR.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;The intuition for evaluating generated text is the same as that for evaluating labels. If &lt;em&gt;candidate&lt;/em&gt; text A is a closer match to one of the &lt;em&gt;reference&lt;/em&gt; texts than candidate text B, then we want to score A higher than B. As in other schemes, this matching is based on precision (specificity) and recall (sensitivity). To put it simply, A is more precise than B if the % of A that matches a reference text is higher than B. A’s recall is higher if it contains more matching text from a reference than B. For example:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Reference: I work on machine learning.&lt;/p&gt;
+
+&lt;p&gt;Candidate A: I work.&lt;/p&gt;
+
+&lt;p&gt;Candidate B: He works on machine learning.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;In this toy example, A’s precision is higher than B (100% vs. 60%), but B’s recall is higher (60% vs. 40%). Note that in this example, we perform the matching simply using unigrams, which may not always be the case. In fact, this choice of features for computing precision and recall is essentially what differentiates the 3 schemes for NLG evaluation.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;bleu-bilingual-evaluation-understudy-http-aclweb-org-anthology-p-p02-p02-1040-pdf&#34;&gt;&lt;a href=&#34;http://aclweb.org/anthology/P/P02/P02-1040.pdf&#34; target=&#34;_blank&#34;&gt;BLEU (Bilingual Evaluation Understudy)&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;This is by far the most popular metric for evaluating machine translation system. In BLEU, precision and recall are approximated by *modified n-gram precision * and &lt;em&gt;best match length,&lt;/em&gt; respectively.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Modified n-gram precision&lt;/strong&gt;: First, an n-gram precision is the fraction of n-grams in the candidate text which are present in any of the reference texts. From the example above, the unigram precision of A is 100%. However, just using this value presents a problem. For example, consider the two candidates:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;(i) He works on machine learning.&lt;/p&gt;
+
+&lt;p&gt;(ii) He works on on machine machine learning learning.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Candidate (i) has a unigram precision of 60% while for (ii) it is 75%. However, it is obvious that (ii) is not a better candidate than (i) in any way. To solve this problem, we use a “modified” n-gram precision. It matches the candidate’s n-grams only as many times as they are present in any of the reference texts. So in the above example, (ii)’s unigrams ‘on’, ‘machine’, and ‘learning’ are matched only once, and the unigram precision becomes 37.5%.&lt;/p&gt;
+
+&lt;p&gt;Finally, to include all the n-gram precision scores in our final precision, we take their geometric mean. This is done because it has been found that precision decreases exponentially with &lt;em&gt;n&lt;/em&gt;, and as such, we would require logarithmic averaging to represent all values fairly.&lt;/p&gt;
+
+&lt;p&gt;$$ \text{Precision} = \exp\left( \sum_{i=1}^N w_n \log p_n \right), ~~~~ \text{where}~~ w_n = \frac{1}{n} $$&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Best match length:&lt;/strong&gt; While precision calculation was relatively simple, the problem with recall is that there may be many reference texts. So it is difficult to calculate the sensitivity of the candidate with respect to a general reference. However, it is intuitive to think that a longer candidate text is more likely to contain a larger fraction of some reference than a shorter candidate. At the same time, we have already ensured that candidate texts are not arbitrarily long, since then their precision score would be low.&lt;/p&gt;
+
+&lt;p&gt;Therefore, we can introduce recall by just penalizing brevity in candidate texts. This is done by adding a multiplicative factor &lt;em&gt;BP&lt;/em&gt; with the modified n-gram precision as follows.&lt;/p&gt;
+
+&lt;p&gt;$$ \text{BP} = \begin{cases} 1, &amp;amp;\text{if} c &amp;gt; r, \\\ \exp(1-\frac{r}{c},&amp;amp;\text{otherwise}).\end{cases} $$&lt;/p&gt;
+
+&lt;p&gt;Here, $c$ is the total length of candidate translation corpus, and $r$ is the effective reference length of corpus, i.e., average length of all references. The lengths are taken as average over the entire corpus to avoid harshly punishing the length deviations on short sentences. As the candidate length decreases, the ratio $\frac{r}{c}$ increases, and the BP decreases exponentially.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;rouge-recall-oriented-understudy-for-gisting-evaluation-http-www-aclweb-org-anthology-w-w04-w04-1013-pdf&#34;&gt;&lt;a href=&#34;http://www.aclweb.org/anthology/W/W04/W04-1013.pdf&#34; target=&#34;_blank&#34;&gt;ROUGE (Recall Oriented Understudy for Gisting Evaluation)&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;As is clear from its name, ROUGE is based only on recall, and is mostly used for summary evaluation. Depending on the feature used for calculating recall, ROUGE may be of many types, namely ROUGE-N, ROUGE-L, ROUGE-W, and ROUGE-S. Here, we describe the idea behind one of these, and then give a quick run-down of the
+others.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;ROUGE-N:&lt;/strong&gt; This is based on n-grams. For example, ROUGE-1 counts recall based on matching unigrams, and so on. For any $n$, we count the total number of n-grams across all the reference summaries, and find out how many of them are present in the candidate summary. This fraction is the required metric value.&lt;/p&gt;
+
+&lt;p&gt;ROUGE-L/W/S are based on: longest common subsequence (LCS), weighted LCS, and skip-bigram co-occurence statistics, respectively. Instead of using only recall, these use an F-score which is the harmonic mean of precision and recall values. These are in turn, calculated as follows for ROUGE-L.&lt;/p&gt;
+
+&lt;p&gt;Suppose A and B are candidate and reference summaries of lengths $m$ and $n$ respectively. Then, we have&lt;/p&gt;
+
+&lt;p&gt;$$ P = \frac{LCS(A,B)}{m} ~~&lt;del&gt;\text{and}&lt;/del&gt;~~ R = \frac{LCS(A,B)}{n}. $$&lt;/p&gt;
+
+&lt;p&gt;$F$ is then calculated as the weighted harmonic mean of P and R, as&lt;/p&gt;
+
+&lt;p&gt;$$ F = \frac{(1+b^2)RP}{R+b^2P}. $$&lt;/p&gt;
+
+&lt;p&gt;Similarly, in ROUGE-W, for calculating weighted LCS, we also track the lengths of the consecutive matches, in addition to the length of longest common subsequence (since there may be non-matching words in the middle). In ROUGE-S, a skip-bigram refers to any pair of words in sentence order allowing for arbitrary gaps. The precision and recall, in this case, are computed as a ratio of the total number of possible bigrams, i.e., ${n \choose 2}$.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;meteor-metric-for-evaluation-for-translation-with-explicit-ordering-https-www-cs-cmu-edu-alavie-meteor-pdf-banerjee-lavie-2005-meteor-pdf&#34;&gt;&lt;a href=&#34;https://www.cs.cmu.edu/~alavie/METEOR/pdf/Banerjee-Lavie-2005-METEOR.pdf&#34; target=&#34;_blank&#34;&gt;METEOR (Metric for Evaluation for Translation with Explicit Ordering)&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;METEOR is another metric for machine translation evaluation, and it claims to have better correlation with human judgement.&lt;/p&gt;
+
+&lt;p&gt;So why do we need a new metric when BLEU is already available? The problem with BLEU is that since the *BP*value uses lengths which are averaged over the entire corpus, so the scores of individual sentences take a hit.&lt;/p&gt;
+
+&lt;p&gt;To solve this problem, METEOR modifies the precision and recall computations, replacing them with a weighted F-score based on mapping unigrams and a penalty function for incorrect word order.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Weighted F-score:&lt;/strong&gt; First, we try to find the largest subset of mappings that can form an alignment between the candidate and reference translations. For this, we look at exact matches, followed by matches after Porter stemming, and finally using WordNet synonymy. After such an alignment is found, suppose $m$ is
+the number of mapped unigrams between the two texts. Then, precision and recall are given as $\frac{m}{c}$ and $\frac{m}{r}$, where $c$ and $r$ are candidate and reference lengths, respectively. F is calculated as&lt;/p&gt;
+
+&lt;p&gt;$$ F = \frac{PR}{\alpha P + (1-\alpha)R}. $$&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Penalty function:&lt;/strong&gt; To account for the word order in the candidate, we introduce a penalty function as&lt;/p&gt;
+
+&lt;p&gt;$$ p = \gamma \left( \frac{c}{m} \right)^{\beta},~~~~ \text{where}~~ 0 \leq \gamma \leq 1. $$&lt;/p&gt;
+
+&lt;p&gt;Here, $c$ is the number of matching chunks and $m$ is the total number of matches. As such, if most of the matches are contiguous, the number of chunks is lower and the penalty decreases. Finally, the METEOR score is given as $(1-p)F$.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;em&gt;The links to the original papers for the methods described here are in the section headings. Readers are advised to refer to them for details. I have tried to outline the main ideas here for a quick review.&lt;/em&gt;&lt;/p&gt;
+</description>
     </item>
     
   </channel>
