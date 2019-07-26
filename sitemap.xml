@@ -4,123 +4,152 @@
   
   <url>
     <loc>https://desh2608.github.io/courses/example/example1/</loc>
-    <lastmod>2019-05-05T00:00:00+01:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/courses/example/</loc>
-    <lastmod>2018-09-09T00:00:00+00:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/courses/example/example2/</loc>
-    <lastmod>2019-05-05T00:00:00+01:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://desh2608.github.io/post/delta-feats/</loc>
+    <lastmod>2019-07-26T13:18:50-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://desh2608.github.io/</loc>
+    <lastmod>2019-07-26T13:18:50-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://desh2608.github.io/tags/</loc>
+    <lastmod>2019-07-26T13:18:50-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://desh2608.github.io/tags/kaldi/</loc>
+    <lastmod>2019-07-26T13:18:50-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://desh2608.github.io/tags/mfcc/</loc>
+    <lastmod>2019-07-26T13:18:50-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://desh2608.github.io/tags/speech-recognition/</loc>
+    <lastmod>2019-07-26T13:18:50-04:00</lastmod>
+    <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/desh-raj/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/publication_types/1/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/ashish-arora/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/babak-rekabdar/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/chun-chieh-chang/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/daniel-povey/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/david-etter/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://desh2608.github.io/</loc>
-    <lastmod>2019-07-23T11:11:59-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/hossein-hadian/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/jan-trmal/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/paola-garcia/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/publication_types/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/sanjeev-khudanpur/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/shinji-watanabe/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/publication/icdar-19-using/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/vimal-manohar/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/yiwen-shao/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -130,36 +159,24 @@
   </url>
   
   <url>
-    <loc>https://desh2608.github.io/tags/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>https://desh2608.github.io/tags/chain/</loc>
     <lastmod>2019-05-21T16:51:11-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://desh2608.github.io/tags/kaldi/</loc>
-    <lastmod>2019-07-04T14:58:53-04:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>https://desh2608.github.io/talk/joint_ctc_attention/</loc>
-    <lastmod>2019-07-23T11:11:59-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/talk/cpc/</loc>
-    <lastmod>2019-07-23T11:11:59-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/talk/dataset_shift/</loc>
-    <lastmod>2019-07-23T11:11:59-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
@@ -174,18 +191,18 @@
   
   <url>
     <loc>https://desh2608.github.io/talk/attention_model_asr/</loc>
-    <lastmod>2019-07-23T11:11:59-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/slides/</loc>
-    <lastmod>2019-02-05T00:00:00+00:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/slides/example/</loc>
-    <lastmod>2019-02-05T00:00:00+00:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
@@ -195,7 +212,7 @@
   
   <url>
     <loc>https://desh2608.github.io/tags/machine-learning/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -214,12 +231,6 @@
   <url>
     <loc>https://desh2608.github.io/post/subword-segmentation/</loc>
     <lastmod>2018-11-22T15:58:07-05:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://desh2608.github.io/tags/speech-recognition/</loc>
-    <lastmod>2018-11-22T15:58:07-05:00</lastmod>
-    <priority>0</priority>
   </url>
   
   <url>
@@ -246,7 +257,7 @@
   
   <url>
     <loc>https://desh2608.github.io/tags/deep-learning/</loc>
-    <lastmod>2018-08-27T17:08:22-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -353,36 +364,36 @@
   
   <url>
     <loc>https://desh2608.github.io/publication_types/2/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/aditya-gupta/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/frank-chung-hoon-rhee/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/shakaiba-majheed/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/publication/infosc-17-art/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/tags/fuzzy/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -473,18 +484,18 @@
   
   <url>
     <loc>https://desh2608.github.io/authors/ashish-anand/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/publication/conll-17-learning/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/sunil-kumar-sahu/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -500,35 +511,35 @@
   
   <url>
     <loc>https://desh2608.github.io/publication/tfs-16-analysis/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/bhuvnesh-garg/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/authors/kenil-tanna/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/tags/demo/</loc>
-    <lastmod>2016-04-27T00:00:00+00:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/project/external-project/</loc>
-    <lastmod>2016-04-27T00:00:00+00:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/project/internal-project/</loc>
-    <lastmod>2016-04-27T00:00:00+00:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
@@ -538,6 +549,7 @@
   
   <url>
     <loc>https://desh2608.github.io/authors/admin/</loc>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
@@ -552,21 +564,22 @@
   
   <url>
     <loc>https://desh2608.github.io/courses/</loc>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/post/</loc>
-    <lastmod>2018-04-09T19:10:15+01:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/publication/</loc>
-    <lastmod>2019-07-21T19:38:01-04:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/talk/</loc>
-    <lastmod>2018-04-09T19:10:15+01:00</lastmod>
+    <lastmod>2019-07-24T20:33:37-04:00</lastmod>
   </url>
   
 </urlset>
