@@ -133,7 +133,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
   
   <meta property="article:published_time" content="2019-07-26T13:18:50-04:00">
   
-  <meta property="article:modified_time" content="2019-07-26T13:18:50-04:00">
+  <meta property="article:modified_time" content="2019-07-27T09:47:50-04:00">
   
 
   
@@ -405,7 +405,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
 
 
 <meta content="2019-07-26 13:18:50 -0400 EDT" itemprop="datePublished">
-<meta content="2019-07-26 13:18:50 -0400 EDT" itemprop="dateModified">
+<meta content="2019-07-27 09:47:50 -0400 EDT" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -417,8 +417,10 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
     
     
       
+          Last updated on
+      
     
-    <time>Jul 26, 2019</time>
+    <time>Jul 27, 2019</time>
   </span>
   
 
@@ -628,7 +630,6 @@ tdnnf-layer name=tdnnf3 $tdnnf_opts dim=1024 bottleneck-dim=128 time-stride=1
     (i.e. 1,0,-2,0,1), and then applies batchnorm to it.
     Parameters of the class, and their defaults:
       input='[-1]'             [Descriptor giving the input of the layer]
-      dim=120                  [Final dimension of combined features]
     &quot;&quot;&quot;
     def __init__(self, first_token, key_to_value, prev_names=None):
         XconfigLayerBase.__init__(self, first_token, key_to_value, prev_names)
@@ -667,25 +668,19 @@ tdnnf-layer name=tdnnf3 $tdnnf_opts dim=1024 bottleneck-dim=128 time-stride=1
         output_dim = self.output_dim()
 
         configs = []
-        line = ('component name={0}_scale-1 type=NoOpComponent dim={1}'.format(
+        line = ('dim-range-node name={0}_copy1 input-node={0} dim={1} dim-offset=0'.format(
             input_desc, input_dim))
         configs.append(line)
-        line = ('component-node name={0}_scale-1 component={0}_scale-1'
-            ' input=Scale(-1.0, {0})'.format(input_desc))
-        configs.append(line)
-        line = ('component name={0}_scale-2 type=NoOpComponent dim={1}'.format(
+        line = ('dim-range-node name={0}_copy2 input-node={0} dim={1} dim-offset=0'.format(
             input_desc, input_dim))
-        configs.append(line)
-        line = ('component-node name={0}_scale-2 component={0}_scale-2'
-            ' input=Scale(-2.0, {0})'.format(input_desc))
         configs.append(line)
 
         line = ('component name={0}_2 type=NoOpComponent dim={1}'.format(
             input_desc, output_dim))
         configs.append(line)
         line = ('component-node name={0}_2 component={0}_2 input=Append(Offset({0},0),'
-            ' Sum(Offset({0}_scale-1,-1), Offset({0},1)), Sum(Offset({0},-2), Offset({0},2),' 
-            ' Offset({0}_scale-2,0)))'.format(input_desc))
+            ' Sum(Offset(Scale(-1.0,{0}_copy1),-1), Offset({0},1)), Sum(Offset({0},-2), Offset({0},2),' 
+            ' Offset(Scale(-2.0,{0}_copy2),0)))'.format(input_desc))
         configs.append(line)
 
         line = ('component name={0} type=BatchNormComponent dim={1}'.format(
