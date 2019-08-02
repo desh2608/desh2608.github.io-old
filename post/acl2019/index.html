@@ -28,11 +28,10 @@
   
     
   
-  <meta name="description" content="In this post, I will briefly describe the MFCC features for ASR systems, and the use of delta coefficients. I then talk about how this is approximated in Kaldi using an LDA-like transform, and finally mention some recent experimental results to replace the LDA with traditional delta features without losing out on performance in terms of WER.
-What are MFCCs and how are they computed? Feature extraction is the first step in any automatic speech recognition (ASR) pipeline.">
+  <meta name="description" content="I did not attend ACL 2019 in Florence, Italy. I did, however, go through several videos (all the videos of oral presentations are available here), and here are some notes from the ones I found interesting or relevant to my research. My comments are in red italic. Since I work on speech recognition, most of the work related to NLP tasks is not relevant to me, so this post is definitely biased that way.">
 
   
-  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/delta-feats/">
+  <link rel="alternate" hreflang="en-us" href="https://desh2608.github.io/post/acl2019/">
 
   
 
@@ -111,7 +110,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
   <link rel="icon" type="image/png" href="/img/icon.png">
   <link rel="apple-touch-icon" type="image/png" href="/img/icon-192.png">
 
-  <link rel="canonical" href="https://desh2608.github.io/post/delta-feats/">
+  <link rel="canonical" href="https://desh2608.github.io/post/acl2019/">
 
   
   
@@ -125,27 +124,26 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
   <meta property="twitter:creator" content="@rdesh26">
   
   <meta property="og:site_name" content="Desh Raj">
-  <meta property="og:url" content="https://desh2608.github.io/post/delta-feats/">
-  <meta property="og:title" content="A note on MFCCs and delta features | Desh Raj">
-  <meta property="og:description" content="In this post, I will briefly describe the MFCC features for ASR systems, and the use of delta coefficients. I then talk about how this is approximated in Kaldi using an LDA-like transform, and finally mention some recent experimental results to replace the LDA with traditional delta features without losing out on performance in terms of WER.
-What are MFCCs and how are they computed? Feature extraction is the first step in any automatic speech recognition (ASR) pipeline."><meta property="og:image" content="https://desh2608.github.io/img/desh.jpg">
+  <meta property="og:url" content="https://desh2608.github.io/post/acl2019/">
+  <meta property="og:title" content="ACL 2010: Notes from an ASR perspective | Desh Raj">
+  <meta property="og:description" content="I did not attend ACL 2019 in Florence, Italy. I did, however, go through several videos (all the videos of oral presentations are available here), and here are some notes from the ones I found interesting or relevant to my research. My comments are in red italic. Since I work on speech recognition, most of the work related to NLP tasks is not relevant to me, so this post is definitely biased that way."><meta property="og:image" content="https://desh2608.github.io/img/desh.jpg">
   <meta property="twitter:image" content="https://desh2608.github.io/img/desh.jpg"><meta property="og:locale" content="en-us">
   
-  <meta property="article:published_time" content="2019-07-26T13:18:50-04:00">
+  <meta property="article:published_time" content="2019-08-01T13:56:11-04:00">
   
-  <meta property="article:modified_time" content="2019-07-27T09:47:50-04:00">
+  <meta property="article:modified_time" content="2019-08-01T13:56:11-04:00">
   
-
-  
-
 
   
 
 
+  
 
 
 
-  <title>A note on MFCCs and delta features | Desh Raj</title>
+
+
+  <title>ACL 2010: Notes from an ASR perspective | Desh Raj</title>
 
 </head>
 
@@ -395,7 +393,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
   
   
 <div class="article-container pt-3">
-  <h1 itemprop="name">A note on MFCCs and delta features</h1>
+  <h1 itemprop="name">ACL 2010: Notes from an ASR perspective</h1>
 
   
 
@@ -404,8 +402,8 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
 
 
 
-<meta content="2019-07-26 13:18:50 -0400 EDT" itemprop="datePublished">
-<meta content="2019-07-27 09:47:50 -0400 EDT" itemprop="dateModified">
+<meta content="2019-08-01 13:56:11 -0400 EDT" itemprop="datePublished">
+<meta content="2019-08-01 13:56:11 -0400 EDT" itemprop="dateModified">
 
 <div class="article-metadata">
 
@@ -417,10 +415,8 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
     
     
       
-          Last updated on
-      
     
-    <time>Jul 27, 2019</time>
+    <time>Aug 1, 2019</time>
   </span>
   
 
@@ -429,7 +425,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    7 min read
+    6 min read
   </span>
   
 
@@ -437,7 +433,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
   
   
   <span class="middot-divider"></span>
-  <a href="/post/delta-feats/#disqus_thread"></a>
+  <a href="/post/acl2019/#disqus_thread"></a>
   <script id="dsq-count-scr" src="https://desh2608-github-io.disqus.com/count.js" async></script>
   
 
@@ -457,7 +453,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
       
       
       <li>
-        <a href="https://twitter.com/intent/tweet?url=https://desh2608.github.io/post/delta-feats/&amp;text=A%20note%20on%20MFCCs%20and%20delta%20features" target="_blank" rel="noopener" class="share-btn-twitter">
+        <a href="https://twitter.com/intent/tweet?url=https://desh2608.github.io/post/acl2019/&amp;text=ACL%202010:%20Notes%20from%20an%20ASR%20perspective" target="_blank" rel="noopener" class="share-btn-twitter">
           <i class="fab fa-twitter"></i>
         </a>
       </li>
@@ -470,7 +466,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
       
       
       <li>
-        <a href="https://www.facebook.com/sharer.php?u=https://desh2608.github.io/post/delta-feats/&amp;t=A%20note%20on%20MFCCs%20and%20delta%20features" target="_blank" rel="noopener" class="share-btn-facebook">
+        <a href="https://www.facebook.com/sharer.php?u=https://desh2608.github.io/post/acl2019/&amp;t=ACL%202010:%20Notes%20from%20an%20ASR%20perspective" target="_blank" rel="noopener" class="share-btn-facebook">
           <i class="fab fa-facebook-f"></i>
         </a>
       </li>
@@ -483,7 +479,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
       
       
       <li>
-        <a href="mailto:?subject=A%20note%20on%20MFCCs%20and%20delta%20features&amp;body=https://desh2608.github.io/post/delta-feats/" target="_blank" rel="noopener" class="share-btn-email">
+        <a href="mailto:?subject=ACL%202010:%20Notes%20from%20an%20ASR%20perspective&amp;body=https://desh2608.github.io/post/acl2019/" target="_blank" rel="noopener" class="share-btn-email">
           <i class="fas fa-envelope"></i>
         </a>
       </li>
@@ -496,7 +492,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
       
       
       <li>
-        <a href="https://www.linkedin.com/shareArticle?url=https://desh2608.github.io/post/delta-feats/&amp;title=A%20note%20on%20MFCCs%20and%20delta%20features" target="_blank" rel="noopener" class="share-btn-linkedin">
+        <a href="https://www.linkedin.com/shareArticle?url=https://desh2608.github.io/post/acl2019/&amp;title=ACL%202010:%20Notes%20from%20an%20ASR%20perspective" target="_blank" rel="noopener" class="share-btn-linkedin">
           <i class="fab fa-linkedin-in"></i>
         </a>
       </li>
@@ -509,7 +505,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
       
       
       <li>
-        <a href="https://web.whatsapp.com/send?text=A%20note%20on%20MFCCs%20and%20delta%20features%20https://desh2608.github.io/post/delta-feats/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+        <a href="https://web.whatsapp.com/send?text=ACL%202010:%20Notes%20from%20an%20ASR%20perspective%20https://desh2608.github.io/post/acl2019/" target="_blank" rel="noopener" class="share-btn-whatsapp">
           <i class="fab fa-whatsapp"></i>
         </a>
       </li>
@@ -522,7 +518,7 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
       
       
       <li>
-        <a href="https://service.weibo.com/share/share.php?url=https://desh2608.github.io/post/delta-feats/&amp;title=A%20note%20on%20MFCCs%20and%20delta%20features" target="_blank" rel="noopener" class="share-btn-weibo">
+        <a href="https://service.weibo.com/share/share.php?url=https://desh2608.github.io/post/acl2019/&amp;title=ACL%202010:%20Notes%20from%20an%20ASR%20perspective" target="_blank" rel="noopener" class="share-btn-weibo">
           <i class="fab fa-weibo"></i>
         </a>
       </li>
@@ -560,187 +556,176 @@ What are MFCCs and how are they computed? Feature extraction is the first step i
     <div class="article-style" itemprop="articleBody">
       
 
-<p>In this post, I will briefly describe the MFCC features for ASR systems, and the use of delta coefficients. I then talk about how this is approximated in <a href="https://github.com/kaldi-asr/kaldi" target="_blank">Kaldi</a> using an LDA-like transform, and finally mention some recent experimental results to replace the LDA with traditional delta features without losing out on performance in terms of WER.</p>
-
-<h3 id="what-are-mfccs-and-how-are-they-computed">What are MFCCs and how are they computed?</h3>
-
-<p>Feature extraction is the first step in any automatic speech recognition (ASR) pipeline. The objective is to compute features from speech waveforms which contain relevant information about the linguistic content of the speech, and ignore information about the background noise, emotions, etc. This problem has been extensively studied since early days in ASR research, and several feature extraction methods have been proposed. Among these, the most well-known and widely used are Mel Frequency Cepstral Coefficients (MFCCs).</p>
-
-<p>Since MFCCs are very well known, I will only briefly describe their computation in this post. Most of this is taken from <a href="http://practicalcryptography.com/miscellaneous/machine-learning/guide-mel-frequency-cepstral-coefficients-mfccs/" target="_blank">this blog</a>, which explains them in some detail. The key steps for computing MFCCs are described below.</p>
+<p>I did not attend ACL 2019 in Florence, Italy. I did, however, go through several videos (all the videos of oral presentations are available <a href="https://www.livecongress.it/sved/evt/aol_lnk.php?id=60B5FD70&amp;fbclid=IwAR1DGPctWkvGpXSwIRyyLfse4jqwXI0Kqw1SIpvA6jPLu0ld3IefPWlYtdk" target="_blank">here</a>), and here are some notes from the ones I found interesting or relevant to my research. My comments are in <span style="color:red"><em>red italic</em></span>. Since I work on speech recognition, most of the work related to NLP tasks is not relevant to me, so this post is definitely biased that way. Here are the broad categories:</p>
 
 <ol>
-<li><p>First, the entire waveform is divided into shorter segments of 20-40 ms each. The assumption is that in this short segment, the signal is statistically stationary, and so features can be assumed to be constant inside this window. In Kaldi and most major ASR systems, windows are 25 ms in length and at 10 ms intervals apart, i.e., they are overlapping.</p></li>
-
-<li><p>In order to recognize the frequencies present in this short segment, the power spectrum (or the <a href="https://en.wikipedia.org/wiki/Periodogram" target="_blank">periodogram</a> estimate) is computed. This is done using discrete-time Fourier transforms.</p></li>
-
-<li><p>It is difficult to distinguish individual frequencies in the raw power spectrum, especially in the high frequency range. To solve this problem, the spectrum is convolved with several (20-40, in general) triangular Mel filters, called a filterbank. These filters are narrow at low frequency and get wider as frequency increases, in accordance with the human cochlea. Furthermore, a log transform is applied since humans don&rsquo;t perceive loudness on a linear scale.</p></li>
-
-<li><p>Since filterbank energies are correlated and cannot be used directly with a Gaussian mixture with diagonal covariance, we apply a <a href="https://en.wikipedia.org/wiki/Discrete_cosine_transform" target="_blank">discrete cosine transform (DCT)</a> to decorrelate them.</p></li>
+<li><a href="#e2espeech">End-to-end speech translation</a></li>
+<li><a href="#lm">Language modeling</a></li>
+<li><a href="#attention">Analysis of attention models</a></li>
 </ol>
 
-<p>There is some debate in the community regarding the use of the DCT, instead of directly using the log Mel fiterbank features, particularly for deep neural network based acoustic models. Some research groups, like Google, use filterbanks (fbanks) while Kaldi mostly uses MFCCs, especially in its TDNN chain models. Here is <a href="https://www.danielpovey.com/" target="_blank">Dan Povey</a>&rsquo;s take on this:</p>
+<hr />
 
-<blockquote>
-<p>The reason we use MFCC is because they are more easily compressible, being decorrelated; we dump them to disk
-with compression to 1 byte per coefficient.  But we dump all the coefficients, so it&rsquo;s equivalent to filterbanks times a full-rank matrix, no information is lost.</p>
+<p><a name="e2espeech"></a></p>
 
-<p>(Source: <a href="https://groups.google.com/forum/#!topic/kaldi-help/_7hB74HKhC4" target="_blank">kaldi-help</a>)</p>
-</blockquote>
+<h2 id="end-to-end-speech-translation">End-to-end speech translation</h2>
 
-<h3 id="delta-and-delta-delta-features">Delta and delta-delta features</h3>
+<p><strong>1. Exploring Phoneme-Level Speech Representations for End-to-End Speech Translation</strong></p>
 
-<p>The idea behind using delta (differential) and delta-delta (acceleration) coefficients is that in order to recognize speech better, we need to understand the dynamics of the power spectrum, i.e., the trajectories of MFCCs over time. The delta coeffients are computed using the following formula.</p>
+<p><em><strong>Elizabeth Salesky</strong>, Matthias Sperber, Alan W Black</em></p>
 
-<p>$$ d_t = \frac{\sum_{n=1}^N n (c_{t+n} - c_{t-n})}{2 \sum_{n=1}^N n^2}, $$
-where $d_t$ is a delta coefficient from frame $t$ computed in terms of the static coefficients $c_{t-n}$ to $c_{t+n}$. $n$ is usually taken to be 2. The acceleration coefficients are computed similarly, but using the differential instead of the static coefficients.</p>
+<p><a href="https://arxiv.org/abs/1906.01199" target="_blank">[Paper]</a> <a href="http://www.livecongress.it/aol/indexSA.php?id=585723E1&amp;ticket=" target="_blank">[Video]</a></p>
 
-<h3 id="the-lda-transform-in-kaldi">The LDA transform in Kaldi</h3>
+<ul>
+<li>The task is end-to-end speech translation, i.e., given speech in one language, say Spanish, get translated text in a different language, say English.</li>
+<li>The problem is that the feature sequence is usually too long, e.g. a few thousand frames. Traditionally, like in the LAS model, a pyramidal encoder is used.</li>
+<li><em>Can we use linguistic information?</em> Yes!</li>
+<li>Divide input sequence into segments corresponding to phoneme boundaries and then average these segments. Advantages: better BLEU score + shorter input.</li>
+<li><em>How to get the phoneme boundaries?</em> Use an ASR system (need not be very good, or even from the same language, since we just need boundaries).</li>
+<li>Results: Gives consistent improvements in both low-resource and high-resource situations. But this is still not as good as a cascaded speech translation system (i.e. ASR+MT).</li>
+<li><span style="color:red"><em>May be interesting to see if this method works for end-to-end ASR systems in general.</em></span></li>
+</ul>
 
-<blockquote>
-<p>For a comprehensive reference on LDA, readers are advised to refer to <a href="https://sebastianraschka.com/Articles/2014_python_lda.html#what-is-a-good-feature-subspace" target="_blank">this post</a>.</p>
-</blockquote>
+<p><strong>2. Attention-Passing Models for Robust and Data-Efficient End-to-End Speech Translation</strong></p>
 
-<p>The latest TDNN-based chain models in Kaldi (see, for example, <a href="https://github.com/kaldi-asr/kaldi/blob/06442e1870996486cb052fdd89d63aac44144b87/egs/wsj/s5/local/chain/tuning/run_tdnn_1g.sh#L188" target="_blank">this recipe</a>) do not use differential and acceleration features (hereby refered to as &ldquo;delta features&rdquo; for convenience). Instead, they employ an LDA-like transformation which is essentially an affine transformation of the spliced input. Here is a sample from the xconfig of a typical Kaldi TDNN model:</p>
+<p><em><strong>Matthias Sperber</strong>, Graham Neubig, Jan Niehues, Alex Waibel</em></p>
 
-<pre><code>input dim=100 name=ivector
-input dim=40 name=input
-# please note that it is important to have input layer with the name=input
-# as the layer immediately preceding the fixed-affine-layer to enable
-# the use of short notation for the descriptor
-fixed-affine-layer name=lda input=Append(-1,0,1,ReplaceIndex(ivector, t, 0)) affine-transform-file=$dir/configs/lda.mat
-# the first splicing is moved before the lda layer, so no splicing here
-relu-batchnorm-dropout-layer name=tdnn1 $tdnn_opts dim=1024
-tdnnf-layer name=tdnnf2 $tdnnf_opts dim=1024 bottleneck-dim=128 time-stride=1
-tdnnf-layer name=tdnnf3 $tdnnf_opts dim=1024 bottleneck-dim=128 time-stride=1
-</code></pre>
+<p><a href="https://arxiv.org/abs/1904.07209" target="_blank">[Paper]</a> <a href="http://www.livecongress.it/aol/indexSA.php?id=F2B54A73&amp;ticket=" target="_blank">[Video]</a></p>
 
-<p>This splicing can be over 1 or 2 frames on either side of the central frame, i.e. <code>Append(-1,0,1)</code> or <code>Append(-2,-1,0,1,2)</code>. Additionally, <a href="https://ieeexplore.ieee.org/document/5545402" target="_blank">i-vectors</a> are appended with the spliced input before the LDA. Although Kaldi itself has an <a href="https://kaldi-asr.org/doc/transform.html#transform_lda" target="_blank">implementation of the LDA transform</a> available, the transformation here simply multiplies the spliced input with a full-rank matrix. This is why this is called an &ldquo;LDA-like&rdquo;, and not an LDA transform.</p>
+<ul>
+<li>Lots of ASR and MT parallel data are available, but not so much for speech translation, so using a &ldquo;direct model&rdquo; may not be ideal.</li>
+<li>Auxiliary data can be incorporated, e.g., by using an encoder from an ASR system and decoder from an MT system. But this results in poor data efficiency.</li>
+<li>Two-stage model: similar to cascaded model but trained in end-to-end manner. So error propagation is an issue.</li>
+<li>Proposed: attention-passing model. Idea: <em>instead of passing hidden decoder state, pass the attention context vector.</em></li>
+<li>Results: better than other models, and does not reduce much even if end-to-end data is reduced.</li>
+</ul>
 
-<h3 id="some-new-results">Some new results</h3>
+<p><img src="paper2.png" alt="" /></p>
 
-<p>In some sense, this LDA-like transform is a generalization of using the delta features, since it can apply arbitrary scaling to each coefficient, and this matrix is learned in the training stage. However, this means having to additionally learn $(k \times n+d)^2$ parameters, where $k$ is the splicing window, $n$ is the MFCC size, and $d$ is the i-vector dimensionality. For typical values of $k$, $n$, and $d$, this is in the range of 50000 to 90000 parameters. While this is not a &ldquo;huge&rdquo; number compared to the size of modern deep networks (a typical TDNN model in Kaldi may have up to 10 million parameters), we would still like to see if this is disposable.</p>
+<hr />
 
-<p>I replaced the LDA transform with simple delta features. In the context of our input, the differential is simply $c_{t+1} - c_{t-1}$, and the acceleration is $c_{t-2} + c_{t+2} - 2\times c_t$. This is implemented using a new <code>xconfig</code> layer called <code>delta-layer</code> as follows.</p>
+<p><a name="lm"></a></p>
 
-<pre><code>class XconfigDeltaLayer(XconfigLayerBase):
-    &quot;&quot;&quot;This class is for parsing lines like
-     'delta-layer name=delta input=idct'
-    which appends the central frame with the delta features
-    (i.e. -1,0,1 since scale equals 1) and delta-delta features 
-    (i.e. 1,0,-2,0,1), and then applies batchnorm to it.
-    Parameters of the class, and their defaults:
-      input='[-1]'             [Descriptor giving the input of the layer]
-    &quot;&quot;&quot;
-    def __init__(self, first_token, key_to_value, prev_names=None):
-        XconfigLayerBase.__init__(self, first_token, key_to_value, prev_names)
+<h2 id="language-modeling">Language modeling</h2>
 
-    def set_default_configs(self):
-        self.config = {'input': '[-1]'}
+<p><strong>3. Interpolated Spectral N-gram Language Models</strong></p>
 
-    def check_configs(self):
-        pass
+<p><em>Ariadna Quattoni, <strong>Xavier Carreras</strong></em></p>
 
-    def output_name(self, auxiliary_output=None):
-        assert auxiliary_output is None
-        return self.name
+<p><a href="https://www.aclweb.org/anthology/papers/P/P19/P19-1594/" target="_blank">[Paper]</a> <a href="http://www.livecongress.it/aol/indexSA.php?id=2DC7FDF7&amp;ticket=" target="_blank">[Video]</a></p>
 
-    def output_dim(self, auxiliary_output=None):
-        assert auxiliary_output is None
-        input_dim = self.descriptors['input']['dim']
-        return (3*input_dim)
+<ul>
+<li>Revisit spectral learning with 2 novelties: (i) capture long range dependencies and (ii) matching task evaluation metric with RNNs.</li>
+<li>Wait, but what is <strong>spectral learning</strong>? A method to learn the underlying weighted automata that generated any given set of sequences.</li>
+<li>How is it used in LM?
 
-    def get_full_config(self):
-        ans = []
-        config_lines = self._generate_config()
+<ol>
+<li>Create the Hankel matrix from the training set.</li>
+<li>Compute SVD of this matrix $H = P\cdot S$. (<em>computational bottleneck</em>)</li>
+<li>Recover WA: $ A_{\sigma} = P^+ H_{\sigma} S^+$.</li>
+</ol></li>
+<li>How to capture long-range dependencies? Use bigger n-grams. But this would explode the Hankel matrix! Solution: the basis selection algorithm in <a href="http://proceedings.mlr.press/v54/quattoni17a.html" target="_blank">this paper</a> (from the same group).</li>
+<li>But this is still worse than vanilla RNN. Issue: mismatch between training loss (L2 loss over Hankel reconstruction) and evaluation metric! RNNs optimize conditional cross-entropy which matches perplexity.</li>
+<li>Solution: train interpolation weights using a log-linear model:</li>
+</ul>
 
-        for line in config_lines:
-            for config_name in ['ref', 'final']:
-                # we do not support user specified matrices in this layer
-                # so 'ref' and 'final' configs are the same.
-                ans.append((config_name, line))
-        return ans
+<p>$$ g\left(x_{1 : n}, \sigma\right)=\exp \left[ \sum_{j=0}^{n-1} w_{\sigma, j} \log f\left(x_{n-j : n} \cdot \sigma\right) \right] $$</p>
 
-    def _generate_config(self):
-        # by 'descriptor_final_string' we mean a string that can appear in
-        # config-files, i.e. it contains the 'final' names of nodes.
-        input_desc = self.descriptors['input']['final-string']
-        input_dim = self.descriptors['input']['dim']
-        output_dim = self.output_dim()
+<ul>
+<li><span style="color:red"><em>Currently in ASR systems, RNNLM rescoring is done since neural LMs are difficult to incorporate in the WFST-based system directly. Perhaps spectral n-gram models in the decoder can avoid the need for rescoring?</em></span></li>
+</ul>
 
-        configs = []
-        line = ('dim-range-node name={0}_copy1 input-node={0} dim={1} dim-offset=0'.format(
-            input_desc, input_dim))
-        configs.append(line)
-        line = ('dim-range-node name={0}_copy2 input-node={0} dim={1} dim-offset=0'.format(
-            input_desc, input_dim))
-        configs.append(line)
+<p><strong>4. What Kind of Language Is Hard to Language-Model?</strong></p>
 
-        line = ('component name={0}_2 type=NoOpComponent dim={1}'.format(
-            input_desc, output_dim))
-        configs.append(line)
-        line = ('component-node name={0}_2 component={0}_2 input=Append(Offset({0},0),'
-            ' Sum(Offset(Scale(-1.0,{0}_copy1),-1), Offset({0},1)), Sum(Offset({0},-2), Offset({0},2),' 
-            ' Offset(Scale(-2.0,{0}_copy2),0)))'.format(input_desc))
-        configs.append(line)
+<p><em><strong>Sebastian J. Mielke</strong>, Ryan Cotterell, Kyle Gorman, Brian Roark, Jason Eisner</em></p>
 
-        line = ('component name={0} type=BatchNormComponent dim={1}'.format(
-            self.name, output_dim))
-        configs.append(line)
-        line = ('component-node name={0} component={0} input={1}_2'.format(
-            self.name, input_desc))
-        configs.append(line)
-        return configs
-</code></pre>
+<p><a href="https://arxiv.org/pdf/1906.04726.pdf" target="_blank">[Paper]</a> <a href="http://www.livecongress.it/aol/indexSA.php?id=B81745A7&amp;ticket=" target="_blank">[Video]</a></p>
 
-<p>The following are some experimental results on <code>mini_librispeech</code>, <code>wsj</code> (Wall Street Journal), and <code>swbd</code> (Switchboard). The i-vector scale was reduced for <code>mini_librispeech</code> since the delta features are computed on top of a <a href="https://arxiv.org/abs/1904.08779" target="_blank">SpecAugment</a> layer, which itself includes batch normalization. Therefore, using an i-vector scale of 1.0 would overpower the MFCCs.</p>
+<ul>
+<li>What factors in a language make it harder to model?</li>
+<li>Wait, but first, what is <em>difficulty</em>?
 
-<table>
-<thead>
-<tr>
-<th>Setup</th>
-<th>Test set</th>
-<th>IDCT</th>
-<th>SpecAugment</th>
-<th>i-vector scale</th>
-<th>LDA</th>
-<th>Delta</th>
-</tr>
-</thead>
+<ol>
+<li>Surprisal, i.e. negative log probability of the string.</li>
+<li>But this is not fair - we are comparing sentences with different contents/style/topic. So we need to work on parallel sentences.</li>
+</ol></li>
+<li>Work on 69 languages from 13 language families.</li>
+<li>Two rules:
 
-<tbody>
-<tr>
-<td>mini_librispeech</td>
-<td>dev_clean2</td>
-<td>Y</td>
-<td>Y</td>
-<td>0.5</td>
-<td>7.54</td>
-<td>7.66</td>
-</tr>
+<ol>
+<li>Open vocabulary - because using UNKs is cheating.</li>
+<li>Total bits as score; no normalization per word or character.</li>
+</ol></li>
+<li>How to aggregate scores across the whole set?
 
-<tr>
-<td>wsj</td>
-<td>eval92</td>
-<td>Y</td>
-<td>N</td>
-<td>1.0</td>
-<td>2.39</td>
-<td>2.41</td>
-</tr>
+<ol>
+<li>Just take average. Problem: in missing data cases.</li>
+<li>&ldquo;Mixed effects model&rdquo;: $y_{2,de} \sim n_2\cdot \exp d_{de}$, where $y_{2,de}$ is the score for string 2 on German, $n_2$ is the average score of string 2 for all languages, and $d_{de}$ is the average score of German for all strings. Any probabilistic model can be used for this, but MAP works well enough.</li>
+</ol></li>
+<li>BPE-RNNLM model used. How many merges is optimum? Answer: language-dependent. But 40% (average optimum across the board) turns out to works well enough.</li>
+<li>What correlates with difficulty? Several factors (morphology, subject/verb order, average dependency length) tried, but no visible correlation.</li>
+<li>Very simple heuristics are predictive. E.g. raw sequence length predicts char-RNNLM difficulty, raw vocabulary size predicts BPE-RNNLM difficulty.</li>
+<li>Translationese is not any easier than the native language.</li>
+</ul>
 
-<tr>
-<td>swbd</td>
-<td>rt03</td>
-<td>N</td>
-<td>N</td>
-<td>1.0</td>
-<td>15.0</td>
-<td>15.0</td>
-</tr>
-</tbody>
-</table>
+<hr />
 
-<p>These results are for a particular test set for these setups, and for a specific decoder, but the general trend of results is found to be the same across all test set and decoder combinations. Without significant loss in performance, we can eliminate the need of an LDA transform in the network. Work on a <a href="https://github.com/kaldi-asr/kaldi/pull/3490/files" target="_blank">pull request</a> for this setup is in progress.</p>
+<p><a name="attention"></a></p>
+
+<h2 id="analysis-of-attention-models">Analysis of attention models</h2>
+
+<p><strong>5. Is Attention Interpretable?</strong></p>
+
+<p><em><strong>Sofia Serrano</strong>, Noah A. Smith</em></p>
+
+<p><a href="https://arxiv.org/pdf/1906.03731.pdf" target="_blank">[Paper]</a> <a href="http://www.livecongress.it/aol/indexSA.php?id=4D89B893&amp;ticket=" target="_blank">[Video]</a></p>
+
+<ul>
+<li>Usually in an attention-based classifier, we take the attention weights to find which words were considered important by the classifier to predict the output. What can go wrong here?
+
+<ol>
+<li>Overemphasizes influence of few representations</li>
+<li>Worse than other orderings of importance</li>
+<li>Not necessarily where decision was made</li>
+</ol></li>
+<li><em>Interpretability</em>: How well do attention weights represent the importance of inputs given to attention layer for the model output?</li>
+<li>Where does this problem come from? Disconnect between attention weights criteria and model output criteria.</li>
+<li>Method: zero out attention weights from highest to lowest, and renormalize. Do this until decision changes. Compute % of attention weights zeroed.</li>
+<li>Model: Single-layer bidirectional GRU with attention, followed by linear classifier.</li>
+<li>Result: &gt;90% need to be zeroed before decision changes!</li>
+<li>What about random order of zeroing? Almost 100% need to be zeroed, so attention is actually doing something.</li>
+<li>Alternative orderings: (i) by gradient of decision function, (ii) gradient weighted by attention weight magnitude.</li>
+<li>Result: &lt;50% need to be zeroed.</li>
+<li>Effect of encoder structure: For CNN encoder, and no encoder (word embedding fed directly into attention layer), % of weights required to be zeroed is much lower (&lt; 25% even for max-to-min ordering).</li>
+<li><span style="color:red"><em>This last result is not out of the blue. RNN encoders tie the input representations to the attention layer more strongly, so zeroing out one weight would have lower impact.</em></span></li>
+</ul>
+
+<p><strong>6. Analyzing Multi-Head Self-Attention: Specialized Heads do the Heavy Lifting, the Rest can be Pruned</strong></p>
+
+<p><em><strong>Elena Voita</strong>, David Talbot, Fedor Moiseev, Rico Sennrich, Ivan Titov</em></p>
+
+<p><a href="https://arxiv.org/pdf/1905.09418.pdf" target="_blank">[Paper]</a> <a href="http://www.livecongress.it/aol/indexSA.php?id=9FB3FACA&amp;ticket=" target="_blank">[Video]</a></p>
+
+<ul>
+<li>How important are different attention heads in a multi-head self-attention model? What are their individual roles?</li>
+<li>Task: MT. Method:
+
+<ol>
+<li>Layer-wise relevance propagation. Head relevance is sum of relevance of neurons, where relevance is the attention weight</li>
+<li>Confidence: maximum attention weight of an attention head.</li>
+</ol></li>
+<li>Result: only a few heads are more important in terms of relevance and confidence.</li>
+<li>Roles of heads? 1. Syntactic 2. Positional 3. Rare tokens</li>
+<li>Syntactic heads are present in most languages.</li>
+<li>In &gt; 50% cases, at least one head gives maximum attention to least frequent (rare) tokens.</li>
+<li>How to prune heads which are not important? While concatenating attention heads, multiply them by a scalar gate. Ideally, we would like to have L0-regularization on these, but it is not differentiable. Solution: use a stochastic approximation.</li>
+<li>Even on pruning to 25% of original number, the roles are still alive.</li>
+<li>Problem: can prune to small number, but <em>cannot start from this configuration</em>.</li>
+</ul>
+
+<hr />
+
+<p>In particular, I find the work on spectral learning for LMs very interesting and I hope to discuss it in more detail in upcoming blogs. Several of the papers analyzing attention models may be relevant for people working in end-to-end ASR models as well.</p>
 
     </div>
 
@@ -751,11 +736,9 @@ tdnnf-layer name=tdnnf3 $tdnnf_opts dim=1024 bottleneck-dim=128 time-stride=1
 
 <div class="article-tags">
   
-  <a class="badge badge-light" href="/tags/speech-recognition/">speech-recognition</a>
+  <a class="badge badge-light" href="/tags/nlp/">nlp</a>
   
-  <a class="badge badge-light" href="/tags/kaldi/">kaldi</a>
-  
-  <a class="badge badge-light" href="/tags/mfcc/">mfcc</a>
+  <a class="badge badge-light" href="/tags/acl/">acl</a>
   
 </div>
 
@@ -882,18 +865,6 @@ tdnnf-layer name=tdnnf3 $tdnnf_opts dim=1024 bottleneck-dim=128 time-stride=1
 
       
       
-      <div class="article-widget">
-        <div class="hr-light"></div>
-        <h3>Related</h3>
-        <ul>
-          
-          <li><a href="/post/chain/">On lattice free MMI and Chain models in Kaldi</a></li>
-          
-          <li><a href="/post/subword-segmentation/">Experiments with Subword Modeling</a></li>
-          
-        </ul>
-      </div>
-      
     
 
     
@@ -904,15 +875,8 @@ tdnnf-layer name=tdnnf3 $tdnnf_opts dim=1024 bottleneck-dim=128 time-stride=1
   
   
   <div class="post-nav-item">
-    <div class="meta-nav">Next</div>
-    <a href="/post/acl2019/" rel="next">ACL 2010: Notes from an ASR perspective</a>
-  </div>
-  
-  
-  
-  <div class="post-nav-item">
     <div class="meta-nav">Previous</div>
-    <a href="/post/chain/" rel="prev">On lattice free MMI and Chain models in Kaldi</a>
+    <a href="/post/delta-feats/" rel="prev">A note on MFCCs and delta features</a>
   </div>
   
 </div>

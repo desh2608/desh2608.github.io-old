@@ -85,14 +85,14 @@
     </item>
     
     <item>
-      <title>ACL 2020: Notes from an ASR perspective</title>
-      <link>https://desh2608.github.io/post/acl2020/</link>
+      <title>ACL 2010: Notes from an ASR perspective</title>
+      <link>https://desh2608.github.io/post/acl2019/</link>
       <pubDate>Thu, 01 Aug 2019 13:56:11 -0400</pubDate>
       
-      <guid>https://desh2608.github.io/post/acl2020/</guid>
+      <guid>https://desh2608.github.io/post/acl2019/</guid>
       <description>
 
-&lt;p&gt;I did not attend ACL 2020 in Florence, Italy. I did, however, go through several videos (all the videos of oral presentations are available &lt;a href=&#34;https://www.livecongress.it/sved/evt/aol_lnk.php?id=60B5FD70&amp;amp;fbclid=IwAR1DGPctWkvGpXSwIRyyLfse4jqwXI0Kqw1SIpvA6jPLu0ld3IefPWlYtdk&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;), and here are some notes from the ones I found interesting or relevant to my research. My comments are in &lt;span style=&#34;color:red&#34;&gt;&lt;em&gt;red italic&lt;/em&gt;&lt;/span&gt;. Since I work on speech recognition, most of the work related to NLP tasks is not relevant to me, so this post is definitely biased that way. Here are the broad categories:&lt;/p&gt;
+&lt;p&gt;I did not attend ACL 2019 in Florence, Italy. I did, however, go through several videos (all the videos of oral presentations are available &lt;a href=&#34;https://www.livecongress.it/sved/evt/aol_lnk.php?id=60B5FD70&amp;amp;fbclid=IwAR1DGPctWkvGpXSwIRyyLfse4jqwXI0Kqw1SIpvA6jPLu0ld3IefPWlYtdk&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;), and here are some notes from the ones I found interesting or relevant to my research. My comments are in &lt;span style=&#34;color:red&#34;&gt;&lt;em&gt;red italic&lt;/em&gt;&lt;/span&gt;. Since I work on speech recognition, most of the work related to NLP tasks is not relevant to me, so this post is definitely biased that way. Here are the broad categories:&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;&lt;a href=&#34;#e2espeech&#34;&gt;End-to-end speech translation&lt;/a&gt;&lt;/li&gt;
