@@ -18,24 +18,41 @@
   </url>
   
   <url>
-    <loc>https://desh2608.github.io/post/delta-feats/</loc>
-    <lastmod>2019-07-27T09:47:50-04:00</lastmod>
+    <loc>https://desh2608.github.io/post/acl2020/</loc>
+    <lastmod>2019-08-01T13:56:11-04:00</lastmod>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/</loc>
-    <lastmod>2019-07-27T09:47:50-04:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://desh2608.github.io/tags/kaldi/</loc>
-    <lastmod>2019-07-27T09:47:50-04:00</lastmod>
+    <lastmod>2019-08-01T13:56:11-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://desh2608.github.io/tags/</loc>
+    <lastmod>2019-08-01T13:56:11-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://desh2608.github.io/tags/acl/</loc>
+    <lastmod>2019-08-01T13:56:11-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://desh2608.github.io/tags/nlp/</loc>
+    <lastmod>2019-08-01T13:56:11-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://desh2608.github.io/post/delta-feats/</loc>
+    <lastmod>2019-07-27T09:47:50-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://desh2608.github.io/tags/kaldi/</loc>
     <lastmod>2019-07-27T09:47:50-04:00</lastmod>
     <priority>0</priority>
   </url>

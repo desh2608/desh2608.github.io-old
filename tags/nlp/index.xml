@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>nlp on Desh Raj</title>
+    <link>https://desh2608.github.io/tags/nlp/</link>
+    <description>Recent content in nlp on Desh Raj</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator>
+    <language>en-us</language>
+    <copyright>&amp;copy; 2019</copyright>
+    <lastBuildDate>Thu, 01 Aug 2019 13:56:11 -0400</lastBuildDate>
+    
+	    <atom:link href="https://desh2608.github.io/tags/nlp/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>ACL 2020: Notes from an ASR perspective</title>
+      <link>https://desh2608.github.io/post/acl2020/</link>
+      <pubDate>Thu, 01 Aug 2019 13:56:11 -0400</pubDate>
+      
+      <guid>https://desh2608.github.io/post/acl2020/</guid>
+      <description>
+
+&lt;p&gt;I did not attend ACL 2020 in Florence, Italy. I did, however, go through several videos (all the videos of oral presentations are available &lt;a href=&#34;https://www.livecongress.it/sved/evt/aol_lnk.php?id=60B5FD70&amp;amp;fbclid=IwAR1DGPctWkvGpXSwIRyyLfse4jqwXI0Kqw1SIpvA6jPLu0ld3IefPWlYtdk&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;), and here are some notes from the ones I found interesting or relevant to my research. My comments are in &lt;span style=&#34;color:red&#34;&gt;&lt;em&gt;red italic&lt;/em&gt;&lt;/span&gt;. Since I work on speech recognition, most of the work related to NLP tasks is not relevant to me, so this post is definitely biased that way. Here are the broad categories:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&#34;#e2espeech&#34;&gt;End-to-end speech translation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#lm&#34;&gt;Language modeling&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#attention&#34;&gt;Analysis of attention models&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a name=&#34;e2espeech&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;end-to-end-speech-translation&#34;&gt;End-to-end speech translation&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;1. Exploring Phoneme-Level Speech Representations for End-to-End Speech Translation&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Elizabeth Salesky&lt;/strong&gt;, Matthias Sperber, Alan W Black&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/abs/1906.01199&#34; target=&#34;_blank&#34;&gt;[Paper]&lt;/a&gt; &lt;a href=&#34;http://www.livecongress.it/aol/indexSA.php?id=585723E1&amp;amp;ticket=&#34; target=&#34;_blank&#34;&gt;[Video]&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;The task is end-to-end speech translation, i.e., given speech in one language, say Spanish, get translated text in a different language, say English.&lt;/li&gt;
+&lt;li&gt;The problem is that the feature sequence is usually too long, e.g. a few thousand frames. Traditionally, like in the LAS model, a pyramidal encoder is used.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Can we use linguistic information?&lt;/em&gt; Yes!&lt;/li&gt;
+&lt;li&gt;Divide input sequence into segments corresponding to phoneme boundaries and then average these segments. Advantages: better BLEU score + shorter input.&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;How to get the phoneme boundaries?&lt;/em&gt; Use an ASR system (need not be very good, or even from the same language, since we just need boundaries).&lt;/li&gt;
+&lt;li&gt;Results: Gives consistent improvements in both low-resource and high-resource situations. But this is still not as good as a cascaded speech translation system (i.e. ASR+MT).&lt;/li&gt;
+&lt;li&gt;&lt;span style=&#34;color:red&#34;&gt;&lt;em&gt;May be interesting to see if this method works for end-to-end ASR systems in general.&lt;/em&gt;&lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;2. Attention-Passing Models for Robust and Data-Efficient End-to-End Speech Translation&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Matthias Sperber&lt;/strong&gt;, Graham Neubig, Jan Niehues, Alex Waibel&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/abs/1904.07209&#34; target=&#34;_blank&#34;&gt;[Paper]&lt;/a&gt; &lt;a href=&#34;http://www.livecongress.it/aol/indexSA.php?id=F2B54A73&amp;amp;ticket=&#34; target=&#34;_blank&#34;&gt;[Video]&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Lots of ASR and MT parallel data are available, but not so much for speech translation, so using a &amp;ldquo;direct model&amp;rdquo; may not be ideal.&lt;/li&gt;
+&lt;li&gt;Auxiliary data can be incorporated, e.g., by using an encoder from an ASR system and decoder from an MT system. But this results in poor data efficiency.&lt;/li&gt;
+&lt;li&gt;Two-stage model: similar to cascaded model but trained in end-to-end manner. So error propagation is an issue.&lt;/li&gt;
+&lt;li&gt;Proposed: attention-passing model. Idea: &lt;em&gt;instead of passing hidden decoder state, pass the attention context vector.&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Results: better than other models, and does not reduce much even if end-to-end data is reduced.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;img src=&#34;paper2.png&#34; alt=&#34;&#34; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a name=&#34;lm&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;language-modeling&#34;&gt;Language modeling&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;3. Interpolated Spectral N-gram Language Models&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Ariadna Quattoni, &lt;strong&gt;Xavier Carreras&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.aclweb.org/anthology/papers/P/P19/P19-1594/&#34; target=&#34;_blank&#34;&gt;[Paper]&lt;/a&gt; &lt;a href=&#34;http://www.livecongress.it/aol/indexSA.php?id=2DC7FDF7&amp;amp;ticket=&#34; target=&#34;_blank&#34;&gt;[Video]&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Revisit spectral learning with 2 novelties: (i) capture long range dependencies and (ii) matching task evaluation metric with RNNs.&lt;/li&gt;
+&lt;li&gt;Wait, but what is &lt;strong&gt;spectral learning&lt;/strong&gt;? A method to learn the underlying weighted automata that generated any given set of sequences.&lt;/li&gt;
+&lt;li&gt;How is it used in LM?
+
+&lt;ol&gt;
+&lt;li&gt;Create the Hankel matrix from the training set.&lt;/li&gt;
+&lt;li&gt;Compute SVD of this matrix $H = P\cdot S$. (&lt;em&gt;computational bottleneck&lt;/em&gt;)&lt;/li&gt;
+&lt;li&gt;Recover WA: $ A_{\sigma} = P^+ H_{\sigma} S^+$.&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;How to capture long-range dependencies? Use bigger n-grams. But this would explode the Hankel matrix! Solution: the basis selection algorithm in &lt;a href=&#34;http://proceedings.mlr.press/v54/quattoni17a.html&#34; target=&#34;_blank&#34;&gt;this paper&lt;/a&gt; (from the same group).&lt;/li&gt;
+&lt;li&gt;But this is still worse than vanilla RNN. Issue: mismatch between training loss (L2 loss over Hankel reconstruction) and evaluation metric! RNNs optimize conditional cross-entropy which matches perplexity.&lt;/li&gt;
+&lt;li&gt;Solution: train interpolation weights using a log-linear model:&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;$$ g\left(x_{1 : n}, \sigma\right)=\exp \left[ \sum_{j=0}^{n-1} w_{\sigma, j} \log f\left(x_{n-j : n} \cdot \sigma\right) \right] $$&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;span style=&#34;color:red&#34;&gt;&lt;em&gt;Currently in ASR systems, RNNLM rescoring is done since neural LMs are difficult to incorporate in the WFST-based system directly. Perhaps spectral n-gram models in the decoder can avoid the need for rescoring?&lt;/em&gt;&lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;4. What Kind of Language Is Hard to Language-Model?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Sebastian J. Mielke&lt;/strong&gt;, Ryan Cotterell, Kyle Gorman, Brian Roark, Jason Eisner&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1906.04726.pdf&#34; target=&#34;_blank&#34;&gt;[Paper]&lt;/a&gt; &lt;a href=&#34;http://www.livecongress.it/aol/indexSA.php?id=B81745A7&amp;amp;ticket=&#34; target=&#34;_blank&#34;&gt;[Video]&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;What factors in a language make it harder to model?&lt;/li&gt;
+&lt;li&gt;Wait, but first, what is &lt;em&gt;difficulty&lt;/em&gt;?
+
+&lt;ol&gt;
+&lt;li&gt;Surprisal, i.e. negative log probability of the string.&lt;/li&gt;
+&lt;li&gt;But this is not fair - we are comparing sentences with different contents/style/topic. So we need to work on parallel sentences.&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;Work on 69 languages from 13 language families.&lt;/li&gt;
+&lt;li&gt;Two rules:
+
+&lt;ol&gt;
+&lt;li&gt;Open vocabulary - because using UNKs is cheating.&lt;/li&gt;
+&lt;li&gt;Total bits as score; no normalization per word or character.&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;How to aggregate scores across the whole set?
+
+&lt;ol&gt;
+&lt;li&gt;Just take average. Problem: in missing data cases.&lt;/li&gt;
+&lt;li&gt;&amp;ldquo;Mixed effects model&amp;rdquo;: $y_{2,de} \sim n_2\cdot \exp d_{de}$, where $y_{2,de}$ is the score for string 2 on German, $n_2$ is the average score of string 2 for all languages, and $d_{de}$ is the average score of German for all strings. Any probabilistic model can be used for this, but MAP works well enough.&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;BPE-RNNLM model used. How many merges is optimum? Answer: language-dependent. But 40% (average optimum across the board) turns out to works well enough.&lt;/li&gt;
+&lt;li&gt;What correlates with difficulty? Several factors (morphology, subject/verb order, average dependency length) tried, but no visible correlation.&lt;/li&gt;
+&lt;li&gt;Very simple heuristics are predictive. E.g. raw sequence length predicts char-RNNLM difficulty, raw vocabulary size predicts BPE-RNNLM difficulty.&lt;/li&gt;
+&lt;li&gt;Translationese is not any easier than the native language.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;a name=&#34;attention&#34;&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;analysis-of-attention-models&#34;&gt;Analysis of attention models&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;5. Is Attention Interpretable?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Sofia Serrano&lt;/strong&gt;, Noah A. Smith&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1906.03731.pdf&#34; target=&#34;_blank&#34;&gt;[Paper]&lt;/a&gt; &lt;a href=&#34;http://www.livecongress.it/aol/indexSA.php?id=4D89B893&amp;amp;ticket=&#34; target=&#34;_blank&#34;&gt;[Video]&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Usually in an attention-based classifier, we take the attention weights to find which words were considered important by the classifier to predict the output. What can go wrong here?
+
+&lt;ol&gt;
+&lt;li&gt;Overemphasizes influence of few representations&lt;/li&gt;
+&lt;li&gt;Worse than other orderings of importance&lt;/li&gt;
+&lt;li&gt;Not necessarily where decision was made&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;Interpretability&lt;/em&gt;: How well do attention weights represent the importance of inputs given to attention layer for the model output?&lt;/li&gt;
+&lt;li&gt;Where does this problem come from? Disconnect between attention weights criteria and model output criteria.&lt;/li&gt;
+&lt;li&gt;Method: zero out attention weights from highest to lowest, and renormalize. Do this until decision changes. Compute % of attention weights zeroed.&lt;/li&gt;
+&lt;li&gt;Model: Single-layer bidirectional GRU with attention, followed by linear classifier.&lt;/li&gt;
+&lt;li&gt;Result: &amp;gt;90% need to be zeroed before decision changes!&lt;/li&gt;
+&lt;li&gt;What about random order of zeroing? Almost 100% need to be zeroed, so attention is actually doing something.&lt;/li&gt;
+&lt;li&gt;Alternative orderings: (i) by gradient of decision function, (ii) gradient weighted by attention weight magnitude.&lt;/li&gt;
+&lt;li&gt;Result: &amp;lt;50% need to be zeroed.&lt;/li&gt;
+&lt;li&gt;Effect of encoder structure: For CNN encoder, and no encoder (word embedding fed directly into attention layer), % of weights required to be zeroed is much lower (&amp;lt; 25% even for max-to-min ordering).&lt;/li&gt;
+&lt;li&gt;&lt;span style=&#34;color:red&#34;&gt;&lt;em&gt;This last result is not out of the blue. RNN encoders tie the input representations to the attention layer more strongly, so zeroing out one weight would have lower impact.&lt;/em&gt;&lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;6. Analyzing Multi-Head Self-Attention: Specialized Heads do the Heavy Lifting, the Rest can be Pruned&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Elena Voita&lt;/strong&gt;, David Talbot, Fedor Moiseev, Rico Sennrich, Ivan Titov&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1905.09418.pdf&#34; target=&#34;_blank&#34;&gt;[Paper]&lt;/a&gt; &lt;a href=&#34;http://www.livecongress.it/aol/indexSA.php?id=9FB3FACA&amp;amp;ticket=&#34; target=&#34;_blank&#34;&gt;[Video]&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;How important are different attention heads in a multi-head self-attention model? What are their individual roles?&lt;/li&gt;
+&lt;li&gt;Task: MT. Method:
+
+&lt;ol&gt;
+&lt;li&gt;Layer-wise relevance propagation. Head relevance is sum of relevance of neurons, where relevance is the attention weight&lt;/li&gt;
+&lt;li&gt;Confidence: maximum attention weight of an attention head.&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;li&gt;Result: only a few heads are more important in terms of relevance and confidence.&lt;/li&gt;
+&lt;li&gt;Roles of heads? 1. Syntactic 2. Positional 3. Rare tokens&lt;/li&gt;
+&lt;li&gt;Syntactic heads are present in most languages.&lt;/li&gt;
+&lt;li&gt;In &amp;gt; 50% cases, at least one head gives maximum attention to least frequent (rare) tokens.&lt;/li&gt;
+&lt;li&gt;How to prune heads which are not important? While concatenating attention heads, multiply them by a scalar gate. Ideally, we would like to have L0-regularization on these, but it is not differentiable. Solution: use a stochastic approximation.&lt;/li&gt;
+&lt;li&gt;Even on pruning to 25% of original number, the roles are still alive.&lt;/li&gt;
+&lt;li&gt;Problem: can prune to small number, but &lt;em&gt;cannot start from this configuration&lt;/em&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;In particular, I find the work on spectral learning for LMs very interesting and I hope to discuss it in more detail in upcoming blogs. Several of the papers analyzing attention models may be relevant for people working in end-to-end ASR models as well.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
